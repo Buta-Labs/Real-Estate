@@ -1,19 +1,98 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:orre_mmc_app/core/blockchain/blockchain_repository.dart';
+import 'package:orre_mmc_app/core/blockchain/blockchain_result.dart';
 import 'package:orre_mmc_app/theme/app_colors.dart';
 
-class WithdrawScreen extends StatefulWidget {
+class WithdrawScreen extends ConsumerStatefulWidget {
   const WithdrawScreen({super.key});
 
   @override
-  State<WithdrawScreen> createState() => _WithdrawScreenState();
+  ConsumerState<WithdrawScreen> createState() => _WithdrawScreenState();
 }
 
-class _WithdrawScreenState extends State<WithdrawScreen> {
+class _WithdrawScreenState extends ConsumerState<WithdrawScreen> {
   String _selectedAsset = 'USDT';
   final TextEditingController _amountController = TextEditingController();
   final TextEditingController _addressController = TextEditingController();
-  double _balance = 12450.00;
+  final double _balance = 12450.00; // TODO: Fetch real balance
+  bool _isLoading = false;
+
+  // Mock Token Addresses
+  static const String _usdtAddress =
+      '0xc2132D05D31c914a87C6611C10748AEb04B58e8F'; // Polygon USDT
+  static const String _usdcAddress =
+      '0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359'; // Polygon USDC
+
+  Future<void> _handleWithdrawal() async {
+    final amountText = _amountController.text;
+    final address = _addressController.text;
+
+    if (amountText.isEmpty || address.isEmpty) {
+      _showError('Please fill in all fields');
+      return;
+    }
+
+    final amount = double.tryParse(amountText);
+    if (amount == null || amount <= 0) {
+      _showError('Invalid amount');
+      return;
+    }
+
+    if (amount > _balance) {
+      _showError('Insufficient balance');
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    try {
+      final repository = ref.read(blockchainRepositoryProvider);
+
+      // Ensure connected
+      await repository.connectWallet();
+
+      final tokenAddress = _selectedAsset == 'USDT'
+          ? _usdtAddress
+          : _usdcAddress;
+
+      final result = await repository.transferToken(
+        tokenAddress,
+        address,
+        amount,
+        onStatusChanged: (status) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(status),
+              duration: const Duration(seconds: 1),
+            ),
+          );
+        },
+      );
+
+      if (result is Success) {
+        if (mounted) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(const SnackBar(content: Text('Withdrawal Confirmed')));
+          context.pop();
+        }
+      } else if (result is Failure) {
+        _showError('Transfer failed: ${(result as Failure).failure.message}');
+      }
+    } catch (e) {
+      _showError('Unexpected error: $e');
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  void _showError(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message), backgroundColor: Colors.red),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -22,7 +101,7 @@ class _WithdrawScreenState extends State<WithdrawScreen> {
       appBar: AppBar(
         title: const Text('Withdraw Funds'),
         centerTitle: true,
-        backgroundColor: AppColors.backgroundDark.withOpacity(0.9),
+        backgroundColor: AppColors.backgroundDark.withValues(alpha: 0.9),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new, size: 20),
           onPressed: () => context.pop(),
@@ -70,12 +149,12 @@ class _WithdrawScreenState extends State<WithdrawScreen> {
         ),
         Container(
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.05),
+            color: Colors.white.withValues(alpha: 0.05),
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: Colors.white.withOpacity(0.1)),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
           ),
           child: DropdownButtonFormField<String>(
-            value: _selectedAsset,
+            initialValue: _selectedAsset,
             decoration: InputDecoration(
               border: InputBorder.none,
               contentPadding: const EdgeInsets.symmetric(
@@ -150,9 +229,9 @@ class _WithdrawScreenState extends State<WithdrawScreen> {
         ),
         Container(
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.05),
+            color: Colors.white.withValues(alpha: 0.05),
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: Colors.white.withOpacity(0.1)),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
           ),
           child: Row(
             children: [
@@ -175,7 +254,7 @@ class _WithdrawScreenState extends State<WithdrawScreen> {
                   decoration: InputDecoration(
                     hintText: '0.00',
                     hintStyle: TextStyle(
-                      color: Colors.white.withOpacity(0.2),
+                      color: Colors.white.withValues(alpha: 0.2),
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
                     ),
@@ -194,7 +273,7 @@ class _WithdrawScreenState extends State<WithdrawScreen> {
                     _amountController.text = _balance.toString();
                   },
                   style: TextButton.styleFrom(
-                    backgroundColor: AppColors.primary.withOpacity(0.2),
+                    backgroundColor: AppColors.primary.withValues(alpha: 0.2),
                     padding: const EdgeInsets.symmetric(
                       horizontal: 12,
                       vertical: 8,
@@ -239,9 +318,9 @@ class _WithdrawScreenState extends State<WithdrawScreen> {
         ),
         Container(
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.05),
+            color: Colors.white.withValues(alpha: 0.05),
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: Colors.white.withOpacity(0.1)),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
           ),
           child: TextField(
             controller: _addressController,
@@ -261,7 +340,7 @@ class _WithdrawScreenState extends State<WithdrawScreen> {
                   Container(
                     width: 1,
                     height: 24,
-                    color: Colors.white.withOpacity(0.1),
+                    color: Colors.white.withValues(alpha: 0.1),
                   ),
                   IconButton(
                     icon: const Icon(Icons.qr_code_scanner, color: Colors.grey),
@@ -281,9 +360,9 @@ class _WithdrawScreenState extends State<WithdrawScreen> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.05),
+        color: Colors.white.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withOpacity(0.1)),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
       ),
       child: Column(
         children: [
@@ -301,7 +380,7 @@ class _WithdrawScreenState extends State<WithdrawScreen> {
             ],
           ),
           const SizedBox(height: 16),
-          Divider(color: Colors.white.withOpacity(0.1), height: 1),
+          Divider(color: Colors.white.withValues(alpha: 0.1), height: 1),
           const SizedBox(height: 16),
           const Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -331,15 +410,12 @@ class _WithdrawScreenState extends State<WithdrawScreen> {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: AppColors.backgroundDark,
-        border: Border(top: BorderSide(color: Colors.white.withOpacity(0.05))),
+        border: Border(
+          top: BorderSide(color: Colors.white.withValues(alpha: 0.05)),
+        ),
       ),
       child: ElevatedButton(
-        onPressed: () {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(const SnackBar(content: Text('Withdrawal Confirmed')));
-          context.pop();
-        },
+        onPressed: _isLoading ? null : _handleWithdrawal,
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.primary,
           foregroundColor: AppColors.backgroundDark,
@@ -348,17 +424,26 @@ class _WithdrawScreenState extends State<WithdrawScreen> {
             borderRadius: BorderRadius.circular(16),
           ),
         ),
-        child: const Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.lock_outline, size: 20),
-            SizedBox(width: 8),
-            Text(
-              'Confirm Withdrawal',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
-          ],
-        ),
+        child: _isLoading
+            ? const SizedBox(
+                width: 24,
+                height: 24,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation(AppColors.backgroundDark),
+                ),
+              )
+            : const Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.lock_outline, size: 20),
+                  SizedBox(width: 8),
+                  Text(
+                    'Confirm Withdrawal',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                ],
+              ),
       ),
     );
   }

@@ -15,7 +15,7 @@ class SelectAssetScreen extends StatelessWidget {
           style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
         ),
         centerTitle: true,
-        backgroundColor: AppColors.backgroundDark.withOpacity(0.8),
+        backgroundColor: AppColors.backgroundDark.withValues(alpha: 0.8),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new, size: 20),
           onPressed: () => context.pop(),
@@ -35,7 +35,7 @@ class SelectAssetScreen extends StatelessWidget {
               Text(
                 'Choose an asset from your portfolio to trade on the marketplace.',
                 style: TextStyle(
-                  color: Colors.white.withOpacity(0.6),
+                  color: Colors.white.withValues(alpha: 0.6),
                   fontSize: 14,
                 ),
               ),
@@ -90,13 +90,13 @@ class SelectAssetScreen extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
         color: isActive
-            ? AppColors.primary.withOpacity(0.1)
-            : Colors.white.withOpacity(0.05),
+            ? AppColors.primary.withValues(alpha: 0.1)
+            : Colors.white.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
           color: isActive
-              ? AppColors.primary.withOpacity(0.3)
-              : Colors.white.withOpacity(0.05),
+              ? AppColors.primary.withValues(alpha: 0.3)
+              : Colors.white.withValues(alpha: 0.05),
         ),
       ),
       child: Text(
@@ -123,9 +123,9 @@ class SelectAssetScreen extends StatelessWidget {
       onTap: () => context.push('/sell-tokens'),
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.05),
+          color: Colors.white.withValues(alpha: 0.05),
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.white.withOpacity(0.1)),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
         ),
         child: Column(
           children: [
@@ -150,7 +150,7 @@ class SelectAssetScreen extends StatelessWidget {
                         begin: Alignment.bottomCenter,
                         end: Alignment.topCenter,
                         colors: [
-                          Colors.black.withOpacity(0.8),
+                          Colors.black.withValues(alpha: 0.8),
                           Colors.transparent,
                         ],
                       ),
@@ -165,10 +165,10 @@ class SelectAssetScreen extends StatelessWidget {
                         vertical: 4,
                       ),
                       decoration: BoxDecoration(
-                        color: Colors.black.withOpacity(0.6),
+                        color: Colors.black.withValues(alpha: 0.6),
                         borderRadius: BorderRadius.circular(20),
                         border: Border.all(
-                          color: Colors.white.withOpacity(0.1),
+                          color: Colors.white.withValues(alpha: 0.1),
                         ),
                       ),
                       child: Row(
@@ -207,14 +207,14 @@ class SelectAssetScreen extends StatelessWidget {
                           children: [
                             Icon(
                               Icons.location_on,
-                              color: Colors.white.withOpacity(0.7),
+                              color: Colors.white.withValues(alpha: 0.7),
                               size: 14,
                             ),
                             const SizedBox(width: 4),
                             Text(
                               location,
                               style: TextStyle(
-                                color: Colors.white.withOpacity(0.7),
+                                color: Colors.white.withValues(alpha: 0.7),
                                 fontSize: 12,
                               ),
                             ),
@@ -237,7 +237,7 @@ class SelectAssetScreen extends StatelessWidget {
                       Text(
                         'CURRENT VALUE',
                         style: TextStyle(
-                          color: Colors.white.withOpacity(0.5),
+                          color: Colors.white.withValues(alpha: 0.5),
                           fontSize: 10,
                           fontWeight: FontWeight.bold,
                           letterSpacing: 1,
@@ -259,7 +259,7 @@ class SelectAssetScreen extends StatelessWidget {
                       Text(
                         'AVAILABLE',
                         style: TextStyle(
-                          color: Colors.white.withOpacity(0.5),
+                          color: Colors.white.withValues(alpha: 0.5),
                           fontSize: 10,
                           fontWeight: FontWeight.bold,
                           letterSpacing: 1,

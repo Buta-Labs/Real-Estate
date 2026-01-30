@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:orre_mmc_app/theme/app_colors.dart';
+import 'package:orre_mmc_app/features/wallet/providers/wallet_provider.dart';
 
 final walletCurrencyProvider = NotifierProvider<WalletCurrencyNotifier, String>(
   WalletCurrencyNotifier.new,
@@ -37,7 +38,7 @@ class WalletScreen extends ConsumerWidget {
               height: 500,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: AppColors.primary.withOpacity(0.1),
+                color: AppColors.primary.withValues(alpha: 0.1),
               ),
               child: BackdropFilter(
                 filter: ImageFilter.blur(sigmaX: 120, sigmaY: 120),
@@ -53,7 +54,7 @@ class WalletScreen extends ConsumerWidget {
               height: 400,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: AppColors.accentBlue.withOpacity(0.1),
+                color: AppColors.accentBlue.withValues(alpha: 0.1),
               ),
               child: BackdropFilter(
                 filter: ImageFilter.blur(sigmaX: 100, sigmaY: 100),
@@ -133,7 +134,7 @@ class WalletScreen extends ConsumerWidget {
                 Text(
                   'Orre MMC',
                   style: TextStyle(
-                    color: Colors.white.withOpacity(0.5),
+                    color: Colors.white.withValues(alpha: 0.5),
                     fontSize: 12,
                     fontWeight: FontWeight.w500,
                   ),
@@ -145,9 +146,9 @@ class WalletScreen extends ConsumerWidget {
         IconButton(
           onPressed: () {}, // Navigate to convert
           style: IconButton.styleFrom(
-            backgroundColor: Colors.white.withOpacity(0.05),
+            backgroundColor: Colors.white.withValues(alpha: 0.05),
             shape: const CircleBorder(),
-            side: BorderSide(color: Colors.white.withOpacity(0.1)),
+            side: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
           ),
           icon: const Icon(Icons.swap_horiz, color: Colors.white),
         ),
@@ -161,9 +162,9 @@ class WalletScreen extends ConsumerWidget {
         height: 40,
         padding: const EdgeInsets.all(4),
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.05),
+          color: Colors.white.withValues(alpha: 0.05),
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: Colors.white.withOpacity(0.1)),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -200,7 +201,7 @@ class WalletScreen extends ConsumerWidget {
           boxShadow: isActive
               ? [
                   BoxShadow(
-                    color: AppColors.primary.withOpacity(0.2),
+                    color: AppColors.primary.withValues(alpha: 0.2),
                     blurRadius: 8,
                     offset: const Offset(0, 2),
                   ),
@@ -210,7 +211,9 @@ class WalletScreen extends ConsumerWidget {
         child: Text(
           label,
           style: TextStyle(
-            color: isActive ? Colors.black : Colors.white.withOpacity(0.6),
+            color: isActive
+                ? Colors.black
+                : Colors.white.withValues(alpha: 0.6),
             fontSize: 14,
             fontWeight: FontWeight.w600,
           ),
@@ -222,15 +225,15 @@ class WalletScreen extends ConsumerWidget {
   Widget _buildBalanceCard(String currency) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.05),
+        color: Colors.white.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: Colors.white.withOpacity(0.1)),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
         gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: [
-            Colors.white.withOpacity(0.1),
-            Colors.white.withOpacity(0.05),
+            Colors.white.withValues(alpha: 0.1),
+            Colors.white.withValues(alpha: 0.05),
           ],
         ),
       ),
@@ -248,7 +251,7 @@ class WalletScreen extends ConsumerWidget {
                     Text(
                       'Total Portfolio Value',
                       style: TextStyle(
-                        color: Colors.white.withOpacity(0.6),
+                        color: Colors.white.withValues(alpha: 0.6),
                         fontSize: 14,
                         fontWeight: FontWeight.w500,
                       ),
@@ -257,19 +260,31 @@ class WalletScreen extends ConsumerWidget {
                     Icon(
                       Icons.verified_user,
                       size: 16,
-                      color: AppColors.primary.withOpacity(0.7),
+                      color: AppColors.primary.withValues(alpha: 0.7),
                     ),
                   ],
                 ),
                 const SizedBox(height: 8),
-                const Text(
-                  '\$24,500.00',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 40,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: -1,
-                  ),
+                Consumer(
+                  builder: (context, ref, child) {
+                    final balanceAsync = ref.watch(walletBalanceProvider);
+                    return balanceAsync.when(
+                      data: (balance) => Text(
+                        '\$$balance', // Actually showing MATIC count for now as per "native balance"
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 40,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: -1,
+                        ),
+                      ),
+                      loading: () => const CircularProgressIndicator(),
+                      error: (err, stack) => const Text(
+                        'Error',
+                        style: TextStyle(color: Colors.red),
+                      ),
+                    );
+                  },
                 ),
                 const SizedBox(height: 24),
                 Row(
@@ -278,7 +293,7 @@ class WalletScreen extends ConsumerWidget {
                       child: _buildSubBalance(
                         '\$20,000.00',
                         'INVESTABLE',
-                        Colors.black.withOpacity(0.2),
+                        Colors.black.withValues(alpha: 0.2),
                         AppColors.primary,
                       ),
                     ),
@@ -287,8 +302,8 @@ class WalletScreen extends ConsumerWidget {
                       child: _buildSubBalance(
                         '\$4,500.00',
                         'WITHDRAWABLE',
-                        Colors.black.withOpacity(0.2),
-                        Colors.white.withOpacity(0.6),
+                        Colors.black.withValues(alpha: 0.2),
+                        Colors.white.withValues(alpha: 0.6),
                       ),
                     ),
                   ],
@@ -312,7 +327,7 @@ class WalletScreen extends ConsumerWidget {
       decoration: BoxDecoration(
         color: bgColor,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.white.withOpacity(0.05)),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
       ),
       child: Column(
         children: [
@@ -353,7 +368,7 @@ class WalletScreen extends ConsumerWidget {
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
               ),
-              shadowColor: AppColors.primary.withOpacity(0.4),
+              shadowColor: AppColors.primary.withValues(alpha: 0.4),
             ),
             child: const Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -371,8 +386,8 @@ class WalletScreen extends ConsumerWidget {
             onPressed: () => context.push('/withdraw'),
             style: OutlinedButton.styleFrom(
               foregroundColor: Colors.white,
-              backgroundColor: Colors.white.withOpacity(0.05),
-              side: BorderSide(color: Colors.white.withOpacity(0.1)),
+              backgroundColor: Colors.white.withValues(alpha: 0.05),
+              side: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
               padding: const EdgeInsets.symmetric(vertical: 16),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
@@ -458,9 +473,9 @@ class WalletScreen extends ConsumerWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.05),
+        color: Colors.white.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withOpacity(0.05)),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
       ),
       child: Row(
         children: [
@@ -469,8 +484,8 @@ class WalletScreen extends ConsumerWidget {
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               color: isPrimary
-                  ? AppColors.primary.withOpacity(0.2)
-                  : Colors.white.withOpacity(0.1),
+                  ? AppColors.primary.withValues(alpha: 0.2)
+                  : Colors.white.withValues(alpha: 0.1),
             ),
             child: Icon(icon, color: iconColor, size: 20),
           ),
@@ -490,7 +505,7 @@ class WalletScreen extends ConsumerWidget {
                 Text(
                   subtitle,
                   style: TextStyle(
-                    color: Colors.white.withOpacity(0.5),
+                    color: Colors.white.withValues(alpha: 0.5),
                     fontSize: 12,
                   ),
                 ),
@@ -511,7 +526,7 @@ class WalletScreen extends ConsumerWidget {
               Text(
                 status,
                 style: TextStyle(
-                  color: Colors.white.withOpacity(0.4),
+                  color: Colors.white.withValues(alpha: 0.4),
                   fontSize: 12,
                 ),
               ),

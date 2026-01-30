@@ -23,7 +23,7 @@ class KYCIntroScreen extends StatelessWidget {
                 height: 250,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: AppColors.primary.withOpacity(0.1),
+                  color: AppColors.primary.withValues(alpha: 0.1),
                 ),
               ),
             ),
@@ -83,7 +83,7 @@ class KYCIntroScreen extends StatelessWidget {
     return GlassContainer(
       padding: const EdgeInsets.all(24),
       borderRadius: BorderRadius.circular(24),
-      color: Colors.white.withOpacity(0.05),
+      color: Colors.white.withValues(alpha: 0.05),
       child: Column(
         children: [
           const Text(
@@ -150,11 +150,11 @@ class KYCIntroScreen extends StatelessWidget {
         ? AppColors.primary
         : Colors.grey[400];
     final bgColor = state == _StepState.active
-        ? AppColors.primary.withOpacity(0.2)
-        : Colors.white.withOpacity(0.05);
+        ? AppColors.primary.withValues(alpha: 0.2)
+        : Colors.white.withValues(alpha: 0.05);
     final borderColor = state == _StepState.active
-        ? AppColors.primary.withOpacity(0.2)
-        : Colors.white.withOpacity(0.1);
+        ? AppColors.primary.withValues(alpha: 0.2)
+        : Colors.white.withValues(alpha: 0.1);
 
     return IntrinsicHeight(
       child: Row(
@@ -172,7 +172,7 @@ class KYCIntroScreen extends StatelessWidget {
                   boxShadow: state == _StepState.active
                       ? [
                           BoxShadow(
-                            color: AppColors.primary.withOpacity(0.2),
+                            color: AppColors.primary.withValues(alpha: 0.2),
                             blurRadius: 10,
                           ),
                         ]
@@ -186,7 +186,7 @@ class KYCIntroScreen extends StatelessWidget {
                     width: 2,
                     margin: const EdgeInsets.symmetric(vertical: 4),
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.1),
+                      color: Colors.white.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(1),
                     ),
                   ),
@@ -235,7 +235,7 @@ class KYCIntroScreen extends StatelessWidget {
           colors: [
             AppColors.backgroundDark,
             AppColors.backgroundDark,
-            AppColors.backgroundDark.withOpacity(0),
+            AppColors.backgroundDark.withValues(alpha: 0),
           ],
         ),
       ),
@@ -250,7 +250,7 @@ class KYCIntroScreen extends StatelessWidget {
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
               ),
-              shadowColor: AppColors.primary.withOpacity(0.4),
+              shadowColor: AppColors.primary.withValues(alpha: 0.4),
               elevation: 4,
             ),
             child: const Row(

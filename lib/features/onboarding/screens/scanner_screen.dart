@@ -51,7 +51,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
             Image.network(
               'https://lh3.googleusercontent.com/aida-public/AB6AXuAI6y-veCO3myE6T6JW6e5n_Pn-LDrxDRwBbFSIsR426r47OF67vSq9lqiJrnkbKNKYuHMvnmVWuIJDd66NdGGO-DYzhVx-MRNEdnYUSeDXz7TKRfax_9DdM_Em7McVexKceur0zldWWOdYdnifLb9obSooyldqTjC-EKNKZuSFBdZQQ3G5nnbdm6xrD74R-W23_FQmpDL6LjARkn0_kJp55hqKeR5ORyTNtPYFE2lWWQLOTd_sCEJHGMALQnZTHVxAlo62hbpt1A',
               fit: BoxFit.cover,
-              color: Colors.white.withOpacity(0.8),
+              color: Colors.white.withValues(alpha: 0.8),
               colorBlendMode: BlendMode.modulate,
             )
           else
@@ -68,7 +68,10 @@ class _ScannerScreenState extends State<ScannerScreen> {
                   gradient: LinearGradient(
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
-                    colors: [Colors.black.withOpacity(0.8), Colors.transparent],
+                    colors: [
+                      Colors.black.withValues(alpha: 0.8),
+                      Colors.transparent,
+                    ],
                   ),
                 ),
               ),
@@ -81,7 +84,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
                       border: Border.all(
                         color: _isScanning
                             ? AppColors.primary
-                            : Colors.white.withOpacity(0.3),
+                            : Colors.white.withValues(alpha: 0.3),
                         width: 2,
                       ),
                       borderRadius: BorderRadius.circular(24),
@@ -140,7 +143,10 @@ class _ScannerScreenState extends State<ScannerScreen> {
                   gradient: LinearGradient(
                     begin: Alignment.bottomCenter,
                     end: Alignment.topCenter,
-                    colors: [Colors.black.withOpacity(0.8), Colors.transparent],
+                    colors: [
+                      Colors.black.withValues(alpha: 0.8),
+                      Colors.transparent,
+                    ],
                   ),
                 ),
               ),
@@ -179,7 +185,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
                     vertical: 8,
                   ),
                   borderRadius: BorderRadius.circular(20),
-                  color: Colors.white.withOpacity(0.1),
+                  color: Colors.white.withValues(alpha: 0.1),
                   child: const Text(
                     'Identity Verification',
                     style: TextStyle(
@@ -275,7 +281,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
         width: 48,
         height: 48,
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.1),
+          color: Colors.white.withValues(alpha: 0.1),
           shape: BoxShape.circle,
         ),
         child: Icon(icon, color: Colors.white),

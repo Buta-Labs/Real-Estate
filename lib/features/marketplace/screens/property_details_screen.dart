@@ -76,7 +76,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
       leading: Padding(
         padding: const EdgeInsets.all(8.0),
         child: CircleAvatar(
-          backgroundColor: Colors.white.withOpacity(0.1),
+          backgroundColor: Colors.white.withValues(alpha: 0.1),
           child: IconButton(
             icon: const Icon(Icons.arrow_back, color: Colors.white),
             onPressed: () => context.pop(),
@@ -89,7 +89,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
           child: Row(
             children: [
               CircleAvatar(
-                backgroundColor: Colors.white.withOpacity(0.1),
+                backgroundColor: Colors.white.withValues(alpha: 0.1),
                 child: IconButton(
                   icon: const Icon(Icons.favorite_border, color: Colors.white),
                   onPressed: () {},
@@ -97,7 +97,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
               ),
               const SizedBox(width: 8),
               CircleAvatar(
-                backgroundColor: Colors.white.withOpacity(0.1),
+                backgroundColor: Colors.white.withValues(alpha: 0.1),
                 child: IconButton(
                   icon: const Icon(Icons.ios_share, color: Colors.white),
                   onPressed: () {},
@@ -121,7 +121,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                   colors: [
-                    AppColors.backgroundDark.withOpacity(0.3),
+                    AppColors.backgroundDark.withValues(alpha: 0.3),
                     Colors.transparent,
                     AppColors.backgroundDark,
                   ],
@@ -141,10 +141,10 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                       vertical: 4,
                     ),
                     decoration: BoxDecoration(
-                      color: Colors.black.withOpacity(0.4),
+                      color: Colors.black.withValues(alpha: 0.4),
                       borderRadius: BorderRadius.circular(4),
                       border: Border.all(
-                        color: AppColors.primary.withOpacity(0.2),
+                        color: AppColors.primary.withValues(alpha: 0.2),
                       ),
                     ),
                     child: const Row(
@@ -206,12 +206,12 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: const Color(0xFF1C2333).withOpacity(0.8),
+        color: const Color(0xFF1C2333).withValues(alpha: 0.8),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withOpacity(0.1)),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.5),
+            color: Colors.black.withValues(alpha: 0.5),
             blurRadius: 40,
             offset: const Offset(0, 20),
           ),
@@ -226,8 +226,12 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                 child: Container(
                   decoration: BoxDecoration(
                     border: Border(
-                      left: BorderSide(color: Colors.white.withOpacity(0.1)),
-                      right: BorderSide(color: Colors.white.withOpacity(0.1)),
+                      left: BorderSide(
+                        color: Colors.white.withValues(alpha: 0.1),
+                      ),
+                      right: BorderSide(
+                        color: Colors.white.withValues(alpha: 0.1),
+                      ),
                     ),
                   ),
                   child: _buildStatItem('Token', '\$50', padding: true),
@@ -259,7 +263,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                 decoration: BoxDecoration(
-                  color: AppColors.primary.withOpacity(0.1),
+                  color: AppColors.primary.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(4),
                 ),
                 child: const Text(
@@ -346,7 +350,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
       decoration: BoxDecoration(
         color: const Color(0xFF1C2333),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.white.withOpacity(0.05)),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
       ),
       child: Row(
         children: ['Overview', 'Financials', 'Documents'].map((tab) {
@@ -395,7 +399,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
           colors: [Color(0xFF1C2333), Color(0xFF161B26)],
         ),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withOpacity(0.05)),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -450,9 +454,11 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                 child: Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: Colors.black.withOpacity(0.2),
+                    color: Colors.black.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.white.withOpacity(0.05)),
+                    border: Border.all(
+                      color: Colors.white.withValues(alpha: 0.05),
+                    ),
                   ),
                   child: const Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -479,9 +485,11 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                 child: Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: Colors.black.withOpacity(0.2),
+                    color: Colors.black.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.white.withOpacity(0.05)),
+                    border: Border.all(
+                      color: Colors.white.withValues(alpha: 0.05),
+                    ),
                   ),
                   child: const Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -516,7 +524,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
       decoration: BoxDecoration(
         color: const Color(0xFF1C2333),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withOpacity(0.05)),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -565,7 +573,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
       decoration: BoxDecoration(
         color: AppColors.backgroundDark,
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.white.withOpacity(0.05)),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
       ),
       child: Row(
         children: [
@@ -586,7 +594,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
       decoration: BoxDecoration(
         color: const Color(0xFF1C2333),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withOpacity(0.05)),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
         image: const DecorationImage(
           image: NetworkImage(
             'https://lh3.googleusercontent.com/aida-public/AB6AXuCHWLtJ2N6hOY7O-BlmPITGOmQqINXtWTMLRtymfjzRKYi7Wv0eSTISMXALPPHSMC5Di10-y2-nLegoSP9ZmHemdsE4FWUILVaEzkxzXExncjSaeNjTZMa4SDylGxgb9hYLpLhVqFglx6H4PTfI6gOVgHWiZha_1O8oEWP30jljiMSpx4wH_6-7RPYWCG8MNeK4CX4M7Y4nQIbuvycQNzxj7u7VQUekQgJl4Y43BxzAS2ROX2FhlHjtk-lm-V9U2EsfufSDOzP2SQ',
@@ -601,10 +609,10 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
           icon: const Icon(Icons.map, size: 16),
           label: const Text('View on Map'),
           style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.white.withOpacity(0.1),
+            backgroundColor: Colors.white.withValues(alpha: 0.1),
             foregroundColor: Colors.white,
             elevation: 0,
-            side: BorderSide(color: Colors.white.withOpacity(0.2)),
+            side: BorderSide(color: Colors.white.withValues(alpha: 0.2)),
           ),
         ),
       ),
@@ -671,9 +679,9 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFF1C2333).withOpacity(0.8),
+        color: const Color(0xFF1C2333).withValues(alpha: 0.8),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withOpacity(0.1)),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
       ),
       child: Column(
         children: [
@@ -700,14 +708,16 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.05),
+        color: Colors.white.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.white.withOpacity(0.1)),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
       ),
       child: Row(
         children: [
           CircleAvatar(
-            backgroundColor: (iconColor ?? AppColors.primary).withOpacity(0.2),
+            backgroundColor: (iconColor ?? AppColors.primary).withValues(
+              alpha: 0.2,
+            ),
             child: Icon(icon, color: iconColor ?? AppColors.primary, size: 20),
           ),
           const SizedBox(width: 12),
@@ -748,7 +758,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
             end: Alignment.topCenter,
             colors: [
               AppColors.backgroundDark,
-              AppColors.backgroundDark.withOpacity(0.9),
+              AppColors.backgroundDark.withValues(alpha: 0.9),
               Colors.transparent,
             ],
           ),
@@ -756,9 +766,9 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
         child: Container(
           padding: const EdgeInsets.only(left: 16, right: 8, top: 8, bottom: 8),
           decoration: BoxDecoration(
-            color: const Color(0xFF1C2333).withOpacity(0.9),
+            color: const Color(0xFF1C2333).withValues(alpha: 0.9),
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: Colors.white.withOpacity(0.1)),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
           ),
           child: Row(
             children: [
@@ -805,15 +815,15 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
 
   Widget _buildScarcityAlert() {
     return Container(
-      color: Colors.black.withOpacity(0.6),
+      color: Colors.black.withValues(alpha: 0.6),
       child: Center(
         child: Container(
           margin: const EdgeInsets.all(24),
           padding: const EdgeInsets.all(24),
           decoration: BoxDecoration(
-            color: const Color(0xFF193326).withOpacity(0.9),
+            color: const Color(0xFF193326).withValues(alpha: 0.9),
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: Colors.white.withOpacity(0.2)),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,

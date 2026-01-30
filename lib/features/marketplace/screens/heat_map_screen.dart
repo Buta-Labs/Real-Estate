@@ -13,7 +13,7 @@ class HeatMapScreen extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Market Heat Map'),
         centerTitle: true,
-        backgroundColor: AppColors.backgroundDark.withOpacity(0.8),
+        backgroundColor: AppColors.backgroundDark.withValues(alpha: 0.8),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new, size: 20),
           onPressed: () => context.pop(),
@@ -42,9 +42,9 @@ class HeatMapScreen extends StatelessWidget {
       child: Container(
         height: 48,
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.05),
+          color: Colors.white.withValues(alpha: 0.05),
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.white.withOpacity(0.1)),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
         ),
         child: Row(
           children: [
@@ -194,21 +194,21 @@ class HeatMapScreen extends StatelessWidget {
           _buildHeatTile(
             'Comm',
             '82%',
-            AppColors.primary.withOpacity(0.8),
+            AppColors.primary.withValues(alpha: 0.8),
             AppColors.backgroundDark,
           ),
           _buildHeatTile(
             'Ind',
             '71%',
-            const Color(0xFFFFD700).withOpacity(0.9),
+            const Color(0xFFFFD700).withValues(alpha: 0.9),
             AppColors.backgroundDark,
           ),
           _buildHeatTile(
             'Retail',
             '42%',
-            AppColors.primary.withOpacity(0.4),
+            AppColors.primary.withValues(alpha: 0.4),
             AppColors.primary,
-            border: AppColors.primary.withOpacity(0.2),
+            border: AppColors.primary.withValues(alpha: 0.2),
           ),
 
           _buildHeatTile(
@@ -222,32 +222,32 @@ class HeatMapScreen extends StatelessWidget {
             '98%',
             AppColors.primary,
             AppColors.backgroundDark,
-            border: Colors.white.withOpacity(0.4),
+            border: Colors.white.withValues(alpha: 0.4),
           ),
           _buildHeatTile(
             'DXB',
             '15%',
-            AppColors.primary.withOpacity(0.2),
+            AppColors.primary.withValues(alpha: 0.2),
             AppColors.primary,
-            border: AppColors.primary.withOpacity(0.1),
+            border: AppColors.primary.withValues(alpha: 0.1),
           ),
           _buildHeatTile(
             'SNG',
             '56%',
-            const Color(0xFFFFD700).withOpacity(0.6),
+            const Color(0xFFFFD700).withValues(alpha: 0.6),
             AppColors.backgroundDark,
           ),
 
           _buildHeatTile(
             'Mxd',
             '65%',
-            AppColors.primary.withOpacity(0.6),
+            AppColors.primary.withValues(alpha: 0.6),
             AppColors.backgroundDark,
           ),
           _buildHeatTile(
             'Emerging Markets',
             '48%',
-            const Color(0xFFFFD700).withOpacity(0.4),
+            const Color(0xFFFFD700).withValues(alpha: 0.4),
             AppColors.backgroundDark,
             isWide: true,
           ),
@@ -282,7 +282,7 @@ class HeatMapScreen extends StatelessWidget {
           Text(
             label.toUpperCase(),
             style: TextStyle(
-              color: textColor.withOpacity(0.6),
+              color: textColor.withValues(alpha: 0.6),
               fontSize: isWide ? 8 : 10,
               fontWeight: FontWeight.bold,
             ),
@@ -353,7 +353,7 @@ class HeatMapScreen extends StatelessWidget {
     return GlassContainer(
       padding: const EdgeInsets.all(12),
       borderRadius: BorderRadius.circular(12),
-      color: Colors.white.withOpacity(0.05),
+      color: Colors.white.withValues(alpha: 0.05),
       child: Row(
         children: [
           Container(

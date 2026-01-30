@@ -15,7 +15,9 @@ class LearningScreen extends StatelessWidget {
           CustomScrollView(
             slivers: [
               SliverAppBar(
-                backgroundColor: AppColors.backgroundDark.withOpacity(0.8),
+                backgroundColor: AppColors.backgroundDark.withValues(
+                  alpha: 0.8,
+                ),
                 floating: true,
                 pinned: true,
                 title: const Text('Learning Hub'),
@@ -49,7 +51,7 @@ class LearningScreen extends StatelessWidget {
                       Text(
                         'Unlock the secrets of premium real estate investing.',
                         style: TextStyle(
-                          color: Colors.white.withOpacity(0.6),
+                          color: Colors.white.withValues(alpha: 0.6),
                           fontSize: 14,
                         ),
                       ),
@@ -70,7 +72,7 @@ class LearningScreen extends StatelessWidget {
                           Text(
                             'View All',
                             style: TextStyle(
-                              color: AppColors.primary.withOpacity(0.9),
+                              color: AppColors.primary.withValues(alpha: 0.9),
                               fontSize: 14,
                               fontWeight: FontWeight.bold,
                             ),
@@ -107,9 +109,9 @@ class LearningScreen extends StatelessWidget {
   Widget _buildSearchBar() {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.1),
+        color: Colors.white.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.white.withOpacity(0.1)),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
       ),
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: TextField(
@@ -117,7 +119,7 @@ class LearningScreen extends StatelessWidget {
         decoration: InputDecoration(
           icon: const Icon(Icons.search, color: AppColors.primary),
           hintText: 'Search articles, guides, or videos...',
-          hintStyle: TextStyle(color: Colors.white.withOpacity(0.3)),
+          hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.3)),
           border: InputBorder.none,
           contentPadding: const EdgeInsets.symmetric(vertical: 16),
         ),
@@ -132,7 +134,7 @@ class LearningScreen extends StatelessWidget {
         height: 200,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.white.withOpacity(0.1)),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
           image: const DecorationImage(
             image: NetworkImage(
               'https://lh3.googleusercontent.com/aida-public/AB6AXuBgNNo_KTJbK1ld5cJENVMByeW7E1DvZuulFvr24jWHHkQRpCEE-hip3qml70NX4EGJHvevBXkNVoJR61Hre0NnMHmofbu6x5bCi78YAEATxmPc0nyutjnWXMgAg7B0tdQkj53sx6OT-ozrmuX3jKmW8Yndf6vHVG56me7w2dIjoABPYPr8P7XuHsZEwmtFuMoK9RfRvwzAC8AcMJM3LYlIOFqCmU9eFQYQCjvp1nAT3BfKcq4p1wW14zRRsgBaV-SKyJJf9bppIw',
@@ -146,7 +148,7 @@ class LearningScreen extends StatelessWidget {
             gradient: LinearGradient(
               begin: Alignment.bottomCenter,
               end: Alignment.topCenter,
-              colors: [Colors.black.withOpacity(0.9), Colors.transparent],
+              colors: [Colors.black.withValues(alpha: 0.9), Colors.transparent],
             ),
           ),
           padding: const EdgeInsets.all(20),
@@ -186,7 +188,7 @@ class LearningScreen extends StatelessWidget {
                   Text(
                     '45 mins',
                     style: TextStyle(
-                      color: Colors.white.withOpacity(0.6),
+                      color: Colors.white.withValues(alpha: 0.6),
                       fontSize: 12,
                     ),
                   ),
@@ -200,7 +202,7 @@ class LearningScreen extends StatelessWidget {
                   Text(
                     'Advanced',
                     style: TextStyle(
-                      color: Colors.white.withOpacity(0.6),
+                      color: Colors.white.withValues(alpha: 0.6),
                       fontSize: 12,
                     ),
                   ),
@@ -248,7 +250,7 @@ class LearningScreen extends StatelessWidget {
         return GlassContainer(
           padding: const EdgeInsets.all(16),
           borderRadius: BorderRadius.circular(16),
-          color: Colors.white.withOpacity(0.05),
+          color: Colors.white.withValues(alpha: 0.05),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -256,7 +258,7 @@ class LearningScreen extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: AppColors.primary.withOpacity(0.1),
+                  color: AppColors.primary.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(
@@ -280,7 +282,7 @@ class LearningScreen extends StatelessWidget {
                   Text(
                     cat['sub'] as String,
                     style: TextStyle(
-                      color: Colors.white.withOpacity(0.4),
+                      color: Colors.white.withValues(alpha: 0.4),
                       fontSize: 10,
                     ),
                   ),
@@ -303,7 +305,7 @@ class LearningScreen extends StatelessWidget {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-        border: Border.all(color: AppColors.primary.withOpacity(0.1)),
+        border: Border.all(color: AppColors.primary.withValues(alpha: 0.1)),
       ),
       child: Column(
         children: [
@@ -325,7 +327,7 @@ class LearningScreen extends StatelessWidget {
                     Text(
                       'Our expert advisors are available 24/7 for fractional property queries.',
                       style: TextStyle(
-                        color: Colors.white.withOpacity(0.6),
+                        color: Colors.white.withValues(alpha: 0.6),
                         fontSize: 12,
                       ),
                     ),
@@ -351,7 +353,7 @@ class LearningScreen extends StatelessWidget {
             onPressed: () {},
             style: OutlinedButton.styleFrom(
               foregroundColor: Colors.white,
-              side: BorderSide(color: Colors.white.withOpacity(0.1)),
+              side: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
               minimumSize: const Size(double.infinity, 48),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),

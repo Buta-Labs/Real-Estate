@@ -103,7 +103,7 @@ class ComparisonScreen extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         border: Border(
-          bottom: BorderSide(color: Colors.white.withOpacity(0.1)),
+          bottom: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
         ),
       ),
       child: Row(
@@ -131,7 +131,7 @@ class ComparisonScreen extends StatelessWidget {
       child: Text(
         label,
         style: TextStyle(
-          color: isActive ? Colors.white : Colors.white.withOpacity(0.4),
+          color: isActive ? Colors.white : Colors.white.withValues(alpha: 0.4),
           fontWeight: FontWeight.bold,
           fontSize: 14,
         ),
@@ -145,11 +145,11 @@ class ComparisonScreen extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.backgroundDark,
         border: Border(
-          right: BorderSide(color: Colors.white.withOpacity(0.05)),
+          right: BorderSide(color: Colors.white.withValues(alpha: 0.05)),
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.3),
+            color: Colors.black.withValues(alpha: 0.3),
             blurRadius: 10,
             spreadRadius: 2,
           ),
@@ -168,7 +168,7 @@ class ComparisonScreen extends StatelessWidget {
                   child: Text(
                     'PROPERTIES',
                     style: TextStyle(
-                      color: Colors.white.withOpacity(0.3),
+                      color: Colors.white.withValues(alpha: 0.3),
                       fontSize: 10,
                       fontWeight: FontWeight.bold,
                       letterSpacing: 2,
@@ -195,13 +195,13 @@ class ComparisonScreen extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16),
       decoration: BoxDecoration(
         border: Border(
-          bottom: BorderSide(color: Colors.white.withOpacity(0.05)),
+          bottom: BorderSide(color: Colors.white.withValues(alpha: 0.05)),
         ),
       ),
       child: Text(
         text.toUpperCase(),
         style: TextStyle(
-          color: Colors.white.withOpacity(0.4),
+          color: Colors.white.withValues(alpha: 0.4),
           fontSize: 10,
           fontWeight: FontWeight.bold,
           letterSpacing: 1,
@@ -224,7 +224,7 @@ class ComparisonScreen extends StatelessWidget {
       width: 180,
       decoration: BoxDecoration(
         border: Border(
-          right: BorderSide(color: Colors.white.withOpacity(0.05)),
+          right: BorderSide(color: Colors.white.withValues(alpha: 0.05)),
         ),
       ),
       child: Column(
@@ -254,7 +254,7 @@ class ComparisonScreen extends StatelessWidget {
                         child: Container(
                           padding: const EdgeInsets.all(4),
                           decoration: BoxDecoration(
-                            color: Colors.black.withOpacity(0.5),
+                            color: Colors.black.withValues(alpha: 0.5),
                             shape: BoxShape.circle,
                           ),
                           child: const Icon(
@@ -280,7 +280,7 @@ class ComparisonScreen extends StatelessWidget {
                 Text(
                   location.toUpperCase(),
                   style: TextStyle(
-                    color: Colors.white.withOpacity(0.4),
+                    color: Colors.white.withValues(alpha: 0.4),
                     fontSize: 10,
                     fontWeight: FontWeight.bold,
                   ),
@@ -323,13 +323,15 @@ class ComparisonScreen extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16),
       decoration: BoxDecoration(
         border: Border(
-          bottom: BorderSide(color: Colors.white.withOpacity(0.05)),
+          bottom: BorderSide(color: Colors.white.withValues(alpha: 0.05)),
         ),
       ),
       child: Text(
         text,
         style: TextStyle(
-          color: isPrimary ? AppColors.primary : Colors.white.withOpacity(0.8),
+          color: isPrimary
+              ? AppColors.primary
+              : Colors.white.withValues(alpha: 0.8),
           fontSize: isPrimary ? 16 : 14,
           fontWeight: isPrimary ? FontWeight.bold : FontWeight.w500,
         ),
@@ -350,10 +352,10 @@ class ComparisonScreen extends StatelessWidget {
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: Colors.white.withOpacity(0.2),
+                  color: Colors.white.withValues(alpha: 0.2),
                   style: BorderStyle.none,
                 ), // Mock dashed border
-                color: Colors.white.withOpacity(0.05),
+                color: Colors.white.withValues(alpha: 0.05),
               ),
               child: const Icon(Icons.add, color: Colors.white54),
             ),
@@ -361,7 +363,7 @@ class ComparisonScreen extends StatelessWidget {
             Text(
               'ADD ASSET',
               style: TextStyle(
-                color: Colors.white.withOpacity(0.4),
+                color: Colors.white.withValues(alpha: 0.4),
                 fontSize: 10,
                 fontWeight: FontWeight.bold,
                 letterSpacing: 1,
@@ -378,7 +380,9 @@ class ComparisonScreen extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: AppColors.backgroundDark,
-        border: Border(top: BorderSide(color: Colors.white.withOpacity(0.1))),
+        border: Border(
+          top: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
+        ),
       ),
       child: Column(
         children: [
@@ -411,9 +415,11 @@ class ComparisonScreen extends StatelessWidget {
                 child: Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.05),
+                    color: Colors.white.withValues(alpha: 0.05),
                     borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.white.withOpacity(0.1)),
+                    border: Border.all(
+                      color: Colors.white.withValues(alpha: 0.1),
+                    ),
                   ),
                   child: const Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -443,9 +449,11 @@ class ComparisonScreen extends StatelessWidget {
                 child: Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.05),
+                    color: Colors.white.withValues(alpha: 0.05),
                     borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.white.withOpacity(0.1)),
+                    border: Border.all(
+                      color: Colors.white.withValues(alpha: 0.1),
+                    ),
                   ),
                   child: const Column(
                     crossAxisAlignment: CrossAxisAlignment.start,

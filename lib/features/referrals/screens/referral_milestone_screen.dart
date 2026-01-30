@@ -19,7 +19,7 @@ class ReferralMilestoneScreen extends StatelessWidget {
                 center: Alignment.center,
                 radius: 1.0,
                 colors: [
-                  const Color(0xFF13EC5B).withOpacity(0.15),
+                  const Color(0xFF13EC5B).withValues(alpha: 0.15),
                   const Color(0xFF102216),
                 ],
               ),
@@ -37,7 +37,7 @@ class ReferralMilestoneScreen extends StatelessWidget {
                         onPressed: () => context.pop(),
                         icon: const Icon(Icons.close, color: Colors.white),
                         style: IconButton.styleFrom(
-                          backgroundColor: Colors.white.withOpacity(0.1),
+                          backgroundColor: Colors.white.withValues(alpha: 0.1),
                         ),
                       ),
                       const Text(
@@ -74,7 +74,7 @@ class ReferralMilestoneScreen extends StatelessWidget {
                                     BoxShadow(
                                       color: const Color(
                                         0xFF13EC5B,
-                                      ).withOpacity(0.2),
+                                      ).withValues(alpha: 0.2),
                                       blurRadius: 60,
                                       spreadRadius: 10,
                                     ),
@@ -122,10 +122,10 @@ class ReferralMilestoneScreen extends StatelessWidget {
                         Container(
                           padding: const EdgeInsets.all(24),
                           decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.05),
+                            color: Colors.white.withValues(alpha: 0.05),
                             borderRadius: BorderRadius.circular(24),
                             border: Border.all(
-                              color: Colors.white.withOpacity(0.1),
+                              color: Colors.white.withValues(alpha: 0.1),
                             ),
                           ),
                           child: Column(
@@ -135,7 +135,9 @@ class ReferralMilestoneScreen extends StatelessWidget {
                                   Container(
                                     padding: const EdgeInsets.all(12),
                                     decoration: BoxDecoration(
-                                      color: AppColors.primary.withOpacity(0.2),
+                                      color: AppColors.primary.withValues(
+                                        alpha: 0.2,
+                                      ),
                                       borderRadius: BorderRadius.circular(12),
                                     ),
                                     child: const Icon(
@@ -225,7 +227,7 @@ class ReferralMilestoneScreen extends StatelessWidget {
                         style: OutlinedButton.styleFrom(
                           foregroundColor: Colors.white,
                           side: BorderSide(
-                            color: Colors.white.withOpacity(0.1),
+                            color: Colors.white.withValues(alpha: 0.1),
                           ),
                           minimumSize: const Size(double.infinity, 56),
                           shape: RoundedRectangleBorder(

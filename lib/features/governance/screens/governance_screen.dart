@@ -33,7 +33,7 @@ class _GovernanceScreenState extends State<GovernanceScreen>
       appBar: AppBar(
         title: const Text('Governance Hub'),
         centerTitle: true,
-        backgroundColor: AppColors.backgroundDark.withOpacity(0.9),
+        backgroundColor: AppColors.backgroundDark.withValues(alpha: 0.9),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new, size: 20),
           onPressed: () => context.pop(),
@@ -91,7 +91,7 @@ class _GovernanceScreenState extends State<GovernanceScreen>
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
-          border: Border.all(color: AppColors.primary.withOpacity(0.2)),
+          border: Border.all(color: AppColors.primary.withValues(alpha: 0.2)),
         ),
         padding: const EdgeInsets.all(24),
         child: Stack(
@@ -114,7 +114,7 @@ class _GovernanceScreenState extends State<GovernanceScreen>
                 Text(
                   'YOUR VOTING POWER',
                   style: TextStyle(
-                    color: AppColors.primary.withOpacity(0.7),
+                    color: AppColors.primary.withValues(alpha: 0.7),
                     fontSize: 10,
                     fontWeight: FontWeight.bold,
                     letterSpacing: 1,
@@ -176,7 +176,7 @@ class _GovernanceScreenState extends State<GovernanceScreen>
           child: Text(
             'OPEN FOR VOTING',
             style: TextStyle(
-              color: Colors.white.withOpacity(0.6),
+              color: Colors.white.withValues(alpha: 0.6),
               fontSize: 10,
               fontWeight: FontWeight.bold,
               letterSpacing: 1,
@@ -223,7 +223,7 @@ class _GovernanceScreenState extends State<GovernanceScreen>
   }) {
     return GlassContainer(
       padding: EdgeInsets.zero,
-      color: Colors.white.withOpacity(0.05),
+      color: Colors.white.withValues(alpha: 0.05),
       borderRadius: BorderRadius.circular(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -243,9 +243,11 @@ class _GovernanceScreenState extends State<GovernanceScreen>
                       vertical: 4,
                     ),
                     decoration: BoxDecoration(
-                      color: Colors.black.withOpacity(0.5),
+                      color: Colors.black.withValues(alpha: 0.5),
                       borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: Colors.white.withOpacity(0.1)),
+                      border: Border.all(
+                        color: Colors.white.withValues(alpha: 0.1),
+                      ),
                     ),
                     child: Row(
                       children: [
@@ -278,7 +280,7 @@ class _GovernanceScreenState extends State<GovernanceScreen>
                     decoration: BoxDecoration(
                       color: isUrgent
                           ? AppColors.primary
-                          : Colors.white.withOpacity(0.2),
+                          : Colors.white.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Row(
@@ -327,9 +329,9 @@ class _GovernanceScreenState extends State<GovernanceScreen>
                           vertical: 2,
                         ),
                         decoration: BoxDecoration(
-                          color: AppColors.primary.withOpacity(0.1),
+                          color: AppColors.primary.withValues(alpha: 0.1),
                           border: Border.all(
-                            color: AppColors.primary.withOpacity(0.2),
+                            color: AppColors.primary.withValues(alpha: 0.2),
                           ),
                           borderRadius: BorderRadius.circular(4),
                         ),
@@ -384,7 +386,7 @@ class _GovernanceScreenState extends State<GovernanceScreen>
                         flex: (againstPercent * 100).toInt(),
                         child: Container(
                           height: 6,
-                          color: Colors.white.withOpacity(0.2),
+                          color: Colors.white.withValues(alpha: 0.2),
                         ),
                       ),
                     ],
@@ -421,7 +423,7 @@ class _GovernanceScreenState extends State<GovernanceScreen>
                           foregroundColor: Colors.white,
                           padding: const EdgeInsets.symmetric(vertical: 12),
                           side: BorderSide(
-                            color: Colors.white.withOpacity(0.1),
+                            color: Colors.white.withValues(alpha: 0.1),
                           ),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8),

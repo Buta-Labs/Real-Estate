@@ -12,7 +12,7 @@ class ExitStrategyScreen extends StatelessWidget {
       body: CustomScrollView(
         slivers: [
           SliverAppBar(
-            backgroundColor: AppColors.backgroundDark.withOpacity(0.8),
+            backgroundColor: AppColors.backgroundDark.withValues(alpha: 0.8),
             floating: true,
             pinned: true,
             leading: IconButton(
@@ -113,7 +113,7 @@ class ExitStrategyScreen extends StatelessWidget {
         Text(
           'Orre MMC provides flexible exit paths tailored to your investment goals. Choose between immediate cash-out or long-term appreciation.',
           style: TextStyle(
-            color: Colors.green[100]!.withOpacity(0.7),
+            color: Colors.green[100]!.withValues(alpha: 0.7),
             fontSize: 16,
             height: 1.5,
           ),
@@ -145,9 +145,9 @@ class ExitStrategyScreen extends StatelessWidget {
 
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.05),
+        color: Colors.white.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withOpacity(0.1)),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
       ),
       child: Column(
         children: [
@@ -164,7 +164,7 @@ class ExitStrategyScreen extends StatelessWidget {
                       vertical: 4,
                     ),
                     decoration: BoxDecoration(
-                      color: color.withOpacity(0.2),
+                      color: color.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Text(
@@ -183,7 +183,7 @@ class ExitStrategyScreen extends StatelessWidget {
                     Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: color.withOpacity(0.1),
+                        color: color.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Icon(icon, color: color, size: 28),
@@ -222,7 +222,7 @@ class ExitStrategyScreen extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
             decoration: BoxDecoration(
               border: Border(
-                top: BorderSide(color: Colors.white.withOpacity(0.05)),
+                top: BorderSide(color: Colors.white.withValues(alpha: 0.05)),
               ),
             ),
             child: Row(
@@ -302,11 +302,13 @@ class ExitStrategyScreen extends StatelessWidget {
                 padding: const EdgeInsets.all(4),
                 decoration: BoxDecoration(
                   color: isOutline
-                      ? AppColors.primary.withOpacity(0.2)
+                      ? AppColors.primary.withValues(alpha: 0.2)
                       : AppColors.primary,
                   borderRadius: BorderRadius.circular(20),
                   border: isOutline
-                      ? Border.all(color: AppColors.primary.withOpacity(0.5))
+                      ? Border.all(
+                          color: AppColors.primary.withValues(alpha: 0.5),
+                        )
                       : null,
                 ),
                 child: Icon(
@@ -321,7 +323,7 @@ class ExitStrategyScreen extends StatelessWidget {
                 Expanded(
                   child: Container(
                     width: 2,
-                    color: AppColors.primary.withOpacity(0.2),
+                    color: AppColors.primary.withValues(alpha: 0.2),
                     margin: const EdgeInsets.symmetric(vertical: 4),
                   ),
                 ),
@@ -362,9 +364,9 @@ class ExitStrategyScreen extends StatelessWidget {
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.05),
+            color: Colors.white.withValues(alpha: 0.05),
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: Colors.white.withOpacity(0.1)),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,

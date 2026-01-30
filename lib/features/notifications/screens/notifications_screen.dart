@@ -33,7 +33,7 @@ class _NotificationsScreenState extends State<NotificationsScreen>
       appBar: AppBar(
         title: const Text('Activity'),
         centerTitle: true,
-        backgroundColor: AppColors.backgroundDark.withOpacity(0.9),
+        backgroundColor: AppColors.backgroundDark.withValues(alpha: 0.9),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new, size: 20),
           onPressed: () => context.pop(),
@@ -85,7 +85,7 @@ class _NotificationsScreenState extends State<NotificationsScreen>
         _buildNotificationItem(
           icon: Icons.payments,
           iconColor: Colors.amber,
-          bgColor: Colors.amber.withOpacity(0.2),
+          bgColor: Colors.amber.withValues(alpha: 0.2),
           title: 'Dividend Received',
           time: '2h ago',
           message:
@@ -96,7 +96,7 @@ class _NotificationsScreenState extends State<NotificationsScreen>
         _buildNotificationItem(
           icon: Icons.domain,
           iconColor: AppColors.primary,
-          bgColor: AppColors.primary.withOpacity(0.2),
+          bgColor: AppColors.primary.withValues(alpha: 0.2),
           title: 'New Property Launch',
           time: '5h ago',
           message:
@@ -108,7 +108,7 @@ class _NotificationsScreenState extends State<NotificationsScreen>
         _buildNotificationItem(
           icon: Icons.shield,
           iconColor: Colors.blue[400]!,
-          bgColor: Colors.blue[500]!.withOpacity(0.2),
+          bgColor: Colors.blue[500]!.withValues(alpha: 0.2),
           title: 'Security Login',
           time: 'Yesterday',
           message:
@@ -120,7 +120,7 @@ class _NotificationsScreenState extends State<NotificationsScreen>
         _buildNotificationItem(
           icon: Icons.verified_user,
           iconColor: Colors.blueGrey[300]!,
-          bgColor: Colors.blueGrey[500]!.withOpacity(0.2),
+          bgColor: Colors.blueGrey[500]!.withValues(alpha: 0.2),
           title: 'Identity Verified',
           time: '2d ago',
           message:
@@ -161,7 +161,7 @@ class _NotificationsScreenState extends State<NotificationsScreen>
       child: GlassContainer(
         padding: const EdgeInsets.all(16),
         borderRadius: BorderRadius.circular(16),
-        color: Colors.white.withOpacity(0.05),
+        color: Colors.white.withValues(alpha: 0.05),
         child: Stack(
           children: [
             Row(
@@ -231,7 +231,7 @@ class _NotificationsScreenState extends State<NotificationsScreen>
                     shape: BoxShape.circle,
                     boxShadow: [
                       BoxShadow(
-                        color: AppColors.primary.withOpacity(0.4),
+                        color: AppColors.primary.withValues(alpha: 0.4),
                         blurRadius: 8,
                         spreadRadius: 2,
                       ),

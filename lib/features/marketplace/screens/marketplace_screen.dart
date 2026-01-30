@@ -4,14 +4,18 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:orre_mmc_app/features/marketplace/widgets/property_card.dart';
 import 'package:orre_mmc_app/theme/app_colors.dart';
 
-class MarketplaceScreen extends StatefulWidget {
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:orre_mmc_app/features/marketplace/controllers/marketplace_controller.dart';
+import 'package:orre_mmc_app/features/marketplace/repositories/property_repository.dart';
+
+class MarketplaceScreen extends ConsumerStatefulWidget {
   const MarketplaceScreen({super.key});
 
   @override
-  State<MarketplaceScreen> createState() => _MarketplaceScreenState();
+  ConsumerState<MarketplaceScreen> createState() => _MarketplaceScreenState();
 }
 
-class _MarketplaceScreenState extends State<MarketplaceScreen> {
+class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
   String _activeFilter = 'All';
 
   @override
@@ -25,7 +29,9 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
               slivers: [
                 // Header
                 SliverAppBar(
-                  backgroundColor: AppColors.backgroundDark.withOpacity(0.95),
+                  backgroundColor: AppColors.backgroundDark.withValues(
+                    alpha: 0.95,
+                  ),
                   floating: true,
                   pinned: true,
                   leading: IconButton(
@@ -85,7 +91,7 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
                             color: AppColors.card,
                             borderRadius: BorderRadius.circular(12),
                             border: Border.all(
-                              color: Colors.white.withOpacity(0.05),
+                              color: Colors.white.withValues(alpha: 0.05),
                             ),
                           ),
                           child: Row(
@@ -164,7 +170,9 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
                                         side: BorderSide(
                                           color: isActive
                                               ? AppColors.primary
-                                              : Colors.white.withOpacity(0.1),
+                                              : Colors.white.withValues(
+                                                  alpha: 0.1,
+                                                ),
                                         ),
                                       ),
                                     ),
@@ -183,47 +191,69 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
                     horizontal: 16,
                     vertical: 8,
                   ),
-                  sliver: SliverList(
-                    delegate: SliverChildListDelegate([
-                      PropertyCard(
-                        title: 'The Orion Penthouse',
-                        location: 'Miami, FL',
-                        price: '\$54.20',
-                        yield: '8.5%',
-                        available: '400',
-                        image:
-                            'https://lh3.googleusercontent.com/aida-public/AB6AXuBxsR1Uvzzr5Rf008mbOADxpT_xz5mzvQ7Zkaur3EzLxob79FZM2ni_qrdwpycXrJTx07CJigcx3bYQL8YEYuhk6pRcitxavfGKrhgb5yzk6vSHssX9kFqgvm9vcqr9kPCvI4wFJsNTKz6WziTNWU6GoJklFRzq1lZVdzV2mdz3oVD-wDuc6_gWrPK6pSV5YBclX_UA3zvR1DGPhQq902g-boM1BD9RS4sCOAw2Hgqwy9XwheOKGN3TJypIKOrlEVK91rFm51A48A',
-                        tag: 'PENTHOUSE',
-                        onTap: () => context.push('/property-details'),
+                  sliver: ref
+                      .watch(propertyListProvider)
+                      .when(
+                        data: (properties) {
+                          if (properties.isEmpty) {
+                            return SliverToBoxAdapter(
+                              child: Center(
+                                child: Column(
+                                  children: [
+                                    const Text(
+                                      'No properties found',
+                                      style: TextStyle(color: Colors.white),
+                                    ),
+                                    const SizedBox(height: 16),
+                                    ElevatedButton(
+                                      onPressed: () async {
+                                        await ref
+                                            .read(propertyRepositoryProvider)
+                                            .seedProperties();
+                                      },
+                                      child: const Text('Seed Mock Data'),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          }
+                          return SliverList(
+                            delegate: SliverChildBuilderDelegate((
+                              context,
+                              index,
+                            ) {
+                              if (index == properties.length) {
+                                return const SizedBox(
+                                  height: 100,
+                                ); // Bottom spacer
+                              }
+                              final property = properties[index];
+                              return PropertyCard(
+                                title: property.title,
+                                location: property.location,
+                                price: '\$${property.price.toStringAsFixed(2)}',
+                                yield: '${property.yieldRate}%',
+                                available: property.available.toString(),
+                                image: property.imageUrl,
+                                tag: property.tag,
+                                onTap: () => context.push('/property-details'),
+                              );
+                            }, childCount: properties.length + 1),
+                          );
+                        },
+                        loading: () => const SliverToBoxAdapter(
+                          child: Center(child: CircularProgressIndicator()),
+                        ),
+                        error: (error, stack) => SliverToBoxAdapter(
+                          child: Center(
+                            child: Text(
+                              'Error: $error',
+                              style: const TextStyle(color: Colors.red),
+                            ),
+                          ),
+                        ),
                       ),
-                      PropertyCard(
-                        title: 'Greenwich Villa',
-                        location: 'London, UK',
-                        price: '\$120.50',
-                        yield: '6.2%',
-                        available: '12',
-                        image:
-                            'https://lh3.googleusercontent.com/aida-public/AB6AXuAv4iBMVoZomuWhRZPwSbL2BYoqOtLi26lZNdIfLhv9pysgWhPPSHjorfYtZ6zp1ya5Zthc8Xx27T9AHRy4vUyABjmHZaXuzZhRkHFlQc5pYAzpPorzjTkebAmc_jYcFrUaaGwyHcKjXAd2c_RQZM3kk96BYUhSNPvUk1N_JOI67cV0Lxa4XUHtC9q1n0eI0nFUNxffGRhJIWh_4clXwSJ96PX_znJJum6hr9v0cWxeOVvD8jt_OB360PKtPwmye2qpxxOOlUr18w',
-                        tag: 'VILLA',
-                        onTap: () => context.push('/property-details'),
-                      ),
-                      PropertyCard(
-                        title: 'Marina Bay Suites',
-                        location: 'Singapore',
-                        price: '\$89.00',
-                        yield: '5.8%',
-                        available: '1,250',
-                        image:
-                            'https://lh3.googleusercontent.com/aida-public/AB6AXuAw5WCl_qoZKrIDm92tKryyR6Ish_XpDvT1UeCMUo8rPYX5zITPBg75Frl3-4ujgUYxZSL28EHjjKEz2RxE4RoOp8xo1hJeUi4_1TQsKxLaQl5GiTSm5Pwvnm7UIY_cviAOy2wEM4cuMEq76LFKws1FRPc0IW8YtsfwIEJgEAsgHduAiDEUw70YIpsims-s4sWfZATg-X-bThElMLFnTsHicRpnKhZ32dhkwGefcFapB_tezjcd2cKbDfXj8Fh1wqtGNJusiNtl6Q',
-                        tag: 'RESORT',
-                        onTap: () => context.push('/property-details'),
-                      ),
-
-                      const SizedBox(
-                        height: 100,
-                      ), // Bottom spacer for nav bar and FABs
-                    ]),
-                  ),
                 ),
               ],
             ),
@@ -266,7 +296,7 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
         decoration: BoxDecoration(
           color: AppColors.card,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.white.withOpacity(0.05)),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
         ),
         child: Column(
           children: [

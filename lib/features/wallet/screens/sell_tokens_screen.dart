@@ -22,7 +22,7 @@ class _SellTokensScreenState extends State<SellTokensScreen> {
     return Scaffold(
       backgroundColor: AppColors.backgroundDark,
       appBar: AppBar(
-        backgroundColor: AppColors.backgroundDark.withOpacity(0.95),
+        backgroundColor: AppColors.backgroundDark.withValues(alpha: 0.95),
         title: const Text('Configure Listing'),
         centerTitle: true,
         leading: IconButton(
@@ -70,9 +70,9 @@ class _SellTokensScreenState extends State<SellTokensScreen> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.05),
+        color: Colors.white.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withOpacity(0.1)),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
       ),
       child: Row(
         children: [
@@ -83,7 +83,7 @@ class _SellTokensScreenState extends State<SellTokensScreen> {
                 Text(
                   'SELLING',
                   style: TextStyle(
-                    color: Colors.white.withOpacity(0.5),
+                    color: Colors.white.withValues(alpha: 0.5),
                     fontSize: 10,
                     fontWeight: FontWeight.bold,
                     letterSpacing: 1,
@@ -97,7 +97,7 @@ class _SellTokensScreenState extends State<SellTokensScreen> {
                 Text(
                   '50 Tokens Owned',
                   style: TextStyle(
-                    color: Colors.white.withOpacity(0.5),
+                    color: Colors.white.withValues(alpha: 0.5),
                     fontSize: 12,
                   ),
                 ),
@@ -126,9 +126,9 @@ class _SellTokensScreenState extends State<SellTokensScreen> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.05),
+        color: Colors.white.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withOpacity(0.1)),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
       ),
       child: Column(
         children: [
@@ -147,7 +147,9 @@ class _SellTokensScreenState extends State<SellTokensScreen> {
                 decoration: BoxDecoration(
                   color: AppColors.backgroundDark,
                   borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.white.withOpacity(0.1)),
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.1),
+                  ),
                 ),
                 child: Row(
                   children: [
@@ -175,7 +177,7 @@ class _SellTokensScreenState extends State<SellTokensScreen> {
               activeTrackColor: AppColors.primary,
               inactiveTrackColor: Colors.white10,
               thumbColor: AppColors.primary,
-              overlayColor: AppColors.primary.withOpacity(0.2),
+              overlayColor: AppColors.primary.withValues(alpha: 0.2),
             ),
             child: Slider(
               value: quantity.toDouble(),
@@ -198,9 +200,9 @@ class _SellTokensScreenState extends State<SellTokensScreen> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.05),
+        color: Colors.white.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withOpacity(0.1)),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
       ),
       child: Column(
         children: [
@@ -228,7 +230,7 @@ class _SellTokensScreenState extends State<SellTokensScreen> {
             decoration: InputDecoration(
               prefixText: '\$ ',
               prefixStyle: TextStyle(
-                color: Colors.white.withOpacity(0.5),
+                color: Colors.white.withValues(alpha: 0.5),
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
               ),
@@ -236,11 +238,15 @@ class _SellTokensScreenState extends State<SellTokensScreen> {
               fillColor: AppColors.backgroundDark,
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(color: Colors.white.withOpacity(0.1)),
+                borderSide: BorderSide(
+                  color: Colors.white.withValues(alpha: 0.1),
+                ),
               ),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(color: Colors.white.withOpacity(0.1)),
+                borderSide: BorderSide(
+                  color: Colors.white.withValues(alpha: 0.1),
+                ),
               ),
             ),
             style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
@@ -262,9 +268,9 @@ class _SellTokensScreenState extends State<SellTokensScreen> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.05),
+        color: Colors.white.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withOpacity(0.1)),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
       ),
       child: Column(
         children: [
@@ -273,7 +279,7 @@ class _SellTokensScreenState extends State<SellTokensScreen> {
             children: [
               Text(
                 'Total Sale Value',
-                style: TextStyle(color: Colors.white.withOpacity(0.5)),
+                style: TextStyle(color: Colors.white.withValues(alpha: 0.5)),
               ),
               Text(
                 '\$${total.toStringAsFixed(2)}',
@@ -287,11 +293,11 @@ class _SellTokensScreenState extends State<SellTokensScreen> {
             children: [
               Text(
                 'Service Fee (1%)',
-                style: TextStyle(color: Colors.white.withOpacity(0.5)),
+                style: TextStyle(color: Colors.white.withValues(alpha: 0.5)),
               ),
               Text(
                 '-\$${fee.toStringAsFixed(2)}',
-                style: TextStyle(color: Colors.white.withOpacity(0.5)),
+                style: TextStyle(color: Colors.white.withValues(alpha: 0.5)),
               ),
             ],
           ),
@@ -324,7 +330,9 @@ class _SellTokensScreenState extends State<SellTokensScreen> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        border: Border(top: BorderSide(color: Colors.white.withOpacity(0.1))),
+        border: Border(
+          top: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
+        ),
       ),
       child: ElevatedButton(
         onPressed: () {},

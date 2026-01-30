@@ -30,7 +30,7 @@ class AppBottomNav extends StatelessWidget {
           child: GlassContainer(
             padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
             borderRadius: BorderRadius.circular(24),
-            color: AppColors.card.withOpacity(0.9),
+            color: AppColors.card.withValues(alpha: 0.9),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -52,7 +52,7 @@ class AppBottomNav extends StatelessWidget {
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color: AppColors.primary.withOpacity(0.5),
+                          color: AppColors.primary.withValues(alpha: 0.5),
                           blurRadius: 15,
                         ),
                       ],

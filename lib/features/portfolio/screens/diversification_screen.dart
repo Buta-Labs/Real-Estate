@@ -15,7 +15,7 @@ class DiversificationScreen extends StatelessWidget {
           'Analytics',
         ), // React header says 'Analytics' but file is Diversification
         centerTitle: true,
-        backgroundColor: AppColors.backgroundDark.withOpacity(0.9),
+        backgroundColor: AppColors.backgroundDark.withValues(alpha: 0.9),
         leading: IconButton(
           icon: const Icon(
             Icons.arrow_back_ios_new,
@@ -31,8 +31,8 @@ class DiversificationScreen extends StatelessWidget {
             height: 40,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: Colors.white.withOpacity(0.05),
-              border: Border.all(color: Colors.white.withOpacity(0.1)),
+              color: Colors.white.withValues(alpha: 0.05),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
             ),
             child: const Icon(
               Icons.insights,
@@ -60,7 +60,7 @@ class DiversificationScreen extends StatelessWidget {
         decoration: BoxDecoration(
           color: AppColors.backgroundDark,
           border: Border(
-            top: BorderSide(color: Colors.white.withOpacity(0.05)),
+            top: BorderSide(color: Colors.white.withValues(alpha: 0.05)),
           ),
         ),
         child: ElevatedButton(
@@ -104,7 +104,7 @@ class DiversificationScreen extends StatelessWidget {
               child: CircularProgressIndicator(
                 value: 1.0,
                 strokeWidth: 12,
-                color: Colors.white.withOpacity(0.05),
+                color: Colors.white.withValues(alpha: 0.05),
               ),
             ),
             // Progress
@@ -160,10 +160,10 @@ class DiversificationScreen extends StatelessWidget {
                     vertical: 4,
                   ),
                   decoration: BoxDecoration(
-                    color: AppColors.primary.withOpacity(0.1),
+                    color: AppColors.primary.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(
-                      color: AppColors.primary.withOpacity(0.2),
+                      color: AppColors.primary.withValues(alpha: 0.2),
                     ),
                   ),
                   child: const Row(
@@ -228,7 +228,7 @@ class DiversificationScreen extends StatelessWidget {
           status: 'Optimal',
           statusColor: AppColors.primary,
           primaryColor: AppColors.primary,
-          secondaryColor: Colors.white.withOpacity(0.2),
+          secondaryColor: Colors.white.withValues(alpha: 0.2),
           primaryLabel: 'Rental (65%)',
           secondaryLabel: 'Growth (35%)',
           percent: 0.65,
@@ -267,7 +267,7 @@ class DiversificationScreen extends StatelessWidget {
     return GlassContainer(
       padding: const EdgeInsets.all(20),
       borderRadius: BorderRadius.circular(16),
-      color: Colors.white.withOpacity(0.05),
+      color: Colors.white.withValues(alpha: 0.05),
       child: Column(
         children: [
           Row(
@@ -279,7 +279,7 @@ class DiversificationScreen extends StatelessWidget {
                     width: 40,
                     height: 40,
                     decoration: BoxDecoration(
-                      color: iconColor.withOpacity(0.2),
+                      color: iconColor.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Icon(icon, color: iconColor, size: 20),
@@ -372,13 +372,13 @@ class DiversificationScreen extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         gradient: LinearGradient(
           colors: [
-            Colors.amber[800]!.withOpacity(0.1),
+            Colors.amber[800]!.withValues(alpha: 0.1),
             const Color(0xFF102219),
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-        border: Border.all(color: Colors.amber[800]!.withOpacity(0.3)),
+        border: Border.all(color: Colors.amber[800]!.withValues(alpha: 0.3)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

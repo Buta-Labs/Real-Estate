@@ -12,7 +12,7 @@ class ConvertScreen extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Convert Fiat'),
         centerTitle: true,
-        backgroundColor: AppColors.backgroundDark.withOpacity(0.8),
+        backgroundColor: AppColors.backgroundDark.withValues(alpha: 0.8),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => context.pop(),
@@ -64,7 +64,7 @@ class ConvertScreen extends StatelessWidget {
                         ),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.3),
+                            color: Colors.black.withValues(alpha: 0.3),
                             blurRadius: 8,
                           ),
                         ],
@@ -112,7 +112,7 @@ class ConvertScreen extends StatelessWidget {
               Text(
                 'CURRENCY',
                 style: TextStyle(
-                  color: const Color(0xFF34D399).withOpacity(0.8),
+                  color: const Color(0xFF34D399).withValues(alpha: 0.8),
                   fontSize: 10,
                   fontWeight: FontWeight.bold,
                   letterSpacing: 1,
@@ -152,7 +152,7 @@ class ConvertScreen extends StatelessWidget {
               Text(
                 'AMOUNT',
                 style: TextStyle(
-                  color: const Color(0xFF34D399).withOpacity(0.8),
+                  color: const Color(0xFF34D399).withValues(alpha: 0.8),
                   fontSize: 10,
                   fontWeight: FontWeight.bold,
                   letterSpacing: 1,
@@ -192,7 +192,7 @@ class ConvertScreen extends StatelessWidget {
               Text(
                 'CRYPTO',
                 style: TextStyle(
-                  color: const Color(0xFF34D399).withOpacity(0.8),
+                  color: const Color(0xFF34D399).withValues(alpha: 0.8),
                   fontSize: 10,
                   fontWeight: FontWeight.bold,
                   letterSpacing: 1,
@@ -236,7 +236,7 @@ class ConvertScreen extends StatelessWidget {
               Text(
                 'EST. AMOUNT',
                 style: TextStyle(
-                  color: const Color(0xFF34D399).withOpacity(0.8),
+                  color: const Color(0xFF34D399).withValues(alpha: 0.8),
                   fontSize: 10,
                   fontWeight: FontWeight.bold,
                   letterSpacing: 1,
@@ -247,7 +247,7 @@ class ConvertScreen extends StatelessWidget {
                 height: 56,
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF183426).withOpacity(0.5),
+                  color: const Color(0xFF183426).withValues(alpha: 0.5),
                   border: Border.all(color: const Color(0xFF31684d)),
                   borderRadius: BorderRadius.circular(12),
                 ),
@@ -272,9 +272,11 @@ class ConvertScreen extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFF183426).withOpacity(0.3),
+        color: const Color(0xFF183426).withValues(alpha: 0.3),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFF31684d).withOpacity(0.3)),
+        border: Border.all(
+          color: const Color(0xFF31684d).withValues(alpha: 0.3),
+        ),
       ),
       child: Column(
         children: [
@@ -315,7 +317,7 @@ class ConvertScreen extends StatelessWidget {
             Text(
               label,
               style: TextStyle(
-                color: const Color(0xFF34D399).withOpacity(0.6),
+                color: const Color(0xFF34D399).withValues(alpha: 0.6),
                 fontSize: 12,
               ),
             ),
@@ -323,7 +325,7 @@ class ConvertScreen extends StatelessWidget {
             Icon(
               Icons.info,
               size: 14,
-              color: const Color(0xFF34D399).withOpacity(0.6),
+              color: const Color(0xFF34D399).withValues(alpha: 0.6),
             ),
           ],
         ),
@@ -364,7 +366,7 @@ class ConvertScreen extends StatelessWidget {
               Text(
                 'SECURED BY PCI DSS CERTIFIED PROCESSOR',
                 style: TextStyle(
-                  color: const Color(0xFF34D399).withOpacity(0.4),
+                  color: const Color(0xFF34D399).withValues(alpha: 0.4),
                   fontSize: 10,
                   fontWeight: FontWeight.bold,
                   letterSpacing: 1,

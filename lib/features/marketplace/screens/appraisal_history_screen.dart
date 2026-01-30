@@ -12,7 +12,7 @@ class AppraisalHistoryScreen extends StatelessWidget {
       body: CustomScrollView(
         slivers: [
           SliverAppBar(
-            backgroundColor: AppColors.backgroundDark.withOpacity(0.8),
+            backgroundColor: AppColors.backgroundDark.withValues(alpha: 0.8),
             floating: true,
             pinned: true,
             centerTitle: true,
@@ -25,7 +25,7 @@ class AppraisalHistoryScreen extends StatelessWidget {
                 Text(
                   'The Grandview Estate',
                   style: TextStyle(
-                    color: Colors.white.withOpacity(0.6),
+                    color: Colors.white.withValues(alpha: 0.6),
                     fontSize: 12,
                   ),
                 ),
@@ -79,7 +79,7 @@ class AppraisalHistoryScreen extends StatelessWidget {
             decoration: BoxDecoration(
               color: const Color(0xFF1c1c1a),
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: Colors.white.withOpacity(0.05)),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -87,7 +87,7 @@ class AppraisalHistoryScreen extends StatelessWidget {
                 Text(
                   'Current Valuation'.toUpperCase(),
                   style: TextStyle(
-                    color: Colors.white.withOpacity(0.6),
+                    color: Colors.white.withValues(alpha: 0.6),
                     fontSize: 10,
                     fontWeight: FontWeight.bold,
                   ),
@@ -127,7 +127,7 @@ class AppraisalHistoryScreen extends StatelessWidget {
             decoration: BoxDecoration(
               color: const Color(0xFF1c1c1a),
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: Colors.white.withOpacity(0.05)),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -135,7 +135,7 @@ class AppraisalHistoryScreen extends StatelessWidget {
                 Text(
                   'Asset Appreciation'.toUpperCase(),
                   style: TextStyle(
-                    color: Colors.white.withOpacity(0.6),
+                    color: Colors.white.withValues(alpha: 0.6),
                     fontSize: 10,
                     fontWeight: FontWeight.bold,
                   ),
@@ -172,7 +172,7 @@ class AppraisalHistoryScreen extends StatelessWidget {
       decoration: BoxDecoration(
         color: const Color(0xFF1c1c1a),
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: Colors.white.withOpacity(0.05)),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -186,7 +186,7 @@ class AppraisalHistoryScreen extends StatelessWidget {
                   Text(
                     'Value Tracking',
                     style: TextStyle(
-                      color: Colors.white.withOpacity(0.6),
+                      color: Colors.white.withValues(alpha: 0.6),
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
                     ),
@@ -266,7 +266,7 @@ class AppraisalHistoryScreen extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.05),
+        color: Colors.white.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
@@ -316,9 +316,9 @@ class AppraisalHistoryScreen extends StatelessWidget {
         const SizedBox(height: 16),
         Container(
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.02),
+            color: Colors.white.withValues(alpha: 0.02),
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: Colors.white.withOpacity(0.05)),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
           ),
           child: Column(
             children: [
@@ -421,8 +421,8 @@ class AppraisalHistoryScreen extends StatelessWidget {
                       ),
                       decoration: BoxDecoration(
                         color: isPositive
-                            ? Colors.green.withOpacity(0.1)
-                            : Colors.white.withOpacity(0.05),
+                            ? Colors.green.withValues(alpha: 0.1)
+                            : Colors.white.withValues(alpha: 0.05),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Text(
@@ -520,7 +520,7 @@ class _ChartPainter extends CustomPainter {
 
     // Draw Halo Dot at end
     final paintHalo = Paint()
-      ..color = AppColors.primary.withOpacity(0.3)
+      ..color = AppColors.primary.withValues(alpha: 0.3)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 8;
 

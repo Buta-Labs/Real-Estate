@@ -12,7 +12,7 @@ class MilestoneRewardsScreen extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Milestone Rewards'),
         centerTitle: true,
-        backgroundColor: AppColors.backgroundDark.withOpacity(0.8),
+        backgroundColor: AppColors.backgroundDark.withValues(alpha: 0.8),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new, size: 20),
           onPressed: () => context.pop(),
@@ -87,12 +87,14 @@ class MilestoneRewardsScreen extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: const Color(0xFF28261E).withOpacity(0.7),
+        color: const Color(0xFF28261E).withValues(alpha: 0.7),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFF4D125).withOpacity(0.2)),
+        border: Border.all(
+          color: const Color(0xFFF4D125).withValues(alpha: 0.2),
+        ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.2),
+            color: Colors.black.withValues(alpha: 0.2),
             blurRadius: 20,
             offset: const Offset(0, 10),
           ),
@@ -132,10 +134,10 @@ class MilestoneRewardsScreen extends StatelessWidget {
                   vertical: 4,
                 ),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFF4D125).withOpacity(0.2),
+                  color: const Color(0xFFF4D125).withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
-                    color: const Color(0xFFF4D125).withOpacity(0.3),
+                    color: const Color(0xFFF4D125).withValues(alpha: 0.3),
                   ),
                 ),
                 child: const Text(
@@ -172,7 +174,7 @@ class MilestoneRewardsScreen extends StatelessWidget {
             borderRadius: BorderRadius.circular(8),
             child: LinearProgressIndicator(
               value: 0.72,
-              backgroundColor: const Color(0xFFF4D125).withOpacity(0.1),
+              backgroundColor: const Color(0xFFF4D125).withValues(alpha: 0.1),
               valueColor: const AlwaysStoppedAnimation<Color>(
                 Color(0xFFF4D125),
               ),
@@ -202,9 +204,9 @@ class MilestoneRewardsScreen extends StatelessWidget {
   }) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.05),
+        color: Colors.white.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withOpacity(0.05)),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
       ),
       clipBehavior: Clip.antiAlias,
       child: Column(
@@ -221,7 +223,7 @@ class MilestoneRewardsScreen extends StatelessWidget {
                       begin: Alignment.bottomCenter,
                       end: Alignment.topCenter,
                       colors: [
-                        Colors.black.withOpacity(0.8),
+                        Colors.black.withValues(alpha: 0.8),
                         Colors.transparent,
                       ],
                     ),
@@ -236,9 +238,11 @@ class MilestoneRewardsScreen extends StatelessWidget {
                       vertical: 4,
                     ),
                     decoration: BoxDecoration(
-                      color: statusColor.withOpacity(0.2),
+                      color: statusColor.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: statusColor.withOpacity(0.4)),
+                      border: Border.all(
+                        color: statusColor.withValues(alpha: 0.4),
+                      ),
                       // Backdrop blur would go here
                     ),
                     child: Row(
@@ -297,7 +301,7 @@ class MilestoneRewardsScreen extends StatelessWidget {
                     Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.05),
+                        color: Colors.white.withValues(alpha: 0.05),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: const Icon(
@@ -349,7 +353,7 @@ class MilestoneRewardsScreen extends StatelessWidget {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: isClaimed
                           ? const Color(0xFFF4D125)
-                          : Colors.white.withOpacity(0.1),
+                          : Colors.white.withValues(alpha: 0.1),
                       foregroundColor: isClaimed ? Colors.black : Colors.white,
                       elevation: 0,
                       shape: RoundedRectangleBorder(
@@ -380,7 +384,7 @@ class MilestoneRewardsScreen extends StatelessWidget {
             end: Alignment.topCenter,
             colors: [
               AppColors.backgroundDark,
-              AppColors.backgroundDark.withOpacity(0.9),
+              AppColors.backgroundDark.withValues(alpha: 0.9),
               Colors.transparent,
             ],
           ),
@@ -388,9 +392,9 @@ class MilestoneRewardsScreen extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.1),
+            color: Colors.white.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.white.withOpacity(0.1)),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
           ),
           child: Row(
             children: [

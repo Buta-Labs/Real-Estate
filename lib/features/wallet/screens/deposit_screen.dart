@@ -1,18 +1,125 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:orre_mmc_app/core/blockchain/blockchain_repository.dart';
+import 'package:orre_mmc_app/core/blockchain/blockchain_result.dart';
 import 'package:orre_mmc_app/theme/app_colors.dart';
 
-class DepositScreen extends StatelessWidget {
+class DepositScreen extends ConsumerWidget {
   const DepositScreen({super.key});
 
+  void _showCryptoDepositSheet(BuildContext context, WidgetRef ref) async {
+    // Get address
+    final repository = ref.read(blockchainRepositoryProvider);
+    final result = await repository.connectWallet();
+
+    String address = '';
+    if (result is Success<String>) {
+      address = result.data;
+    } else {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Please connect wallet first')),
+        );
+      }
+      return;
+    }
+
+    if (!context.mounted) return;
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: const Color(0xFF1C2333),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (context) => Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const Text(
+              'Deposit Crypto',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Send MATIC, USDT, or USDC (Polygon) to this address.',
+              style: TextStyle(color: Colors.grey[400], fontSize: 14),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 24),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Center(
+                child: Icon(Icons.qr_code_2, size: 200, color: Colors.black),
+              ),
+            ),
+            const SizedBox(height: 24),
+            const Text(
+              'Your Wallet Address',
+              style: TextStyle(color: Colors.grey, fontSize: 12),
+            ),
+            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              decoration: BoxDecoration(
+                color: Colors.black.withValues(alpha: 0.2),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      address,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontFamily: 'Courier',
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.copy, color: AppColors.primary),
+                    onPressed: () {
+                      Clipboard.setData(ClipboardData(text: address));
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Address copied!')),
+                      );
+                      context.pop();
+                    },
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 24),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
       backgroundColor: AppColors.backgroundDark,
       appBar: AppBar(
         title: const Text('Deposit'),
         centerTitle: true,
-        backgroundColor: AppColors.backgroundDark.withOpacity(0.9),
+        backgroundColor: AppColors.backgroundDark.withValues(alpha: 0.9),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new, size: 20),
           onPressed: () => context.pop(),
@@ -60,20 +167,17 @@ class DepositScreen extends StatelessWidget {
               description:
                   'Transfer USDT/USDC directly via ERC20 or TRC20 networks.',
               icon: Icons.currency_bitcoin,
-              onTap: () {
-                // Navigate to Crypto Deposit flow (mock)
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Crypto Deposit selected')),
-                );
-              },
+              onTap: () => _showCryptoDepositSheet(context, ref),
             ),
             const Spacer(),
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: AppColors.primary.withOpacity(0.05),
+                color: AppColors.primary.withValues(alpha: 0.05),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: AppColors.primary.withOpacity(0.2)),
+                border: Border.all(
+                  color: AppColors.primary.withValues(alpha: 0.2),
+                ),
               ),
               child: Row(
                 children: [
@@ -83,7 +187,7 @@ class DepositScreen extends StatelessWidget {
                     child: Text(
                       'Orre MMC acts as a bridge for fractional real estate. All investments are secured by physical property deeds.',
                       style: TextStyle(
-                        color: AppColors.primary.withOpacity(0.8),
+                        color: AppColors.primary.withValues(alpha: 0.8),
                         fontSize: 12,
                         height: 1.5,
                       ),
@@ -113,7 +217,7 @@ class DepositScreen extends StatelessWidget {
         width: double.infinity,
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.05),
+          color: Colors.white.withValues(alpha: 0.05),
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: isRecommended ? AppColors.primary : Colors.transparent,
@@ -154,8 +258,8 @@ class DepositScreen extends StatelessWidget {
                   height: 48,
                   decoration: BoxDecoration(
                     color: isRecommended
-                        ? AppColors.primary.withOpacity(0.2)
-                        : Colors.white.withOpacity(0.1),
+                        ? AppColors.primary.withValues(alpha: 0.2)
+                        : Colors.white.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Icon(
@@ -185,7 +289,7 @@ class DepositScreen extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: isRecommended
                         ? AppColors.primary
-                        : Colors.white.withOpacity(0.1),
+                        : Colors.white.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Center(

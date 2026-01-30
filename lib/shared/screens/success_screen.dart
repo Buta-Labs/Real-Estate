@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:orre_mmc_app/theme/app_colors.dart';
+import 'package:orre_mmc_app/features/portfolio/providers/portfolio_provider.dart';
 import 'dart:async';
 
-class SuccessScreen extends StatefulWidget {
+class SuccessScreen extends ConsumerStatefulWidget {
   final String title;
   final String message;
   final Map<String, String>? transactionDetails;
@@ -16,24 +18,28 @@ class SuccessScreen extends StatefulWidget {
   });
 
   @override
-  State<SuccessScreen> createState() => _SuccessScreenState();
+  ConsumerState<SuccessScreen> createState() => _SuccessScreenState();
 }
 
-class _SuccessScreenState extends State<SuccessScreen> {
+class _SuccessScreenState extends ConsumerState<SuccessScreen> {
   Timer? _timer;
 
   @override
   void initState() {
     super.initState();
-    _timer = Timer(const Duration(seconds: 5), () {
-      if (mounted) context.pop();
-    });
+    _timer = Timer(const Duration(seconds: 5), _handleClose);
   }
 
   @override
   void dispose() {
     _timer?.cancel();
     super.dispose();
+  }
+
+  void _handleClose() {
+    // Invalidate portfolio so it refreshes when user returns to dashboard
+    ref.invalidate(portfolioAssetsProvider);
+    if (mounted) context.pop();
   }
 
   @override
@@ -50,7 +56,7 @@ class _SuccessScreenState extends State<SuccessScreen> {
               width: 8,
               height: 8,
               decoration: BoxDecoration(
-                color: AppColors.primary.withOpacity(0.2),
+                color: AppColors.primary.withValues(alpha: 0.2),
                 shape: BoxShape.circle,
               ),
             ),
@@ -62,7 +68,7 @@ class _SuccessScreenState extends State<SuccessScreen> {
               width: 320,
               height: 320,
               decoration: BoxDecoration(
-                color: AppColors.primary.withOpacity(0.05),
+                color: AppColors.primary.withValues(alpha: 0.05),
                 shape: BoxShape.circle,
               ),
             ),
@@ -79,14 +85,14 @@ class _SuccessScreenState extends State<SuccessScreen> {
                       IconButton(
                         icon: const Icon(Icons.close),
                         style: IconButton.styleFrom(
-                          backgroundColor: Colors.white.withOpacity(0.05),
+                          backgroundColor: Colors.white.withValues(alpha: 0.05),
                         ),
-                        onPressed: () => context.pop(),
+                        onPressed: _handleClose,
                       ),
                       Text(
                         'Transaction Details',
                         style: TextStyle(
-                          color: Colors.white.withOpacity(0.4),
+                          color: Colors.white.withValues(alpha: 0.4),
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -115,13 +121,15 @@ class _SuccessScreenState extends State<SuccessScreen> {
                           ),
                           boxShadow: [
                             BoxShadow(
-                              color: const Color(0xFF0df280).withOpacity(0.4),
+                              color: const Color(
+                                0xFF0df280,
+                              ).withValues(alpha: 0.4),
                               blurRadius: 40,
                               spreadRadius: -10,
                             ),
                           ],
                           border: Border.all(
-                            color: AppColors.primary.withOpacity(0.4),
+                            color: AppColors.primary.withValues(alpha: 0.4),
                             width: 4,
                           ),
                         ),
@@ -163,7 +171,7 @@ class _SuccessScreenState extends State<SuccessScreen> {
               Padding(
                 padding: const EdgeInsets.all(24),
                 child: ElevatedButton(
-                  onPressed: () => context.pop(),
+                  onPressed: _handleClose,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primary,
                     foregroundColor: AppColors.backgroundDark,
@@ -172,7 +180,7 @@ class _SuccessScreenState extends State<SuccessScreen> {
                       borderRadius: BorderRadius.circular(16),
                     ),
                     elevation: 8,
-                    shadowColor: AppColors.primary.withOpacity(0.3),
+                    shadowColor: AppColors.primary.withValues(alpha: 0.3),
                   ),
                   child: const Text(
                     'Continue',
@@ -194,15 +202,15 @@ class _SuccessScreenState extends State<SuccessScreen> {
         gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
-          colors: [Colors.white.withOpacity(0.1), Colors.transparent],
+          colors: [Colors.white.withValues(alpha: 0.1), Colors.transparent],
         ),
         borderRadius: BorderRadius.circular(20),
       ),
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.05),
+          color: Colors.white.withValues(alpha: 0.05),
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.white.withOpacity(0.05)),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
         ),
         clipBehavior: Clip.antiAlias,
         child: Column(
@@ -232,7 +240,7 @@ class _SuccessScreenState extends State<SuccessScreen> {
                         Container(
                           padding: const EdgeInsets.all(8),
                           decoration: BoxDecoration(
-                            color: AppColors.primary.withOpacity(0.1),
+                            color: AppColors.primary.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: const Icon(
@@ -248,7 +256,7 @@ class _SuccessScreenState extends State<SuccessScreen> {
                             Text(
                               'PROJECT',
                               style: TextStyle(
-                                color: Colors.white.withOpacity(0.5),
+                                color: Colors.white.withValues(alpha: 0.5),
                                 fontSize: 10,
                                 fontWeight: FontWeight.bold,
                               ),
@@ -293,7 +301,7 @@ class _SuccessScreenState extends State<SuccessScreen> {
                       Text(
                         'Reference',
                         style: TextStyle(
-                          color: Colors.white.withOpacity(0.6),
+                          color: Colors.white.withValues(alpha: 0.6),
                           fontSize: 14,
                         ),
                       ),
@@ -302,7 +310,7 @@ class _SuccessScreenState extends State<SuccessScreen> {
                           Text(
                             details['hash'] ?? '',
                             style: TextStyle(
-                              color: Colors.white.withOpacity(0.7),
+                              color: Colors.white.withValues(alpha: 0.7),
                               fontSize: 14,
                               fontFamily: 'monospace',
                             ),
@@ -311,7 +319,7 @@ class _SuccessScreenState extends State<SuccessScreen> {
                           Icon(
                             Icons.copy,
                             size: 14,
-                            color: Colors.white.withOpacity(0.4),
+                            color: Colors.white.withValues(alpha: 0.4),
                           ),
                         ],
                       ),
@@ -337,7 +345,10 @@ class _SuccessScreenState extends State<SuccessScreen> {
       children: [
         Text(
           label,
-          style: TextStyle(color: Colors.white.withOpacity(0.6), fontSize: 14),
+          style: TextStyle(
+            color: Colors.white.withValues(alpha: 0.6),
+            fontSize: 14,
+          ),
         ),
         if (isStatus)
           Row(

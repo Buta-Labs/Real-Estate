@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:orre_mmc_app/features/auth/screens/login_screen.dart';
+import 'package:orre_mmc_app/features/auth/screens/signup_screen.dart';
+import 'package:orre_mmc_app/features/auth/repositories/auth_repository.dart';
 import 'package:orre_mmc_app/features/dashboard/screens/dashboard_screen.dart';
 import 'package:orre_mmc_app/features/marketplace/screens/marketplace_screen.dart';
 import 'package:orre_mmc_app/features/ai_advisor/screens/ai_advisor_screen.dart';
@@ -37,7 +39,6 @@ import 'package:orre_mmc_app/features/wallet/screens/bank_transfer_screen.dart';
 import 'package:orre_mmc_app/features/wallet/screens/convert_screen.dart';
 import 'package:orre_mmc_app/features/wallet/screens/select_asset_screen.dart';
 import 'package:orre_mmc_app/features/wallet/screens/sell_tokens_screen.dart';
-import 'package:orre_mmc_app/features/profile/screens/profile_screen.dart';
 import 'package:orre_mmc_app/shared/screens/success_screen.dart';
 import 'package:orre_mmc_app/features/referrals/screens/milestone_rewards_screen.dart';
 import 'package:orre_mmc_app/features/referrals/screens/referral_milestone_screen.dart';
@@ -57,6 +58,10 @@ final routerProvider = Provider<GoRouter>((ref) {
     initialLocation: '/login', // Start at login
     routes: [
       GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
+      GoRoute(
+        path: '/signup',
+        builder: (context, state) => const SignupScreen(),
+      ),
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) {
           return ScaffoldWithBottomNav(navigationShell: navigationShell);
@@ -270,5 +275,25 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const SuccessScreen(),
       ),
     ],
+    redirect: (context, state) {
+      final authState = ref.watch(authStateProvider);
+
+      // If auth state is loading, don't redirect yet (or show splash)
+      if (authState.isLoading) return null;
+
+      final isLoggedIn = authState.value != null;
+      final isLoggingIn = state.uri.toString() == '/login';
+      final isSigningUp = state.uri.toString() == '/signup';
+
+      if (!isLoggedIn && !isLoggingIn && !isSigningUp) {
+        return '/login';
+      }
+
+      if (isLoggedIn && (isLoggingIn || isSigningUp)) {
+        return '/dashboard';
+      }
+
+      return null;
+    },
   );
 });

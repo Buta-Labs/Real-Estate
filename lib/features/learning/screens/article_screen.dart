@@ -14,7 +14,9 @@ class ArticleScreen extends StatelessWidget {
           CustomScrollView(
             slivers: [
               SliverAppBar(
-                backgroundColor: AppColors.backgroundDark.withOpacity(0.9),
+                backgroundColor: AppColors.backgroundDark.withValues(
+                  alpha: 0.9,
+                ),
                 pinned: true,
                 leading: IconButton(
                   icon: const Icon(Icons.arrow_back_ios_new, size: 20),
@@ -35,7 +37,7 @@ class ArticleScreen extends StatelessWidget {
                   preferredSize: const Size.fromHeight(4),
                   child: LinearProgressIndicator(
                     value: 0.45,
-                    backgroundColor: Colors.white.withOpacity(0.1),
+                    backgroundColor: Colors.white.withValues(alpha: 0.1),
                     valueColor: const AlwaysStoppedAnimation<Color>(
                       AppColors.primary,
                     ),
@@ -55,7 +57,7 @@ class ArticleScreen extends StatelessWidget {
                           vertical: 4,
                         ),
                         decoration: BoxDecoration(
-                          color: AppColors.primary.withOpacity(0.2),
+                          color: AppColors.primary.withValues(alpha: 0.2),
                           borderRadius: BorderRadius.circular(4),
                         ),
                         child: const Text(
@@ -127,7 +129,7 @@ class ArticleScreen extends StatelessWidget {
                       Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: AppColors.primary.withOpacity(0.1),
+                          color: AppColors.primary.withValues(alpha: 0.1),
                           border: const Border(
                             left: BorderSide(
                               color: AppColors.primary,
@@ -213,9 +215,9 @@ class ArticleScreen extends StatelessWidget {
                               decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(12),
                                 border: Border.all(
-                                  color: Colors.white.withOpacity(0.1),
+                                  color: Colors.white.withValues(alpha: 0.1),
                                 ),
-                                color: Colors.white.withOpacity(0.05),
+                                color: Colors.white.withValues(alpha: 0.05),
                               ),
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -252,8 +254,8 @@ class ArticleScreen extends StatelessWidget {
                                         Text(
                                           'Why Commercial RE is Booming',
                                           style: TextStyle(
-                                            color: Colors.white.withOpacity(
-                                              0.9,
+                                            color: Colors.white.withValues(
+                                              alpha: 0.9,
                                             ),
                                             fontSize: 12,
                                             fontWeight: FontWeight.bold,

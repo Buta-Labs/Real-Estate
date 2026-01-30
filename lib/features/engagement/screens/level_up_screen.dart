@@ -65,14 +65,14 @@ class LevelUpScreen extends StatelessWidget {
         children: [
           IconButton(
             onPressed: () => context.pop(),
-            icon: Icon(Icons.close, color: Colors.white.withOpacity(0.6)),
+            icon: Icon(Icons.close, color: Colors.white.withValues(alpha: 0.6)),
           ),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
-              color: _gold.withOpacity(0.1),
+              color: _gold.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: _gold.withOpacity(0.2)),
+              border: Border.all(color: _gold.withValues(alpha: 0.2)),
             ),
             child: Row(
               children: [
@@ -88,7 +88,7 @@ class LevelUpScreen extends StatelessWidget {
                 Text(
                   'NEW STATUS UNLOCKED',
                   style: TextStyle(
-                    color: _gold.withOpacity(0.8),
+                    color: _gold.withValues(alpha: 0.8),
                     fontSize: 10,
                     fontWeight: FontWeight.bold,
                     letterSpacing: 1,
@@ -112,7 +112,9 @@ class LevelUpScreen extends StatelessWidget {
             color: Colors.white,
             fontSize: 36,
             fontWeight: FontWeight.w900,
-            shadows: [Shadow(color: _gold.withOpacity(0.4), blurRadius: 20)],
+            shadows: [
+              Shadow(color: _gold.withValues(alpha: 0.4), blurRadius: 20),
+            ],
           ),
         ),
         const SizedBox(height: 8),
@@ -141,10 +143,10 @@ class LevelUpScreen extends StatelessWidget {
             height: 250,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: _gold.withOpacity(0.1),
+              color: _gold.withValues(alpha: 0.1),
               boxShadow: [
                 BoxShadow(
-                  color: _gold.withOpacity(0.2),
+                  color: _gold.withValues(alpha: 0.2),
                   blurRadius: 50,
                   spreadRadius: 10,
                 ),
@@ -164,7 +166,7 @@ class LevelUpScreen extends StatelessWidget {
     return GlassContainer(
       padding: const EdgeInsets.all(24),
       borderRadius: BorderRadius.circular(16),
-      color: Colors.white.withOpacity(0.05),
+      color: Colors.white.withValues(alpha: 0.05),
       child: Column(
         children: [
           Row(
@@ -172,7 +174,7 @@ class LevelUpScreen extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: _gold.withOpacity(0.2),
+                  color: _gold.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Icon(Icons.military_tech, color: _gold),
@@ -209,7 +211,7 @@ class LevelUpScreen extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(icon, color: _gold.withOpacity(0.8), size: 24),
+        Icon(icon, color: _gold.withValues(alpha: 0.8), size: 24),
         const SizedBox(width: 16),
         Expanded(
           child: Column(
@@ -227,7 +229,7 @@ class LevelUpScreen extends StatelessWidget {
               Text(
                 subtitle,
                 style: TextStyle(
-                  color: Colors.white.withOpacity(0.6),
+                  color: Colors.white.withValues(alpha: 0.6),
                   fontSize: 12,
                 ),
               ),
@@ -253,7 +255,7 @@ class LevelUpScreen extends StatelessWidget {
                 borderRadius: BorderRadius.circular(12),
               ),
               elevation: 8,
-              shadowColor: _gold.withOpacity(0.4),
+              shadowColor: _gold.withValues(alpha: 0.4),
             ),
             child: const Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -273,7 +275,7 @@ class LevelUpScreen extends StatelessWidget {
             child: Text(
               'Continue to Dashboard',
               style: TextStyle(
-                color: Colors.white.withOpacity(0.5),
+                color: Colors.white.withValues(alpha: 0.5),
                 decoration: TextDecoration.underline,
               ),
             ),

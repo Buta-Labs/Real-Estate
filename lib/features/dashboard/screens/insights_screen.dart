@@ -13,7 +13,7 @@ class InsightsScreen extends StatelessWidget {
       body: CustomScrollView(
         slivers: [
           SliverAppBar(
-            backgroundColor: AppColors.backgroundDark.withOpacity(0.8),
+            backgroundColor: AppColors.backgroundDark.withValues(alpha: 0.8),
             floating: true,
             pinned: true,
             title: const Text('Market Insights'),
@@ -71,7 +71,9 @@ class InsightsScreen extends StatelessWidget {
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
-          border: Border.all(color: const Color(0xFFF4C025).withOpacity(0.3)),
+          border: Border.all(
+            color: const Color(0xFFF4C025).withValues(alpha: 0.3),
+          ),
         ),
         child: Stack(
           children: [
@@ -83,7 +85,7 @@ class InsightsScreen extends StatelessWidget {
                 height: 128,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: const Color(0xFFF4C025).withOpacity(0.1),
+                  color: const Color(0xFFF4C025).withValues(alpha: 0.1),
                 ),
               ),
             ),
@@ -112,7 +114,7 @@ class InsightsScreen extends StatelessWidget {
                 Text(
                   'Analyze your performance and portfolio growth.',
                   style: TextStyle(
-                    color: Colors.white.withOpacity(0.6),
+                    color: Colors.white.withValues(alpha: 0.6),
                     fontSize: 10,
                   ),
                 ),
@@ -151,8 +153,8 @@ class InsightsScreen extends StatelessWidget {
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(16),
-          color: Colors.white.withOpacity(0.05),
-          border: Border.all(color: Colors.white.withOpacity(0.1)),
+          color: Colors.white.withValues(alpha: 0.05),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
         ),
         child: Stack(
           children: [
@@ -164,7 +166,7 @@ class InsightsScreen extends StatelessWidget {
                 height: 128,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: AppColors.primary.withOpacity(0.1),
+                  color: AppColors.primary.withValues(alpha: 0.1),
                 ),
               ),
             ),
@@ -193,7 +195,7 @@ class InsightsScreen extends StatelessWidget {
                 Text(
                   'Learn the basics of fractional ownership.',
                   style: TextStyle(
-                    color: Colors.white.withOpacity(0.6),
+                    color: Colors.white.withValues(alpha: 0.6),
                     fontSize: 10,
                   ),
                 ),
@@ -231,14 +233,14 @@ class InsightsScreen extends StatelessWidget {
           child: GlassContainer(
             padding: const EdgeInsets.all(20),
             borderRadius: BorderRadius.circular(16),
-            color: Colors.white.withOpacity(0.05),
+            color: Colors.white.withValues(alpha: 0.05),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   'Market Sentiment',
                   style: TextStyle(
-                    color: Colors.white.withOpacity(0.6),
+                    color: Colors.white.withValues(alpha: 0.6),
                     fontSize: 12,
                     fontWeight: FontWeight.bold,
                   ),
@@ -273,7 +275,7 @@ class InsightsScreen extends StatelessWidget {
                   height: 6,
                   width: double.infinity,
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.1),
+                    color: Colors.white.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(3),
                   ),
                   alignment: Alignment.centerLeft,
@@ -285,7 +287,7 @@ class InsightsScreen extends StatelessWidget {
                         borderRadius: BorderRadius.circular(3),
                         boxShadow: [
                           BoxShadow(
-                            color: AppColors.primary.withOpacity(0.6),
+                            color: AppColors.primary.withValues(alpha: 0.6),
                             blurRadius: 8,
                           ),
                         ],
@@ -303,7 +305,7 @@ class InsightsScreen extends StatelessWidget {
           child: GlassContainer(
             padding: const EdgeInsets.all(20),
             borderRadius: BorderRadius.circular(16),
-            color: Colors.white.withOpacity(0.05),
+            color: Colors.white.withValues(alpha: 0.05),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -311,7 +313,7 @@ class InsightsScreen extends StatelessWidget {
                 Text(
                   'VOLATILITY',
                   style: TextStyle(
-                    color: Colors.white.withOpacity(0.6),
+                    color: Colors.white.withValues(alpha: 0.6),
                     fontSize: 10,
                     fontWeight: FontWeight.bold,
                     letterSpacing: 0.5,
@@ -369,7 +371,7 @@ class InsightsScreen extends StatelessWidget {
       child: GlassContainer(
         padding: EdgeInsets.zero,
         borderRadius: BorderRadius.circular(16),
-        color: Colors.white.withOpacity(0.05),
+        color: Colors.white.withValues(alpha: 0.05),
         child: Column(
           children: [
             Container(
@@ -430,7 +432,7 @@ class InsightsScreen extends StatelessWidget {
                       Text(
                         '•  5 min read',
                         style: TextStyle(
-                          color: Colors.white.withOpacity(0.6),
+                          color: Colors.white.withValues(alpha: 0.6),
                           fontSize: 12,
                         ),
                       ),
@@ -459,7 +461,7 @@ class InsightsScreen extends StatelessWidget {
     return GlassContainer(
       padding: const EdgeInsets.all(16),
       borderRadius: BorderRadius.circular(16),
-      color: Colors.white.withOpacity(0.05),
+      color: Colors.white.withValues(alpha: 0.05),
       child: Row(
         children: [
           Expanded(
@@ -480,7 +482,7 @@ class InsightsScreen extends StatelessWidget {
                     Text(
                       '•  3 min read',
                       style: TextStyle(
-                        color: Colors.white.withOpacity(0.6),
+                        color: Colors.white.withValues(alpha: 0.6),
                         fontSize: 10,
                       ),
                     ),

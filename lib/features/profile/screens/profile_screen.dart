@@ -1,13 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:orre_mmc_app/theme/app_colors.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:orre_mmc_app/features/auth/repositories/auth_repository.dart';
 import 'package:orre_mmc_app/shared/widgets/glass_container.dart';
+import 'package:orre_mmc_app/theme/app_colors.dart';
 
-class ProfileScreen extends StatelessWidget {
+class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final user = ref.watch(authRepositoryProvider).currentUser;
+    final email = user?.email ?? 'No email';
+
     return Scaffold(
       backgroundColor: AppColors.backgroundDark,
       body: CustomScrollView(
@@ -49,7 +54,7 @@ class ProfileScreen extends StatelessWidget {
                           ),
                           boxShadow: [
                             BoxShadow(
-                              color: AppColors.primary.withOpacity(0.2),
+                              color: AppColors.primary.withValues(alpha: 0.2),
                               blurRadius: 0,
                               spreadRadius: 2,
                             ),
@@ -75,9 +80,12 @@ class ProfileScreen extends StatelessWidget {
                     ],
                   ),
                   const SizedBox(height: 16),
-                  const Text(
-                    'Alexander Orre',
-                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                  Text(
+                    email, // Showing email as name for now since displayName might be null
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   const SizedBox(height: 8),
                   Container(
@@ -86,10 +94,10 @@ class ProfileScreen extends StatelessWidget {
                       vertical: 4,
                     ),
                     decoration: BoxDecoration(
-                      color: AppColors.primary.withOpacity(0.1),
+                      color: AppColors.primary.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(
-                        color: AppColors.primary.withOpacity(0.2),
+                        color: AppColors.primary.withValues(alpha: 0.2),
                       ),
                     ),
                     child: Row(
@@ -120,7 +128,7 @@ class ProfileScreen extends StatelessWidget {
                   Text(
                     'Member since 2023',
                     style: TextStyle(
-                      color: Colors.white.withOpacity(0.4),
+                      color: Colors.white.withValues(alpha: 0.4),
                       fontSize: 12,
                     ),
                   ),
@@ -208,14 +216,19 @@ class ProfileScreen extends StatelessWidget {
                   const SizedBox(height: 32),
 
                   ElevatedButton(
-                    onPressed: () {},
+                    onPressed: () async {
+                      await ref.read(authRepositoryProvider).signOut();
+                      // Router redirect will handle navigation
+                    },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.red.withOpacity(0.05),
+                      backgroundColor: Colors.red.withValues(alpha: 0.05),
                       foregroundColor: Colors.red,
                       minimumSize: const Size(double.infinity, 56),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(16),
-                        side: BorderSide(color: Colors.red.withOpacity(0.2)),
+                        side: BorderSide(
+                          color: Colors.red.withValues(alpha: 0.2),
+                        ),
                       ),
                       elevation: 0,
                     ),
@@ -232,7 +245,7 @@ class ProfileScreen extends StatelessWidget {
                       child: Text(
                         'APP SITEMAP',
                         style: TextStyle(
-                          color: Colors.white.withOpacity(0.3),
+                          color: Colors.white.withValues(alpha: 0.3),
                           fontSize: 10,
                           fontWeight: FontWeight.bold,
                           letterSpacing: 1.5,
@@ -256,7 +269,7 @@ class ProfileScreen extends StatelessWidget {
       child: Text(
         title,
         style: TextStyle(
-          color: Colors.white.withOpacity(0.4),
+          color: Colors.white.withValues(alpha: 0.4),
           fontSize: 10,
           fontWeight: FontWeight.bold,
           letterSpacing: 1.5,
@@ -267,15 +280,15 @@ class ProfileScreen extends StatelessWidget {
 
   Widget _buildSectionContainer(List<Widget> children) {
     return GlassContainer(
-      color: Colors.white.withOpacity(0.05),
+      color: Colors.white.withValues(alpha: 0.05),
       borderRadius: BorderRadius.circular(16),
-      border: Border.all(color: Colors.white.withOpacity(0.05)),
+      border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
       child: Column(children: children),
     );
   }
 
   Widget _buildDivider() {
-    return Divider(height: 1, color: Colors.white.withOpacity(0.05));
+    return Divider(height: 1, color: Colors.white.withValues(alpha: 0.05));
   }
 
   Widget _buildSettingsItem(
@@ -292,7 +305,7 @@ class ProfileScreen extends StatelessWidget {
         width: 40,
         height: 40,
         decoration: BoxDecoration(
-          color: (iconColor ?? AppColors.primary).withOpacity(0.1),
+          color: (iconColor ?? AppColors.primary).withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(12),
         ),
         child: Icon(icon, color: iconColor ?? AppColors.primary, size: 20),
@@ -308,7 +321,7 @@ class ProfileScreen extends StatelessWidget {
             Text(
               subtitle,
               style: TextStyle(
-                color: subtitleColor ?? Colors.white.withOpacity(0.5),
+                color: subtitleColor ?? Colors.white.withValues(alpha: 0.5),
                 fontSize: 12,
                 fontWeight: FontWeight.bold,
               ),
@@ -317,7 +330,7 @@ class ProfileScreen extends StatelessWidget {
           ],
           Icon(
             Icons.chevron_right,
-            color: Colors.white.withOpacity(0.3),
+            color: Colors.white.withValues(alpha: 0.3),
             size: 20,
           ),
         ],

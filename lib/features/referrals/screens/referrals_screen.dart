@@ -14,7 +14,7 @@ class ReferralsScreen extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Referral Program'),
         centerTitle: true,
-        backgroundColor: AppColors.backgroundDark.withOpacity(0.8),
+        backgroundColor: AppColors.backgroundDark.withValues(alpha: 0.8),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new, size: 20),
           onPressed: () => context.pop(),
@@ -68,7 +68,7 @@ class ReferralsScreen extends StatelessWidget {
             end: Alignment.topCenter,
             colors: [
               AppColors.backgroundDark,
-              AppColors.backgroundDark.withOpacity(0.5),
+              AppColors.backgroundDark.withValues(alpha: 0.5),
               Colors.transparent,
             ],
           ),
@@ -117,16 +117,16 @@ class ReferralsScreen extends StatelessWidget {
           height: 64,
           padding: const EdgeInsets.symmetric(horizontal: 16),
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.05),
+            color: Colors.white.withValues(alpha: 0.05),
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: Colors.white.withOpacity(0.1)),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
           ),
           child: Row(
             children: [
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: AppColors.primary.withOpacity(0.1),
+                  color: AppColors.primary.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: const Icon(
@@ -271,7 +271,7 @@ class ReferralsScreen extends StatelessWidget {
                 Text(
                   'Next Reward: Bonus \$25',
                   style: TextStyle(
-                    color: Colors.white.withOpacity(0.8),
+                    color: Colors.white.withValues(alpha: 0.8),
                     fontSize: 12,
                     fontWeight: FontWeight.w500,
                   ),
@@ -291,7 +291,7 @@ class ReferralsScreen extends StatelessWidget {
               borderRadius: BorderRadius.circular(6),
               child: LinearProgressIndicator(
                 value: 0.6,
-                backgroundColor: Colors.white.withOpacity(0.1),
+                backgroundColor: Colors.white.withValues(alpha: 0.1),
                 valueColor: const AlwaysStoppedAnimation<Color>(
                   AppColors.primary,
                 ),
@@ -312,13 +312,13 @@ class ReferralsScreen extends StatelessWidget {
           icon: const Icon(Icons.celebration, color: AppColors.primary),
           label: const Text('View Unlocked Milestone'),
           style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.white.withOpacity(0.05),
+            backgroundColor: Colors.white.withValues(alpha: 0.05),
             foregroundColor: Colors.white,
             minimumSize: const Size(double.infinity, 56),
             elevation: 0,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(16),
-              side: BorderSide(color: Colors.white.withOpacity(0.1)),
+              side: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
             ),
           ),
         ),

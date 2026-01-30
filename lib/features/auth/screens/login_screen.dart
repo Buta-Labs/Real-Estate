@@ -1,31 +1,46 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:orre_mmc_app/features/auth/controllers/auth_controller.dart';
 import 'package:orre_mmc_app/shared/widgets/glass_container.dart';
 import 'package:orre_mmc_app/theme/app_colors.dart';
 
-class LoginScreen extends StatefulWidget {
+class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  ConsumerState<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
-  bool _isLoading = false;
+class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _emailController = TextEditingController(text: 'alexander@orremmc.com');
   final _passwordController = TextEditingController(text: 'password123');
 
-  void _handleLogin() async {
-    setState(() => _isLoading = true);
-    await Future.delayed(const Duration(milliseconds: 1500));
-    if (mounted) {
+  Future<void> _handleLogin() async {
+    await ref
+        .read(authControllerProvider.notifier)
+        .signIn(_emailController.text.trim(), _passwordController.text.trim());
+
+    // Navigation and error handling is done via listener or simple check due to void state
+    if (mounted && ref.read(authControllerProvider).hasError == false) {
       context.go('/dashboard');
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final authState = ref.watch(authControllerProvider);
+    final isLoading = authState.isLoading;
+
+    ref.listen(authControllerProvider, (_, state) {
+      if (state.hasError) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(state.error.toString())));
+      }
+    });
+
     return Scaffold(
       backgroundColor: AppColors.backgroundDark,
       body: Stack(
@@ -50,7 +65,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   end: Alignment.topCenter,
                   colors: [
                     AppColors.backgroundDark,
-                    AppColors.backgroundDark.withOpacity(0.9),
+                    AppColors.backgroundDark.withValues(alpha: 0.9),
                     Colors.transparent,
                   ],
                 ),
@@ -72,14 +87,14 @@ class _LoginScreenState extends State<LoginScreen> {
                       height: 80,
                       margin: const EdgeInsets.only(bottom: 24),
                       decoration: BoxDecoration(
-                        color: AppColors.primary.withOpacity(0.1),
+                        color: AppColors.primary.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(20),
                         border: Border.all(
-                          color: AppColors.primary.withOpacity(0.2),
+                          color: AppColors.primary.withValues(alpha: 0.2),
                         ),
                         boxShadow: [
                           BoxShadow(
-                            color: AppColors.primary.withOpacity(0.2),
+                            color: AppColors.primary.withValues(alpha: 0.2),
                             blurRadius: 30,
                             spreadRadius: 0,
                           ),
@@ -132,20 +147,18 @@ class _LoginScreenState extends State<LoginScreen> {
                       width: double.infinity,
                       height: 56,
                       child: ElevatedButton(
-                        onPressed: _isLoading ? null : _handleLogin,
+                        onPressed: isLoading ? null : _handleLogin,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.primary,
                           foregroundColor: Colors.black,
                           elevation: 10,
-                          shadowColor: AppColors.primary.withValues(
-                            alpha: 0.2,
-                          ), // Updated from withOpacity
+                          shadowColor: AppColors.primary.withValues(alpha: 0.2),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(16),
                           ),
                           padding: const EdgeInsets.symmetric(vertical: 0),
                         ),
-                        child: _isLoading
+                        child: isLoading
                             ? const SizedBox(
                                 height: 24,
                                 width: 24,
@@ -173,13 +186,26 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
 
+                    const SizedBox(height: 24),
+
+                    // Sign Up Link
+                    TextButton(
+                      onPressed: () => context.go('/signup'),
+                      child: Text(
+                        "Don't have an account? Sign Up",
+                        style: TextStyle(color: AppColors.primary),
+                      ),
+                    ),
+
                     const SizedBox(height: 32),
 
                     // Divider
                     Row(
                       children: [
                         Expanded(
-                          child: Divider(color: Colors.white.withOpacity(0.1)),
+                          child: Divider(
+                            color: Colors.white.withValues(alpha: 0.1),
+                          ),
                         ),
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -193,7 +219,9 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                         ),
                         Expanded(
-                          child: Divider(color: Colors.white.withOpacity(0.1)),
+                          child: Divider(
+                            color: Colors.white.withValues(alpha: 0.1),
+                          ),
                         ),
                       ],
                     ),
@@ -239,7 +267,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     style: GoogleFonts.manrope(
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
-                      color: AppColors.primary.withOpacity(0.7),
+                      color: AppColors.primary.withValues(alpha: 0.7),
                       letterSpacing: 1.5,
                     ),
                   ),

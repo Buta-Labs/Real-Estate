@@ -93,7 +93,7 @@ class FiltersScreen extends StatelessWidget {
                       activeTrackColor: AppColors.primary,
                       inactiveTrackColor: Colors.white10,
                       thumbColor: AppColors.primary,
-                      overlayColor: AppColors.primary.withOpacity(0.2),
+                      overlayColor: AppColors.primary.withValues(alpha: 0.2),
                     ),
                     child: RangeSlider(
                       values: const RangeValues(8, 14),
@@ -107,9 +107,11 @@ class FiltersScreen extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.05),
+                      color: Colors.white.withValues(alpha: 0.05),
                       borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: Colors.white.withOpacity(0.1)),
+                      border: Border.all(
+                        color: Colors.white.withValues(alpha: 0.1),
+                      ),
                     ),
                     child: TextField(
                       decoration: const InputDecoration(
@@ -208,14 +210,14 @@ class FiltersScreen extends StatelessWidget {
       label: Text(label),
       backgroundColor: isActive
           ? AppColors.primary
-          : Colors.white.withOpacity(0.05),
+          : Colors.white.withValues(alpha: 0.05),
       labelStyle: TextStyle(
         color: isActive ? AppColors.backgroundDark : Colors.white,
         fontWeight: FontWeight.bold,
       ),
       side: isActive
           ? BorderSide.none
-          : BorderSide(color: Colors.white.withOpacity(0.1)),
+          : BorderSide(color: Colors.white.withValues(alpha: 0.1)),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
     );
   }
@@ -225,11 +227,13 @@ class FiltersScreen extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
         color: isActive
-            ? AppColors.primary.withOpacity(0.2)
-            : Colors.white.withOpacity(0.05),
+            ? AppColors.primary.withValues(alpha: 0.2)
+            : Colors.white.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(24),
         border: Border.all(
-          color: isActive ? AppColors.primary : Colors.white.withOpacity(0.1),
+          color: isActive
+              ? AppColors.primary
+              : Colors.white.withValues(alpha: 0.1),
         ),
       ),
       child: Text(
@@ -248,11 +252,13 @@ class FiltersScreen extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 12),
       decoration: BoxDecoration(
         color: isActive
-            ? AppColors.primary.withOpacity(0.1)
-            : Colors.white.withOpacity(0.05),
+            ? AppColors.primary.withValues(alpha: 0.1)
+            : Colors.white.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: isActive ? AppColors.primary : Colors.white.withOpacity(0.1),
+          color: isActive
+              ? AppColors.primary
+              : Colors.white.withValues(alpha: 0.1),
         ),
       ),
       child: Row(

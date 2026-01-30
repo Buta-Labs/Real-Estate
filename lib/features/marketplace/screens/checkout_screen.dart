@@ -1,19 +1,79 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:orre_mmc_app/core/blockchain/blockchain_repository.dart';
+import 'package:orre_mmc_app/core/blockchain/blockchain_result.dart';
 import 'package:orre_mmc_app/theme/app_colors.dart';
 
-class CheckoutScreen extends StatefulWidget {
+class CheckoutScreen extends ConsumerStatefulWidget {
   const CheckoutScreen({super.key});
 
   @override
-  State<CheckoutScreen> createState() => _CheckoutScreenState();
+  ConsumerState<CheckoutScreen> createState() => _CheckoutScreenState();
 }
 
-class _CheckoutScreenState extends State<CheckoutScreen> {
+class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
   double _amount = 5000;
   static const double _maxLimit = 24500;
   static const double _tokenPrice = 10;
   static const double _feeRate = 0.005;
+  bool _isLoading = false;
+
+  // Hardcoded for MVP Demonstration - matches "The Orion Penthouse" seeded data
+  static const String _demoContractAddress =
+      '0x1234567890123456789012345678901234567890';
+
+  Future<void> _handlePurchase() async {
+    setState(() => _isLoading = true);
+
+    try {
+      final repository = ref.read(blockchainRepositoryProvider);
+
+      // 1. Check if wallet is connected (simple check)
+      final balance = await repository.getNativeBalance();
+      if (balance == "0.00") {
+        // Try to connect if not connected
+        final result = await repository.connectWallet();
+        if (result is Failure) {
+          _showError('Please connect your wallet first.');
+          setState(() => _isLoading = false);
+          return;
+        }
+      }
+
+      // 2. Perform Purchase
+      final result = await repository.purchaseToken(
+        _demoContractAddress,
+        _amount,
+        onStatusChanged: (status) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(status),
+              duration: const Duration(seconds: 1),
+            ),
+          );
+        },
+      );
+
+      if (result is Success) {
+        if (mounted) context.push('/success');
+      } else if (result is Failure) {
+        _showError(
+          'Transaction failed: ${(result as Failure).failure.message}',
+        );
+      }
+    } catch (e) {
+      _showError('An unexpected error occurred: $e');
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  void _showError(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message), backgroundColor: Colors.red),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -24,7 +84,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     return Scaffold(
       backgroundColor: AppColors.backgroundDark,
       appBar: AppBar(
-        backgroundColor: AppColors.backgroundDark.withOpacity(0.9),
+        backgroundColor: AppColors.backgroundDark.withValues(alpha: 0.9),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new, size: 20),
           onPressed: () => context.pop(),
@@ -66,7 +126,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       decoration: BoxDecoration(
         color: const Color(0xFF1C2333),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.white.withOpacity(0.05)),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
       ),
       child: Row(
         children: [
@@ -77,7 +137,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               borderRadius: BorderRadius.circular(8),
               image: const DecorationImage(
                 image: NetworkImage(
-                  'https://lh3.googleusercontent.com/aida-public/AB6AXuDW_8XT1xp__oKoroaTrAyK-nrl5py2E4KgHmZXkz_-UOFE1XTGzBirA1JNBp3xI_wEq1zH59rnebYDylCuK0WiF6aFWTWYaJExYWn0F4s0IBCf4bli_ro_Mdrku7G0lN83t6-nUOXqVhhSFT20Kwn-1SNk7op__xC8VP342jbcFQe-7h7IDKZSb9UyNpO6we5s-vP3RvTGR6kLqmtJ4lpQgIuYzBzdEvFFrQEt5F0o4gv_kx1QlHGA3IZ1p_Kxf8MgzgpuVrfstQ',
+                  'https://lh3.googleusercontent.com/aida-public/AB6AXuBxsR1Uvzzr5Rf008mbOADxpT_xz5mzvQ7Zkaur3EzLxob79FZM2ni_qrdwpycXrJTx07CJigcx3bYQL8YEYuhk6pRcitxavfGKrhgb5yzk6vSHssX9kFqgvm9vcqr9kPCvI4wFJsNTKz6WziTNWU6GoJklFRzq1lZVdzV2mdz3oVD-wDuc6_gWrPK6pSV5YBclX_UA3zvR1DGPhQq902g-boM1BD9RS4sCOAw2Hgqwy9XwheOKGN3TJypIKOrlEVK91rFm51A48A',
                 ),
                 fit: BoxFit.cover,
               ),
@@ -89,7 +149,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Orre MMC - Penthouse Collection',
+                  'The Orion Penthouse',
                   style: TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.bold,
@@ -98,7 +158,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   overflow: TextOverflow.ellipsis,
                 ),
                 Text(
-                  'Fractional Ownership • 12.5% APY',
+                  'Fractional Ownership • 8.5% Yield',
                   style: TextStyle(color: Colors.grey, fontSize: 12),
                 ),
               ],
@@ -153,9 +213,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           margin: const EdgeInsets.only(top: 8),
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.05),
+            color: Colors.white.withValues(alpha: 0.05),
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: Colors.white.withOpacity(0.05)),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
@@ -246,7 +306,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       decoration: BoxDecoration(
         color: const Color(0xFF1C2333),
         borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-        border: Border(top: BorderSide(color: Colors.white.withOpacity(0.05))),
+        border: Border(
+          top: BorderSide(color: Colors.white.withValues(alpha: 0.05)),
+        ),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -309,21 +371,41 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             ],
           ),
           const SizedBox(height: 24),
-          ElevatedButton.icon(
-            onPressed: () {},
-            icon: const Text('Confirm Investment'),
-            label: const Icon(Icons.arrow_forward),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
-              foregroundColor: AppColors.backgroundDark,
-              minimumSize: const Size(double.infinity, 56),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
+          SizedBox(
+            width: double.infinity,
+            height: 56,
+            child: ElevatedButton(
+              onPressed: _isLoading ? null : _handlePurchase,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                foregroundColor: AppColors.backgroundDark,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                textStyle: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
-              textStyle: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
+              child: _isLoading
+                  ? const SizedBox(
+                      width: 24,
+                      height: 24,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation(
+                          AppColors.backgroundDark,
+                        ),
+                      ),
+                    )
+                  : const Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text('Confirm Investment'),
+                        SizedBox(width: 8),
+                        Icon(Icons.arrow_forward),
+                      ],
+                    ),
             ),
           ),
         ],

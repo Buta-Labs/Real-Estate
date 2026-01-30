@@ -12,13 +12,13 @@ class DashboardScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final pinnedViews = ref.watch(pinnedViewsProvider);
-    final pinnedNotifier = ref.read(pinnedViewsProvider.notifier);
+
     return Scaffold(
       body: CustomScrollView(
         slivers: [
           // Header
           SliverAppBar(
-            backgroundColor: AppColors.backgroundDark.withOpacity(0.8),
+            backgroundColor: AppColors.backgroundDark.withValues(alpha: 0.8),
             floating: true,
             pinned: true,
             elevation: 0,
@@ -33,7 +33,7 @@ class DashboardScreen extends ConsumerWidget {
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       border: Border.all(
-                        color: AppColors.primary.withOpacity(0.2),
+                        color: AppColors.primary.withValues(alpha: 0.2),
                         width: 2,
                       ),
                     ),
@@ -69,7 +69,7 @@ class DashboardScreen extends ConsumerWidget {
                   color: Colors.white,
                 ),
                 style: IconButton.styleFrom(
-                  backgroundColor: Colors.white.withOpacity(0.05),
+                  backgroundColor: Colors.white.withValues(alpha: 0.05),
                 ),
               ),
               Stack(
@@ -78,7 +78,7 @@ class DashboardScreen extends ConsumerWidget {
                     onPressed: () {},
                     icon: const Icon(Icons.notifications, color: Colors.white),
                     style: IconButton.styleFrom(
-                      backgroundColor: Colors.white.withOpacity(0.05),
+                      backgroundColor: Colors.white.withValues(alpha: 0.05),
                     ),
                   ),
                   Positioned(
@@ -132,7 +132,7 @@ class DashboardScreen extends ConsumerWidget {
                           Icon(
                             Icons.account_balance_wallet,
                             size: 48,
-                            color: Colors.white.withOpacity(0.1),
+                            color: Colors.white.withValues(alpha: 0.1),
                           ),
                         ],
                       ),
@@ -154,7 +154,7 @@ class DashboardScreen extends ConsumerWidget {
                               vertical: 6,
                             ),
                             decoration: BoxDecoration(
-                              color: AppColors.primary.withOpacity(0.1),
+                              color: AppColors.primary.withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Row(
@@ -241,9 +241,11 @@ class DashboardScreen extends ConsumerWidget {
                     width: double.infinity,
                     padding: const EdgeInsets.all(24),
                     decoration: BoxDecoration(
-                      border: Border.all(color: Colors.white.withOpacity(0.1)),
+                      border: Border.all(
+                        color: Colors.white.withValues(alpha: 0.1),
+                      ),
                       borderRadius: BorderRadius.circular(12),
-                      color: Colors.white.withOpacity(0.05),
+                      color: Colors.white.withValues(alpha: 0.05),
                     ),
                     child: Center(
                       child: Text(
@@ -325,10 +327,10 @@ class DashboardScreen extends ConsumerWidget {
       height: 200,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: color.withOpacity(0.3)),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
         boxShadow: [
           BoxShadow(
-            color: color.withOpacity(0.1),
+            color: color.withValues(alpha: 0.1),
             blurRadius: 40,
             spreadRadius: -10,
           ),
@@ -343,7 +345,10 @@ class DashboardScreen extends ConsumerWidget {
               gradient: LinearGradient(
                 begin: Alignment.centerLeft,
                 end: Alignment.centerRight,
-                colors: [Colors.black.withOpacity(0.9), Colors.transparent],
+                colors: [
+                  Colors.black.withValues(alpha: 0.9),
+                  Colors.transparent,
+                ],
               ),
             ),
           ),
@@ -360,7 +365,7 @@ class DashboardScreen extends ConsumerWidget {
                   ),
                   margin: const EdgeInsets.only(bottom: 8),
                   decoration: BoxDecoration(
-                    color: color.withOpacity(0.2),
+                    color: color.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Row(
@@ -435,7 +440,7 @@ class DashboardScreen extends ConsumerWidget {
     return Container(
       decoration: BoxDecoration(
         color: const Color(0xFF101622),
-        border: Border.all(color: Colors.white.withOpacity(0.1)),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
         borderRadius: BorderRadius.circular(12),
       ),
       padding: const EdgeInsets.all(12),
@@ -445,7 +450,7 @@ class DashboardScreen extends ConsumerWidget {
             width: 32,
             height: 32,
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.05),
+              color: Colors.white.withValues(alpha: 0.05),
               shape: BoxShape.circle,
             ),
             child: Icon(icon, color: Colors.grey[400], size: 16),

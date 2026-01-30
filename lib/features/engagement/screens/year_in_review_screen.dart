@@ -54,7 +54,10 @@ class YearInReviewScreen extends StatelessWidget {
             top: 48,
             right: 24,
             child: IconButton(
-              icon: Icon(Icons.close, color: Colors.white.withOpacity(0.5)),
+              icon: Icon(
+                Icons.close,
+                color: Colors.white.withValues(alpha: 0.5),
+              ),
               onPressed: () => context.pop(),
             ),
           ),
@@ -73,7 +76,7 @@ class YearInReviewScreen extends StatelessWidget {
               height: 4,
               margin: const EdgeInsets.symmetric(horizontal: 2),
               decoration: BoxDecoration(
-                color: index == 2 ? _gold : _gold.withOpacity(0.3),
+                color: index == 2 ? _gold : _gold.withValues(alpha: 0.3),
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -112,7 +115,7 @@ class YearInReviewScreen extends StatelessWidget {
                 style: TextStyle(
                   color: _gold,
                   shadows: [
-                    Shadow(color: _gold.withOpacity(0.4), blurRadius: 15),
+                    Shadow(color: _gold.withValues(alpha: 0.4), blurRadius: 15),
                   ],
                 ),
               ),
@@ -127,12 +130,12 @@ class YearInReviewScreen extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(32),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.05),
+        color: Colors.white.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: _gold.withOpacity(0.2)),
+        border: Border.all(color: _gold.withValues(alpha: 0.2)),
         boxShadow: [
           BoxShadow(
-            color: _gold.withOpacity(0.05),
+            color: _gold.withValues(alpha: 0.05),
             blurRadius: 40,
             spreadRadius: 0,
           ),
@@ -143,7 +146,7 @@ class YearInReviewScreen extends StatelessWidget {
           Text(
             'TOTAL INCOME EARNED',
             style: TextStyle(
-              color: _gold.withOpacity(0.7),
+              color: _gold.withValues(alpha: 0.7),
               fontSize: 12,
               fontWeight: FontWeight.bold,
               letterSpacing: 1.5,
@@ -156,14 +159,16 @@ class YearInReviewScreen extends StatelessWidget {
               color: Colors.white,
               fontSize: 44,
               fontWeight: FontWeight.w900,
-              shadows: [Shadow(color: _gold.withOpacity(0.4), blurRadius: 15)],
+              shadows: [
+                Shadow(color: _gold.withValues(alpha: 0.4), blurRadius: 15),
+              ],
             ),
           ),
           const SizedBox(height: 16),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
             decoration: BoxDecoration(
-              color: const Color(0xFF0BDA1D).withOpacity(0.1),
+              color: const Color(0xFF0BDA1D).withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(16),
             ),
             child: const Row(
@@ -183,7 +188,7 @@ class YearInReviewScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 32),
-          Container(height: 1, width: 60, color: _gold.withOpacity(0.3)),
+          Container(height: 1, width: 60, color: _gold.withValues(alpha: 0.3)),
           const SizedBox(height: 32),
           Row(
             children: [
@@ -197,9 +202,9 @@ class YearInReviewScreen extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: _gold.withOpacity(0.1),
+              color: _gold.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: _gold.withOpacity(0.2)),
+              border: Border.all(color: _gold.withValues(alpha: 0.2)),
             ),
             child: Column(
               children: [
@@ -242,7 +247,7 @@ class YearInReviewScreen extends StatelessWidget {
         Text(
           label,
           style: TextStyle(
-            color: Colors.white.withOpacity(0.5),
+            color: Colors.white.withValues(alpha: 0.5),
             fontSize: 10,
             fontWeight: FontWeight.bold,
             letterSpacing: 1,
@@ -283,7 +288,7 @@ class YearInReviewScreen extends StatelessWidget {
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
               ),
-              shadowColor: _gold.withOpacity(0.4),
+              shadowColor: _gold.withValues(alpha: 0.4),
               elevation: 8,
             ),
             child: const Row(
@@ -306,7 +311,7 @@ class YearInReviewScreen extends StatelessWidget {
             'Data reflects performance from Jan 1, 2023 - Dec 31, 2023. Real estate investments involve risk.',
             textAlign: TextAlign.center,
             style: TextStyle(
-              color: Colors.white.withOpacity(0.4),
+              color: Colors.white.withValues(alpha: 0.4),
               fontSize: 10,
             ),
           ),

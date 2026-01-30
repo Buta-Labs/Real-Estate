@@ -3,7 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:orre_mmc_app/router/app_router.dart';
 import 'package:orre_mmc_app/theme/app_theme.dart';
 
-void main() {
+import 'package:firebase_core/firebase_core.dart';
+import 'package:orre_mmc_app/firebase_options.dart';
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   runApp(const ProviderScope(child: MyApp()));
 }
 

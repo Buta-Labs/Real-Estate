@@ -13,7 +13,7 @@ class BankTransferScreen extends StatelessWidget {
       body: CustomScrollView(
         slivers: [
           SliverAppBar(
-            backgroundColor: AppColors.backgroundDark.withOpacity(0.8),
+            backgroundColor: AppColors.backgroundDark.withValues(alpha: 0.8),
             floating: true,
             pinned: true,
             leading: IconButton(
@@ -43,7 +43,7 @@ class BankTransferScreen extends StatelessWidget {
                   RichText(
                     text: TextSpan(
                       style: TextStyle(
-                        color: Colors.white.withOpacity(0.6),
+                        color: Colors.white.withValues(alpha: 0.6),
                         fontSize: 14,
                       ),
                       children: const [
@@ -80,7 +80,7 @@ class BankTransferScreen extends StatelessWidget {
                         child: Text(
                           'Funds usually settle within 24-48 hours. Ensure the sender name matches your verified identity.',
                           style: TextStyle(
-                            color: Colors.white.withOpacity(0.6),
+                            color: Colors.white.withValues(alpha: 0.6),
                             fontSize: 12,
                           ),
                         ),
@@ -112,8 +112,8 @@ class BankTransferScreen extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.05),
-        border: Border.all(color: Colors.white.withOpacity(0.1)),
+        color: Colors.white.withValues(alpha: 0.05),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
         borderRadius: BorderRadius.circular(24),
       ),
       child: Row(
@@ -123,7 +123,7 @@ class BankTransferScreen extends StatelessWidget {
           Text(
             label.toUpperCase(),
             style: TextStyle(
-              color: Colors.white.withOpacity(0.8),
+              color: Colors.white.withValues(alpha: 0.8),
               fontSize: 12,
               fontWeight: FontWeight.w500,
               letterSpacing: 1,
@@ -138,8 +138,8 @@ class BankTransferScreen extends StatelessWidget {
     return GlassContainer(
       padding: const EdgeInsets.all(20),
       borderRadius: BorderRadius.circular(16),
-      color: AppColors.primary.withOpacity(0.05),
-      border: Border.all(color: AppColors.primary.withOpacity(0.3)),
+      color: AppColors.primary.withValues(alpha: 0.05),
+      border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -149,7 +149,7 @@ class BankTransferScreen extends StatelessWidget {
               Text(
                 'REFERENCE CODE',
                 style: TextStyle(
-                  color: Colors.white.withOpacity(0.5),
+                  color: Colors.white.withValues(alpha: 0.5),
                   fontSize: 10,
                   fontWeight: FontWeight.bold,
                   letterSpacing: 1.5,
@@ -158,7 +158,7 @@ class BankTransferScreen extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                 decoration: BoxDecoration(
-                  color: AppColors.primary.withOpacity(0.1),
+                  color: AppColors.primary.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(4),
                 ),
                 child: const Text(
@@ -227,14 +227,14 @@ class BankTransferScreen extends StatelessWidget {
     return GlassContainer(
       padding: const EdgeInsets.all(16),
       borderRadius: BorderRadius.circular(16),
-      color: Colors.white.withOpacity(0.05),
+      color: Colors.white.withValues(alpha: 0.05),
       child: Row(
         children: [
           Container(
             width: 44,
             height: 44,
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.05),
+              color: Colors.white.withValues(alpha: 0.05),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Icon(icon, color: Colors.white54),
@@ -247,7 +247,7 @@ class BankTransferScreen extends StatelessWidget {
                 Text(
                   label.toUpperCase(),
                   style: TextStyle(
-                    color: Colors.white.withOpacity(0.5),
+                    color: Colors.white.withValues(alpha: 0.5),
                     fontSize: 10,
                     fontWeight: FontWeight.bold,
                     letterSpacing: 1,
@@ -282,11 +282,11 @@ class BankTransferScreen extends StatelessWidget {
         style: TextStyle(color: Colors.white70, fontWeight: FontWeight.bold),
       ),
       style: TextButton.styleFrom(
-        backgroundColor: Colors.white.withOpacity(0.05),
+        backgroundColor: Colors.white.withValues(alpha: 0.05),
         minimumSize: const Size(double.infinity, 56),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
-          side: BorderSide(color: Colors.white.withOpacity(0.1)),
+          side: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
         ),
       ),
     );
@@ -297,7 +297,9 @@ class BankTransferScreen extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: AppColors.backgroundDark,
-        border: Border(top: BorderSide(color: Colors.white.withOpacity(0.05))),
+        border: Border(
+          top: BorderSide(color: Colors.white.withValues(alpha: 0.05)),
+        ),
       ),
       child: ElevatedButton.icon(
         onPressed: () {},
