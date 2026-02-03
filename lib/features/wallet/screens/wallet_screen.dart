@@ -70,7 +70,7 @@ class WalletScreen extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  _buildHeader(context),
+                  _buildHeader(context, ref),
                   const SizedBox(height: 24),
                   _buildCurrencyToggle(ref, currency),
                   const SizedBox(height: 24),
@@ -89,7 +89,11 @@ class WalletScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildHeader(BuildContext context) {
+  Widget _buildHeader(BuildContext context, WidgetRef ref) {
+    // Watch wallet address
+    final walletAddress = ref.watch(walletAddressProvider);
+    final isConnected = walletAddress != null;
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -132,7 +136,9 @@ class WalletScreen extends ConsumerWidget {
                   ),
                 ),
                 Text(
-                  'Orre MMC',
+                  isConnected
+                      ? '${walletAddress.substring(0, 6)}...${walletAddress.substring(walletAddress.length - 4)}'
+                      : 'Not Connected',
                   style: TextStyle(
                     color: Colors.white.withValues(alpha: 0.5),
                     fontSize: 12,
@@ -143,15 +149,34 @@ class WalletScreen extends ConsumerWidget {
             ),
           ],
         ),
-        IconButton(
-          onPressed: () {}, // Navigate to convert
-          style: IconButton.styleFrom(
-            backgroundColor: Colors.white.withValues(alpha: 0.05),
-            shape: const CircleBorder(),
-            side: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
+        if (!isConnected)
+          ElevatedButton(
+            onPressed: () => connectWallet(ref),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              foregroundColor: Colors.black,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              minimumSize: Size.zero,
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            ),
+            child: const Text(
+              'Connect',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+            ),
+          )
+        else
+          IconButton(
+            onPressed: () {}, // Navigate to convert or wallet details
+            style: IconButton.styleFrom(
+              backgroundColor: Colors.white.withValues(alpha: 0.05),
+              shape: const CircleBorder(),
+              side: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
+            ),
+            icon: const Icon(Icons.swap_horiz, color: Colors.white),
           ),
-          icon: const Icon(Icons.swap_horiz, color: Colors.white),
-        ),
       ],
     );
   }

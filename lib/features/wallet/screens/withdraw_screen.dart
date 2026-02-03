@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:orre_mmc_app/core/blockchain/blockchain_repository.dart';
 import 'package:orre_mmc_app/core/blockchain/blockchain_result.dart';
 import 'package:orre_mmc_app/theme/app_colors.dart';
+import 'package:orre_mmc_app/features/wallet/providers/wallet_provider.dart';
 
 class WithdrawScreen extends ConsumerStatefulWidget {
   const WithdrawScreen({super.key});
@@ -16,7 +17,6 @@ class _WithdrawScreenState extends ConsumerState<WithdrawScreen> {
   String _selectedAsset = 'USDT';
   final TextEditingController _amountController = TextEditingController();
   final TextEditingController _addressController = TextEditingController();
-  final double _balance = 12450.00; // TODO: Fetch real balance
   bool _isLoading = false;
 
   // Mock Token Addresses
@@ -40,8 +40,18 @@ class _WithdrawScreenState extends ConsumerState<WithdrawScreen> {
       return;
     }
 
-    if (amount > _balance) {
-      _showError('Insufficient balance');
+    // Check balance from provider
+    final balanceAsync = ref.read(walletBalanceProvider);
+    double currentBalance = 0.0;
+
+    // We need to resolve the future if it's not ready, but we are in async method.
+    // Simplifying: Just try parsing the latest value if available.
+    if (balanceAsync.hasValue) {
+      currentBalance = double.tryParse(balanceAsync.value ?? '0') ?? 0.0;
+    }
+
+    if (amount > currentBalance) {
+      _showError('Insufficient balance (Native MATIC)');
       return;
     }
 
@@ -203,9 +213,25 @@ class _WithdrawScreenState extends ConsumerState<WithdrawScreen> {
         const SizedBox(height: 8),
         Align(
           alignment: Alignment.centerRight,
-          child: Text(
-            'Available: \$${_balance.toStringAsFixed(2)}',
-            style: TextStyle(color: Colors.grey[400], fontSize: 12),
+          child: Consumer(
+            builder: (context, ref, child) {
+              final balanceAsync = ref.watch(walletBalanceProvider);
+              return balanceAsync.when(
+                data: (balance) => Text(
+                  'Available: $balance MATIC', // Showing Native for MVP
+                  style: TextStyle(color: Colors.grey[400], fontSize: 12),
+                ),
+                loading: () => const SizedBox(
+                  width: 12,
+                  height: 12,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                ),
+                error: (_, stack) => Text(
+                  'Error fetching balance',
+                  style: TextStyle(color: Colors.red[400], fontSize: 12),
+                ),
+              );
+            },
           ),
         ),
       ],
@@ -270,7 +296,9 @@ class _WithdrawScreenState extends ConsumerState<WithdrawScreen> {
                 padding: const EdgeInsets.only(right: 12),
                 child: TextButton(
                   onPressed: () {
-                    _amountController.text = _balance.toString();
+                    final balanceAsync = ref.read(walletBalanceProvider);
+                    final val = balanceAsync.valueOrNull ?? '0';
+                    _amountController.text = val;
                   },
                   style: TextButton.styleFrom(
                     backgroundColor: AppColors.primary.withValues(alpha: 0.2),

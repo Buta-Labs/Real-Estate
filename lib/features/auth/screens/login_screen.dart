@@ -1,7 +1,9 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:orre_mmc_app/core/services/biometric_service.dart';
 import 'package:orre_mmc_app/features/auth/controllers/auth_controller.dart';
 import 'package:orre_mmc_app/shared/widgets/glass_container.dart';
 import 'package:orre_mmc_app/theme/app_colors.dart';
@@ -28,6 +30,36 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     }
   }
 
+  Future<void> _handleBiometricLogin() async {
+    final bioService = ref.read(biometricServiceProvider);
+    final credentials = await bioService.loginWithBiometrics();
+
+    if (credentials != null) {
+      if (mounted) {
+        _emailController.text = credentials['email']!;
+        _passwordController.text = credentials['password']!;
+        await _handleLogin();
+      }
+    } else {
+      if (mounted) {
+        final enabled = await bioService.isBiometricEnabled();
+        if (mounted) {
+          if (!enabled) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Please enable Face ID in settings first.'),
+              ),
+            );
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Biometric authentication failed.')),
+            );
+          }
+        }
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final authState = ref.watch(authControllerProvider);
@@ -35,6 +67,18 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
     ref.listen(authControllerProvider, (_, state) {
       if (state.hasError) {
+        final error = state.error;
+        if (error is FirebaseAuthException &&
+            error.code == 'second-factor-required') {
+          // The resolver is available in the exception for this error code
+          // We can cast to dynamic or use specific check if available
+          final resolver = (error as dynamic).resolver as MultiFactorResolver?;
+          if (resolver != null) {
+            context.push('/mfa-verification', extra: resolver);
+            return;
+          }
+        }
+
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text(state.error.toString())));
@@ -232,9 +276,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     Row(
                       children: [
                         Expanded(
-                          child: _buildSocialButton(
-                            'Face ID',
-                            Icons.fingerprint,
+                          child: GestureDetector(
+                            onTap: _handleBiometricLogin,
+                            child: _buildSocialButton(
+                              'Face ID',
+                              Icons.fingerprint,
+                            ),
                           ),
                         ),
                         const SizedBox(width: 16),

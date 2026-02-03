@@ -2,6 +2,10 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>CLIENT_ID</key>
+	<string>99513276497-iu2plflpnss2152h61diqc9p2od2ip57.apps.googleusercontent.com</string>
+	<key>REVERSED_CLIENT_ID</key>
+	<string>com.googleusercontent.apps.99513276497-iu2plflpnss2152h61diqc9p2od2ip57</string>
 	<key>API_KEY</key>
 	<string>AIzaSyDmRzNMdlTxQ7-_yawoygwFlUJH3g4f2VY</string>
 	<key>GCM_SENDER_ID</key>
@@ -26,5 +30,7 @@
 	<true></true>
 	<key>GOOGLE_APP_ID</key>
 	<string>1:99513276497:ios:ebbcf1a5594965a2dac070</string>
+	<key>DATABASE_URL</key>
+	<string>https://realestate-47011-default-rtdb.europe-west1.firebasedatabase.app</string>
 </dict>
 </plist>

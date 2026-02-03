@@ -1,15 +1,36 @@
 abstract class BlockchainResult<T> {
   const BlockchainResult();
+
+  R when<R>({
+    required R Function(T data) success,
+    required R Function(BlockchainFailure failure) failure,
+  });
 }
 
 class Success<T> extends BlockchainResult<T> {
   final T data;
   const Success(this.data);
+
+  @override
+  R when<R>({
+    required R Function(T data) success,
+    required R Function(BlockchainFailure failure) failure,
+  }) {
+    return success(data);
+  }
 }
 
 class Failure<T> extends BlockchainResult<T> {
   final BlockchainFailure failure;
   const Failure(this.failure);
+
+  @override
+  R when<R>({
+    required R Function(T data) success,
+    required R Function(BlockchainFailure failure) failure,
+  }) {
+    return failure(this.failure);
+  }
 }
 
 abstract class BlockchainFailure {

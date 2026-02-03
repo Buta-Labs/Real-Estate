@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:orre_mmc_app/features/auth/screens/login_screen.dart';
-import 'package:orre_mmc_app/features/auth/screens/signup_screen.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:orre_mmc_app/features/auth/repositories/auth_repository.dart';
+import 'package:orre_mmc_app/features/auth/screens/login_screen.dart';
+import 'package:orre_mmc_app/features/auth/screens/mfa_enrollment_screen.dart';
+import 'package:orre_mmc_app/features/auth/screens/mfa_verification_screen.dart';
+import 'package:orre_mmc_app/features/auth/screens/signup_screen.dart';
 import 'package:orre_mmc_app/features/dashboard/screens/dashboard_screen.dart';
 import 'package:orre_mmc_app/features/marketplace/screens/marketplace_screen.dart';
 import 'package:orre_mmc_app/features/ai_advisor/screens/ai_advisor_screen.dart';
@@ -274,6 +277,17 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/success',
         builder: (context, state) => const SuccessScreen(),
       ),
+      GoRoute(
+        path: '/mfa-enrollment',
+        builder: (context, state) => const MfaEnrollmentScreen(),
+      ),
+      GoRoute(
+        path: '/mfa-verification',
+        builder: (context, state) {
+          final resolver = state.extra as MultiFactorResolver;
+          return MfaVerificationScreen(resolver: resolver);
+        },
+      ),
     ],
     redirect: (context, state) {
       final authState = ref.watch(authStateProvider);
@@ -284,12 +298,13 @@ final routerProvider = Provider<GoRouter>((ref) {
       final isLoggedIn = authState.value != null;
       final isLoggingIn = state.uri.toString() == '/login';
       final isSigningUp = state.uri.toString() == '/signup';
+      final isVerifyMfa = state.uri.toString() == '/mfa-verification';
 
-      if (!isLoggedIn && !isLoggingIn && !isSigningUp) {
+      if (!isLoggedIn && !isLoggingIn && !isSigningUp && !isVerifyMfa) {
         return '/login';
       }
 
-      if (isLoggedIn && (isLoggingIn || isSigningUp)) {
+      if (isLoggedIn && (isLoggingIn || isSigningUp || isVerifyMfa)) {
         return '/dashboard';
       }
 

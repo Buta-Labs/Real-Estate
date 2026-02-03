@@ -9,8 +9,9 @@ final blockchainRepositoryProvider = Provider<BlockchainRepository>((ref) {
 });
 
 class BlockchainRepository {
-  static const String polygonRpcUrl = "https://polygon-rpc.com"; // Public Node
-  static const int chainId = 137;
+  static const String polygonRpcUrl =
+      "https://rpc-amoy.polygon.technology"; // Amoy Testnet
+  static const int chainId = 80002;
 
   late final Web3Client _client;
   late final Web3App _web3App;
@@ -49,10 +50,10 @@ class BlockchainRepository {
 
       ConnectResponse resp = await _web3App.connect(
         requiredNamespaces: {
-          'eip155': const RequiredNamespace(
-            chains: ['eip155:137'], // Polygon
-            methods: ['eth_sendTransaction', 'personal_sign'],
-            events: ['chainChanged', 'accountsChanged'],
+          'eip155': RequiredNamespace(
+            chains: ['eip155:$chainId'],
+            methods: const ['eth_sendTransaction', 'personal_sign'],
+            events: const ['chainChanged', 'accountsChanged'],
           ),
         },
       );
@@ -86,22 +87,37 @@ class BlockchainRepository {
     try {
       if (_sessionData == null) return const Failure(WalletNotConnected());
 
-      // Use _client to silence warning and show intent
-      // ignore: unused_local_variable
-      final chainId = await _client.getChainId();
+      final senderAddress = _sessionData!.namespaces['eip155']?.accounts.first
+          .split(':')
+          .last;
+      if (senderAddress == null) {
+        return const Failure(UnknownError('No account found'));
+      }
 
-      onStatusChanged?.call('Preparing transaction...');
-      // 1. Get nonce
-      // 2. Encode ABI for mint(to, amount, propertyId)
-      // 3. Sign transaction (Admin Private Key required - placeholder)
+      onStatusChanged?.call('Preparing mint transaction...');
 
-      onStatusChanged?.call('Sending transaction...');
-      // final txHash = await _client.sendTransaction(...);
+      // Placeholder Data for 'mint(address, uint256, string)'
+      // In real app, use web3dart to encode:
+      // final data = contract.function('mint').encodeCall([toAddress, BigInt.from(amount), propertyId]);
 
-      await Future.delayed(const Duration(seconds: 2)); // Mock delay
+      final tx = {
+        'from': senderAddress,
+        'to': toAddress, // Usually contract address
+        'data': '0x', // Todo: Encode actual ABI
+      };
 
-      onStatusChanged?.call('Transaction successful!');
-      return const Success("0xMOCK_TX_HASH_MINT");
+      onStatusChanged?.call('Please sign in wallet...');
+
+      final response = await _web3App.request(
+        topic: _sessionData!.topic,
+        chainId: 'eip155:$chainId',
+        request: SessionRequestParams(
+          method: 'eth_sendTransaction',
+          params: [tx],
+        ),
+      );
+
+      return Success(response.toString());
     } catch (e) {
       return Failure(UnknownError(e));
     }
@@ -115,19 +131,44 @@ class BlockchainRepository {
     try {
       if (_sessionData == null) return const Failure(WalletNotConnected());
 
-      onStatusChanged?.call('Approving USDT...');
-      // 1. Call USDT Contract -> approve(propertyContractAddress, amount)
-      //    This requires WalletConnect personal_sign or eth_sendTransaction via _web3App
+      final senderAddress = _sessionData!.namespaces['eip155']?.accounts.first
+          .split(':')
+          .last;
+      if (senderAddress == null) {
+        return const Failure(UnknownError('No account found'));
+      }
 
-      await Future.delayed(const Duration(seconds: 1)); // Mock delay
+      onStatusChanged?.call('Requesting approval from wallet...');
 
-      onStatusChanged?.call('Purchasing Token...');
-      // 2. Call Property Contract -> buy()
+      // For this example, we'll assume a direct transfer or a specific buy() function call.
+      // Since we don't have the ABI of the real contract here, we'll demonstrate Sending Native Token (MATIC/POL)
+      // or a placeholder "data" field.
+      // In production, you would encode the function call: contract.function('buy').encodeCall([])
 
-      await Future.delayed(const Duration(seconds: 1)); // Mock delay
+      // Construct Transaction
+      final tx = {
+        'from': senderAddress,
+        'to': propertyContractAddress,
+        'data': '0x', // Replace with encoded ABI for buy() or purchase()
+        // 'value': '0x...', // If sending MATIC
+      };
 
-      onStatusChanged?.call('Purchase complete!');
-      return const Success("0xMOCK_TX_HASH_PURCHASE");
+      // Send Request to Wallet
+      final response = await _web3App.request(
+        topic: _sessionData!.topic,
+        chainId: 'eip155:$chainId',
+        request: SessionRequestParams(
+          method: 'eth_sendTransaction',
+          params: [tx],
+        ),
+      );
+
+      onStatusChanged?.call('Transaction submitted!');
+
+      // The response from eth_sendTransaction is the ID.
+      // WalletConnect might wrap it.
+      // Actually usually response is the result directly or we handle the future.
+      return Success(response.toString());
     } catch (e) {
       return Failure(UnknownError(e));
     }

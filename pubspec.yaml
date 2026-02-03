@@ -47,6 +47,11 @@ dependencies:
   walletconnect_flutter_v2: ^2.0.14
   http: ^1.6.0
   crypto: ^3.0.7
+  google_sign_in: ^7.2.0
+  local_auth: ^3.0.0
+  flutter_secure_storage: ^10.0.0
+  firebase_storage: ^13.0.6
+  image_picker: ^1.2.1
 
 dev_dependencies:
   flutter_test:

@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:orre_mmc_app/features/auth/repositories/auth_repository.dart';
 
@@ -29,6 +30,46 @@ class AuthController extends AsyncNotifier<void> {
     state = const AsyncValue.loading();
     state = await AsyncValue.guard(
       () => ref.read(authRepositoryProvider).signOut(),
+    );
+  }
+
+  // MFA Methods
+  Future<String> enrollMfa(String phoneNumber) async {
+    // We don't necessarily want to set global loading state here as it might be a local UI action
+    // But for consistency let's just call the repo
+    return await ref.read(authRepositoryProvider).enrollMfa(phoneNumber);
+  }
+
+  Future<void> verifyMfaEnrollment(
+    String verificationId,
+    String smsCode,
+  ) async {
+    state = const AsyncValue.loading();
+    state = await AsyncValue.guard(
+      () => ref
+          .read(authRepositoryProvider)
+          .verifyMfaEnrollment(verificationId, smsCode),
+    );
+  }
+
+  Future<String> startMfaSignInVerification(
+    MultiFactorResolver resolver,
+  ) async {
+    return await ref
+        .read(authRepositoryProvider)
+        .startMfaSignInVerification(resolver);
+  }
+
+  Future<void> resolveMfaSignIn(
+    MultiFactorResolver resolver,
+    String verificationId,
+    String smsCode,
+  ) async {
+    state = const AsyncValue.loading();
+    state = await AsyncValue.guard(
+      () => ref
+          .read(authRepositoryProvider)
+          .resolveMfaSignIn(resolver, verificationId, smsCode),
     );
   }
 }

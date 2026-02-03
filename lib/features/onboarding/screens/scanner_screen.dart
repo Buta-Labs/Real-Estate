@@ -3,40 +3,75 @@ import 'package:go_router/go_router.dart';
 import 'package:orre_mmc_app/theme/app_colors.dart';
 import 'package:orre_mmc_app/shared/widgets/glass_container.dart';
 
-class ScannerScreen extends StatefulWidget {
+import 'dart:io';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:orre_mmc_app/features/auth/repositories/auth_repository.dart';
+import 'package:orre_mmc_app/features/kyc/repositories/kyc_repository.dart';
+
+class ScannerScreen extends ConsumerStatefulWidget {
   const ScannerScreen({super.key});
 
   @override
-  State<ScannerScreen> createState() => _ScannerScreenState();
+  ConsumerState<ScannerScreen> createState() => _ScannerScreenState();
 }
 
-class _ScannerScreenState extends State<ScannerScreen> {
+class _ScannerScreenState extends ConsumerState<ScannerScreen> {
   bool _isScanning = false;
-  bool _hasPermission = false; // Mocking permission delay
+  bool _hasPermission = false;
+  final ImagePicker _picker = ImagePicker();
 
   @override
   void initState() {
     super.initState();
-    // Simulate camera load
     Future.delayed(const Duration(milliseconds: 800), () {
       if (mounted) setState(() => _hasPermission = true);
     });
   }
 
-  void _handleCapture() {
-    if (!_hasPermission) return;
+  Future<void> _handleCapture() async {
+    if (!_hasPermission || _isScanning) return;
+
+    // 1. Pick Image
+    final XFile? image = await _picker.pickImage(source: ImageSource.camera);
+    if (image == null) return;
+
     setState(() => _isScanning = true);
 
-    // Simulate processing
-    Future.delayed(const Duration(seconds: 2), () {
+    try {
+      final user = ref.read(authRepositoryProvider).currentUser;
+      if (user == null) throw Exception('User not logged in');
+
+      // 2. Upload to Firebase Storage
+      final kycRepo = ref.read(kycRepositoryProvider);
+      final downloadUrl = await kycRepo.uploadDocument(
+        userId: user.uid,
+        file: File(image.path),
+        documentType: 'id_card', // For MVP, assuming ID card
+      );
+
+      // 3. Submit Application
+      await kycRepo.submitApplication(
+        userId: user.uid,
+        data: {'documentUrl': downloadUrl, 'documentType': 'id_card'},
+      );
+
       if (mounted) {
-        context.pop(); // Go back or to success screen
-        // In real app, would navigate to success or next step
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Document verified successfully')),
+          const SnackBar(content: Text('Document uploaded successfully!')),
         );
+        // Navigate to dashboard or success screen
+        context.go('/dashboard');
       }
-    });
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: $e')));
+      }
+    } finally {
+      if (mounted) setState(() => _isScanning = false);
+    }
   }
 
   @override

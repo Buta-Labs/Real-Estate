@@ -1,16 +1,62 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:orre_mmc_app/core/blockchain/blockchain_repository.dart';
+import 'package:orre_mmc_app/features/auth/repositories/auth_repository.dart';
+import 'package:orre_mmc_app/features/auth/repositories/user_repository.dart';
+
+import 'package:orre_mmc_app/features/auth/providers/user_provider.dart';
+
+// We want walletAddressProvider to be initialised from UserProvider but also modifiable locally (if we want to allow switching wallets without saving?)
+// Actually, if we want persistence, it should primarily reflect the Source of Truth (Firestore).
+// But ConnectWallet updates it.
+// Let's make it a computed provider or auto-sync.
+
+final walletAddressProvider = StateProvider<String?>((ref) {
+  final userAsync = ref.watch(userProvider);
+  return userAsync.value?.walletAddress;
+});
 
 final walletBalanceProvider = FutureProvider.autoDispose<String>((ref) async {
   final repository = ref.watch(blockchainRepositoryProvider);
-
-  // Need to expose web3 client from repository or add a specific method
-  // For now, we will add a getNativeBalance method to BlockchainRepository
-
-  // Temporary workaround until we update BlockchainRepository:
-  // We will assume the repository has a method to get the balance.
-  // Since we can't edit that file instantly in declared dependency,
-  // we will structure this provider to use a new method we'll add next.
+  // Trigger refresh when address changes
+  final address = ref.watch(walletAddressProvider);
+  if (address == null) return "0.00";
 
   return repository.getNativeBalance();
 });
+
+Future<void> connectWallet(WidgetRef ref) async {
+  final repository = ref.read(blockchainRepositoryProvider);
+  final result = await repository.connectWallet(
+    onDisplayUri: (uri) {
+      // In a real app with walletconnect_flutter_v2,
+      // we might need to show a QR code dialog here if using the Core directly,
+      // or if using Web3Modal it handles it.
+      // Since we are using the simple Core approach in Repo:
+      // We should ideally launch the URI or show QR.
+      // For this MVP, let's assume deep link launch or print.
+      debugPrint('WalletConnect URI: $uri');
+    },
+  );
+
+  result.when(
+    success: (address) async {
+      ref.read(walletAddressProvider.notifier).state = address;
+
+      // Persist to Firestore
+      final user = ref.read(authRepositoryProvider).currentUser;
+      if (user != null) {
+        try {
+          await ref.read(userRepositoryProvider).updateUser(user.uid, {
+            'walletAddress': address,
+          });
+        } catch (e) {
+          debugPrint('Failed to sync wallet to profile: $e');
+        }
+      }
+    },
+    failure: (error) {
+      debugPrint('Wallet connection failed: $error');
+    },
+  );
+}
