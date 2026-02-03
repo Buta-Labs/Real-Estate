@@ -22,14 +22,14 @@ class BlockchainRepository {
     _initializeWalletConnect();
   }
 
-  // TODO: Replace with your actual Project ID from WalletConnect Cloud
+  // WalletConnect Cloud Project ID (Replace with your actual ID if needed)
   static const String _projectId = '1051ea178fd7ba828e8b427d98d117c3';
 
   Future<void> _initializeWalletConnect() async {
     _web3App = await Web3App.createInstance(
       projectId: _projectId,
       metadata: const PairingMetadata(
-        name: 'Orre MMC',
+        name: 'Orre LLC',
         description: 'Orre Real Estate Tokenization App',
         url: 'https://orre.com',
         icons: ['https://orre.com/favicon.ico'],

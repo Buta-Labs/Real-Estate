@@ -20,7 +20,7 @@ class BankTransferScreen extends StatelessWidget {
               icon: const Icon(Icons.arrow_back_ios_new, size: 20),
               onPressed: () => context.pop(),
             ),
-            title: const Text('Bank Transfer Details'),
+            title: const Text('Orre LLC Bank Transfer Details'),
             centerTitle: true,
             actions: [
               IconButton(

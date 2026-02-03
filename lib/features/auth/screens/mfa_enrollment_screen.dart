@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:orre_mmc_app/features/auth/controllers/auth_controller.dart';
+import 'package:orre_mmc_app/router/app_router.dart';
 import 'package:orre_mmc_app/shared/widgets/glass_container.dart';
 import 'package:orre_mmc_app/theme/app_colors.dart';
 
@@ -21,55 +22,113 @@ class _MfaEnrollmentScreenState extends ConsumerState<MfaEnrollmentScreen> {
   bool _isCodeSent = false;
   bool _isLoading = false;
 
+  Future<void> _signOut() async {
+    await ref.read(authControllerProvider.notifier).signOut();
+    if (mounted) context.go('/login');
+  }
+
+  void _showCustomToast(String message, {bool isError = false}) {
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: GlassContainer(
+          borderRadius: BorderRadius.circular(12),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          child: Row(
+            children: [
+              Icon(
+                isError ? Icons.error_outline : Icons.check_circle_outline,
+                color: isError ? Colors.redAccent : AppColors.primary,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  message,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.all(16),
+        padding: EdgeInsets.zero,
+        duration: const Duration(seconds: 3),
+      ),
+    );
+  }
+
   Future<void> _sendCode() async {
     setState(() => _isLoading = true);
     try {
+      final phone = _phoneController.text.trim();
+      if (phone.isEmpty) {
+        _showCustomToast('Please enter a valid phone number', isError: true);
+        return;
+      }
+
       final verificationId = await ref
           .read(authControllerProvider.notifier)
-          .enrollMfa(_phoneController.text.trim());
+          .enrollMfa(phone);
+
       setState(() {
         _verificationId = verificationId;
         _isCodeSent = true;
       });
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('SMS code sent!')));
+        _showCustomToast('Verification code sent');
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error: ${e.toString()}')));
+        String errorMsg = e.toString();
+        if (errorMsg.contains('No user found') ||
+            errorMsg.contains('user-not-found')) {
+          // Handle stale user state
+          _showCustomToast(
+            'Session expired. Please sign in again.',
+            isError: true,
+          );
+          await Future.delayed(const Duration(seconds: 2));
+          if (mounted) _signOut();
+          return;
+        }
+        _showCustomToast(errorMsg.replaceAll('Exception: ', ''), isError: true);
       }
     } finally {
-      setState(() => _isLoading = false);
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
   Future<void> _verifyCode() async {
     if (_verificationId == null) return;
-
-    // Set loading via setState for local UI,
-    // though the controller also sets global state,
-    // mixed approaches can be tricky but let's rely on local for button logic
     setState(() => _isLoading = true);
 
     try {
+      final code = _codeController.text.trim();
+      if (code.isEmpty) {
+        _showCustomToast('Please enter the code', isError: true);
+        return;
+      }
+
       await ref
           .read(authControllerProvider.notifier)
-          .verifyMfaEnrollment(_verificationId!, _codeController.text.trim());
+          .verifyMfaEnrollment(_verificationId!, code);
+
+      // Update MFA state locally to trigger immediate redirect/update
+      ref.read(mfaProvider.notifier).state = true;
+
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('MFA Enabled Successfully!')),
-        );
-        context.pop(); // Go back
+        _showCustomToast('Secure Account Enabled!');
+        context.go('/dashboard'); // Explicit nav to ensure router update
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Verification Failed: ${e.toString()}')),
-        );
+        _showCustomToast('Verification Failed: ${e.toString()}', isError: true);
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -84,6 +143,19 @@ class _MfaEnrollmentScreenState extends ConsumerState<MfaEnrollmentScreen> {
         title: Text('Enable SMS MFA', style: GoogleFonts.manrope()),
         backgroundColor: Colors.transparent,
         elevation: 0,
+        actions: [
+          TextButton.icon(
+            onPressed: _signOut,
+            icon: const Icon(Icons.logout, color: Colors.white70, size: 20),
+            label: Text(
+              'Logout',
+              style: GoogleFonts.manrope(
+                color: Colors.white70,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
@@ -100,7 +172,7 @@ class _MfaEnrollmentScreenState extends ConsumerState<MfaEnrollmentScreen> {
             ),
             const SizedBox(height: 8),
             Text(
-              'Enter your phone number to receive a verification code.',
+              'We require a phone number for all accounts to ensure platform security.',
               style: GoogleFonts.manrope(fontSize: 14, color: Colors.grey[400]),
             ),
             const SizedBox(height: 32),
@@ -124,6 +196,10 @@ class _MfaEnrollmentScreenState extends ConsumerState<MfaEnrollmentScreen> {
               _buildInputField('SMS CODE', Icons.lock_clock, _codeController),
               const SizedBox(height: 24),
               _buildButton('Verify & Enable', _verifyCode),
+              TextButton(
+                onPressed: () => setState(() => _isCodeSent = false),
+                child: const Center(child: Text('Change Phone Number')),
+              ),
             ],
           ],
         ),
@@ -186,7 +262,27 @@ class _MfaEnrollmentScreenState extends ConsumerState<MfaEnrollmentScreen> {
           ),
         ),
         child: _isLoading
-            ? const CircularProgressIndicator(color: Colors.black)
+            ? Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Colors.black,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Text(
+                    'Processing...',
+                    style: GoogleFonts.manrope(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
+                  ),
+                ],
+              )
             : Text(
                 text,
                 style: GoogleFonts.manrope(

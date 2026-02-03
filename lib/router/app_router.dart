@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'dart:async';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:orre_mmc_app/features/auth/repositories/auth_repository.dart';
 import 'package:orre_mmc_app/features/auth/screens/login_screen.dart';
+import 'package:orre_mmc_app/features/auth/screens/phone_login_screen.dart';
+import 'package:orre_mmc_app/features/auth/screens/complete_profile_screen.dart';
 import 'package:orre_mmc_app/features/auth/screens/mfa_enrollment_screen.dart';
 import 'package:orre_mmc_app/features/auth/screens/mfa_verification_screen.dart';
 import 'package:orre_mmc_app/features/auth/screens/signup_screen.dart';
@@ -49,18 +52,57 @@ import 'package:orre_mmc_app/features/learning/screens/article_screen.dart';
 import 'package:orre_mmc_app/features/portfolio/screens/diversification_screen.dart';
 import 'package:orre_mmc_app/features/onboarding/screens/kyc_intro_screen.dart';
 import 'package:orre_mmc_app/features/onboarding/screens/scanner_screen.dart';
+import 'package:orre_mmc_app/features/profile/screens/edit_profile_screen.dart';
+import 'package:orre_mmc_app/shared/screens/loading_screen.dart';
+import 'package:orre_mmc_app/theme/app_colors.dart';
 import 'package:orre_mmc_app/features/notifications/screens/notifications_screen.dart';
 import 'package:orre_mmc_app/features/engagement/screens/year_in_review_screen.dart';
 import 'package:orre_mmc_app/features/engagement/screens/level_up_screen.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
 
+/// Tracks if MFA is enrolled. null = loading, true = enrolled, false = not enrolled.
+final mfaProvider = StateProvider<bool?>((ref) => null);
+
 final routerProvider = Provider<GoRouter>((ref) {
+  // Listen to auth changes to refresh MFA status
+  ref.listen(authStateProvider, (previous, next) {
+    final user = next.value;
+    if (user == null) {
+      ref.read(mfaProvider.notifier).state = false;
+    } else {
+      // RESET to null immediately to prevent "stale false" flashes during login/verification
+      ref.read(mfaProvider.notifier).state = null;
+
+      // Trigger async check
+      unawaited(() async {
+        try {
+          final dynamic mf = (user as dynamic).multiFactor;
+          // Try async getEnrolledFactors first
+          final List<dynamic> factors = await mf.getEnrolledFactors();
+          ref.read(mfaProvider.notifier).state = factors.isNotEmpty;
+        } catch (e) {
+          // Fallback to sync check
+          ref.read(mfaProvider.notifier).state = ref
+              .read(authRepositoryProvider)
+              .hasMfaEnrolled(user);
+        }
+      }());
+    }
+  }, fireImmediately: true);
+
   return GoRouter(
     navigatorKey: _rootNavigatorKey,
     initialLocation: '/login', // Start at login
+    refreshListenable: GoRouterRefreshStream(
+      ref.watch(authStateProvider.stream),
+    ),
     routes: [
       GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
+      GoRoute(
+        path: '/phone-login',
+        builder: (context, state) => const PhoneLoginScreen(),
+      ),
       GoRoute(
         path: '/signup',
         builder: (context, state) => const SignupScreen(),
@@ -154,6 +196,22 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const KYCIntroScreen(),
       ),
       GoRoute(
+        path: '/loading',
+        builder: (context, state) => const LoadingScreen(),
+      ),
+      GoRoute(
+        path: '/scanner',
+        builder: (context, state) => const ScannerScreen(),
+      ),
+      GoRoute(
+        path: '/kyc-verification',
+        builder: (context, state) => const KYCIntroScreen(),
+      ),
+      GoRoute(
+        path: '/edit-profile',
+        builder: (context, state) => const EditProfileScreen(),
+      ),
+      GoRoute(
         path: '/digital-key',
         builder: (context, state) => const DigitalKeyScreen(),
       ),
@@ -204,14 +262,6 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/diversification',
         builder: (context, state) => const DiversificationScreen(),
-      ),
-      GoRoute(
-        path: '/kyc-intro',
-        builder: (context, state) => const KYCIntroScreen(),
-      ),
-      GoRoute(
-        path: '/scanner',
-        builder: (context, state) => const ScannerScreen(),
       ),
       GoRoute(
         path: '/notifications',
@@ -288,23 +338,64 @@ final routerProvider = Provider<GoRouter>((ref) {
           return MfaVerificationScreen(resolver: resolver);
         },
       ),
+      GoRoute(
+        path: '/complete-profile',
+        builder: (context, state) => const CompleteProfileScreen(),
+      ),
     ],
     redirect: (context, state) {
       final authState = ref.watch(authStateProvider);
+      final hasMfaEnrolledValue = ref.watch(mfaProvider);
 
-      // If auth state is loading, don't redirect yet (or show splash)
-      if (authState.isLoading) return null;
+      if (authState.isLoading) return '/loading';
 
-      final isLoggedIn = authState.value != null;
+      final user = authState.value;
+      final loggingIn = state.matchedLocation == '/login';
+
+      if (user == null) {
+        return loggingIn ? null : '/login';
+      }
+
+      // If MFA status is still loading (null), go to loading screen
+      if (hasMfaEnrolledValue == null) return '/loading';
+
+      final isLoggedIn = user != null;
+      final hasMfa = hasMfaEnrolledValue;
+      final hasPhoneNumber =
+          user.phoneNumber != null && user.phoneNumber!.isNotEmpty;
+
       final isLoggingIn = state.uri.toString() == '/login';
       final isSigningUp = state.uri.toString() == '/signup';
       final isVerifyMfa = state.uri.toString() == '/mfa-verification';
+      final isPhoneLogin = state.uri.toString() == '/phone-login';
+      final isMfaEnrollment = state.uri.toString() == '/mfa-enrollment';
+      final isCompleteProfile = state.uri.toString() == '/complete-profile';
 
-      if (!isLoggedIn && !isLoggingIn && !isSigningUp && !isVerifyMfa) {
-        return '/login';
+      // 2. Authenticated users:
+      // Enforce Mandatory MFA (Phone Number Linked OR Multi-Factor Enrolled)
+      if (!hasMfa && !hasPhoneNumber) {
+        if (!isMfaEnrollment) {
+          return '/mfa-enrollment';
+        }
+        return null;
       }
 
-      if (isLoggedIn && (isLoggingIn || isSigningUp || isVerifyMfa)) {
+      // 3. Enforce Mandatory Email (Linked to Account)
+      // If user is logged in (likely via Phone) but has no email, MUST go to Complete Profile.
+      if (isLoggedIn && (user.email == null || user.email!.isEmpty)) {
+        if (!isCompleteProfile) {
+          return '/complete-profile';
+        }
+        return null;
+      }
+
+      // If they are trying to access auth pages while logged in (and fully verified), send to dashboard
+      // Ensure we don't redirect if we are on the 'complete-profile' page (already handled above but safe to check)
+      if (isLoggingIn ||
+          isSigningUp ||
+          isVerifyMfa ||
+          isPhoneLogin ||
+          isMfaEnrollment) {
         return '/dashboard';
       }
 
@@ -312,3 +403,22 @@ final routerProvider = Provider<GoRouter>((ref) {
     },
   );
 });
+
+/// A [Listenable] that notifies listeners when a [Stream] emits a value.
+/// Used to bridge [StreamProvider] to [GoRouter.refreshListenable].
+class GoRouterRefreshStream extends ChangeNotifier {
+  GoRouterRefreshStream(Stream<dynamic> stream) {
+    notifyListeners();
+    _subscription = stream.asBroadcastStream().listen(
+      (dynamic _) => notifyListeners(),
+    );
+  }
+
+  late final StreamSubscription<dynamic> _subscription;
+
+  @override
+  void dispose() {
+    _subscription.cancel();
+    super.dispose();
+  }
+}

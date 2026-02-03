@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:orre_mmc_app/core/services/biometric_service.dart';
 import 'package:orre_mmc_app/features/auth/repositories/auth_repository.dart';
+import 'package:orre_mmc_app/features/auth/repositories/user_repository.dart';
 import 'package:orre_mmc_app/theme/app_colors.dart';
 
 class SecuritySettingsScreen extends ConsumerStatefulWidget {
@@ -108,6 +109,25 @@ class _SecuritySettingsScreenState
     );
   }
 
+  void _showLoginActivity() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppColors.backgroundDark,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (context) => DraggableScrollableSheet(
+        initialChildSize: 0.6,
+        minChildSize: 0.4,
+        maxChildSize: 0.9,
+        expand: false,
+        builder: (context, scrollController) =>
+            _LoginActivitySheet(scrollController: scrollController),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -197,7 +217,147 @@ class _SecuritySettingsScreenState
             ),
             onTap: () => context.push('/mfa-enrollment'),
           ),
+          const SizedBox(height: 16),
+          ListTile(
+            contentPadding: const EdgeInsets.all(16),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+              side: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
+            ),
+            tileColor: Colors.white.withValues(alpha: 0.05),
+            leading: const Icon(
+              Icons.history,
+              color: AppColors.primary,
+              size: 32,
+            ),
+            title: Text(
+              'Login Activity',
+              style: GoogleFonts.manrope(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+              ),
+            ),
+            subtitle: Padding(
+              padding: const EdgeInsets.only(top: 4.0),
+              child: Text(
+                'View recent sign-in locations and devices.',
+                style: GoogleFonts.manrope(
+                  color: Colors.grey[400],
+                  fontSize: 13,
+                ),
+              ),
+            ),
+            trailing: const Icon(
+              Icons.arrow_forward_ios,
+              color: Colors.grey,
+              size: 16,
+            ),
+            onTap: _showLoginActivity,
+          ),
         ],
+      ),
+    );
+  }
+}
+
+class _LoginActivitySheet extends ConsumerWidget {
+  final ScrollController scrollController;
+
+  const _LoginActivitySheet({required this.scrollController});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final user = ref.read(authRepositoryProvider).currentUser;
+    if (user == null) return const SizedBox();
+
+    final historyAsync = ref.watch(loginHistoryProvider(user.uid));
+
+    return Scaffold(
+      backgroundColor: Colors.transparent,
+      body: Container(
+        decoration: const BoxDecoration(
+          color: AppColors.backgroundDark,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        child: Column(
+          children: [
+            const SizedBox(height: 12),
+            Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Colors.grey[600],
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Login Activity',
+              style: GoogleFonts.manrope(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Expanded(
+              child: historyAsync.when(
+                data: (history) {
+                  if (history.isEmpty) {
+                    return const Center(
+                      child: Text(
+                        'No login activity recorded.',
+                        style: TextStyle(color: Colors.grey),
+                      ),
+                    );
+                  }
+                  return ListView.builder(
+                    controller: scrollController,
+                    itemCount: history.length,
+                    itemBuilder: (context, index) {
+                      final item = history[index];
+                      final timestamp = item['timestamp'];
+                      final method = item['method'] as String;
+
+                      String dateStr = 'Unknown date';
+                      if (timestamp != null) {
+                        try {
+                          // timestamp is likely a Timestamp from Firestore
+                          // We use dynamic to avoid importing cloud_firestore just for this type if possible, or we could import it.
+                          // But let's assume it has .toDate()
+                          final date = (timestamp as dynamic).toDate();
+                          dateStr = date.toString().split('.')[0];
+                        } catch (e) {
+                          dateStr = timestamp.toString();
+                        }
+                      }
+
+                      return ListTile(
+                        leading: const Icon(Icons.login, color: Colors.grey),
+                        title: Text(
+                          'Signed in via ${method.toUpperCase()}',
+                          style: const TextStyle(color: Colors.white),
+                        ),
+                        subtitle: Text(
+                          dateStr,
+                          style: TextStyle(color: Colors.grey[400]),
+                        ),
+                      );
+                    },
+                  );
+                },
+                loading: () => const Center(child: CircularProgressIndicator()),
+                error: (err, stack) => Center(
+                  child: Text(
+                    'Error: $err',
+                    style: const TextStyle(color: Colors.red),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

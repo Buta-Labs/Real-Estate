@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:go_router/go_router.dart';
 import 'package:orre_mmc_app/shared/widgets/glass_container.dart';
 import 'package:orre_mmc_app/theme/app_colors.dart';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:orre_mmc_app/features/dashboard/providers/pinned_views_provider.dart';
+import 'package:orre_mmc_app/features/auth/providers/user_provider.dart';
+import 'package:orre_mmc_app/features/wallet/providers/wallet_provider.dart';
 
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
@@ -12,6 +15,14 @@ class DashboardScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final pinnedViews = ref.watch(pinnedViewsProvider);
+    final userAsync = ref.watch(userProvider);
+    final walletBalanceAsync = ref.watch(walletBalanceProvider);
+
+    final user = userAsync.valueOrNull;
+    final displayName =
+        user?.displayName ?? user?.email.split('@')[0] ?? 'Investor';
+    final kycStatus = user?.kycStatus ?? 'none';
+    final balance = walletBalanceAsync.valueOrNull ?? '0.00';
 
     return Scaffold(
       body: CustomScrollView(
@@ -26,9 +37,11 @@ class DashboardScreen extends ConsumerWidget {
               children: [
                 CircleAvatar(
                   radius: 20,
-                  backgroundImage: const NetworkImage(
-                    'https://lh3.googleusercontent.com/aida-public/AB6AXuCY0ZlgXp1ZlhT7-z36bX049q9hxHyq13xMEb3mQBmETZCFcbMcJqP0OXIhcMr_g31hey5Xxv97KKKrZ0j9EJV04lYq3kNgwC7NeyX3UfSThQWTOg2NDeyJCMcxB8anWc5PG-8ZgFeDAtWhO55wUju5OQwQZRj4hf6a4JBKqrfw-1fnQP30BCtpjZLyC8nJF4NiEolrTjXfKbggVfs7GM6w35ChaW3t7cfWHx0zEtOdslhwYTjkYxv1fbxWA9pIEzM6egYS69U5fA',
-                  ),
+                  backgroundImage: user?.photoUrl != null
+                      ? NetworkImage(user!.photoUrl!)
+                      : const NetworkImage(
+                          'https://lh3.googleusercontent.com/aida-public/AB6AXuCY0ZlgXp1ZlhT7-z36bX049q9hxHyq13xMEb3mQBmETZCFcbMcJqP0OXIhcMr_g31hey5Xxv97KKKrZ0j9EJV04lYq3kNgwC7NeyX3UfSThQWTOg2NDeyJCMcxB8anWc5PG-8ZgFeDAtWhO55wUju5OQwQZRj4hf6a4JBKqrfw-1fnQP30BCtpjZLyC8nJF4NiEolrTjXfKbggVfs7GM6w35ChaW3t7cfWHx0zEtOdslhwYTjkYxv1fbxWA9pIEzM6egYS69U5fA',
+                        ),
                   child: Container(
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
@@ -51,7 +64,7 @@ class DashboardScreen extends ConsumerWidget {
                       ),
                     ),
                     Text(
-                      'Alexander Orre',
+                      displayName,
                       style: GoogleFonts.manrope(
                         fontSize: 14,
                         fontWeight: FontWeight.bold,
@@ -110,6 +123,62 @@ class DashboardScreen extends ConsumerWidget {
               delegate: SliverChildListDelegate([
                 const SizedBox(height: 16),
 
+                // KYC Warning Banner
+                if (kycStatus != 'verified') ...[
+                  GestureDetector(
+                    onTap: () => context.push('/kyc-verification'),
+                    child: GlassContainer(
+                      borderRadius: BorderRadius.circular(16),
+                      padding: const EdgeInsets.all(16),
+                      child: Row(
+                        children: [
+                          Icon(
+                            kycStatus == 'pending'
+                                ? Icons.hourglass_top
+                                : Icons.warning_amber_rounded,
+                            color: kycStatus == 'pending'
+                                ? Colors.orange
+                                : Colors.redAccent,
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  kycStatus == 'pending'
+                                      ? 'Verification Pending'
+                                      : 'Verify Your Identity',
+                                  style: GoogleFonts.manrope(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 14,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                                Text(
+                                  kycStatus == 'pending'
+                                      ? 'Your documents are under review.'
+                                      : 'Complete KYC to unlock full access.',
+                                  style: GoogleFonts.manrope(
+                                    fontSize: 12,
+                                    color: Colors.grey[400],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Icon(
+                            Icons.arrow_forward_ios,
+                            size: 14,
+                            color: Colors.grey[500],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                ],
+
                 // Portfolio Value Card
                 GlassContainer(
                   borderRadius: BorderRadius.circular(24),
@@ -121,7 +190,7 @@ class DashboardScreen extends ConsumerWidget {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            'TOTAL PORTFOLIO VALUE',
+                            'WALLET BALANCE',
                             style: GoogleFonts.manrope(
                               fontSize: 12,
                               fontWeight: FontWeight.bold,
@@ -138,7 +207,7 @@ class DashboardScreen extends ConsumerWidget {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        '\$1,420,580',
+                        '$balance POL',
                         style: GoogleFonts.manrope(
                           fontSize: 36,
                           fontWeight: FontWeight.bold,
@@ -166,7 +235,7 @@ class DashboardScreen extends ConsumerWidget {
                                 ),
                                 const SizedBox(width: 4),
                                 Text(
-                                  '+4.2%',
+                                  '+0.0%', // Placeholder for now until we track history
                                   style: GoogleFonts.manrope(
                                     fontSize: 14,
                                     fontWeight: FontWeight.bold,
@@ -178,7 +247,7 @@ class DashboardScreen extends ConsumerWidget {
                           ),
                           const SizedBox(width: 8),
                           Text(
-                            'vs last month',
+                            '24h Change',
                             style: GoogleFonts.manrope(
                               fontSize: 14,
                               color: Colors.grey[400],
@@ -259,6 +328,7 @@ class DashboardScreen extends ConsumerWidget {
                   ),
 
                 // Investment Worlds
+                const SizedBox(height: 24),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [

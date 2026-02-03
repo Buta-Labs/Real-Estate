@@ -67,9 +67,23 @@ class _NotificationsScreenState extends State<NotificationsScreen>
         children: [
           _buildNotificationsList(),
           const Center(
-            child: Text(
-              'No unread notifications',
-              style: TextStyle(color: Colors.white),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  'Welcome to Orre LLC!',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                SizedBox(height: 8),
+                Text(
+                  'Start your real estate journey with us.',
+                  style: TextStyle(color: Color(0xFF90CBAD), fontSize: 16),
+                ),
+              ],
             ),
           ),
         ],
@@ -124,7 +138,7 @@ class _NotificationsScreenState extends State<NotificationsScreen>
           title: 'Identity Verified',
           time: '2d ago',
           message:
-              'Your KYC documents have been successfully verified. Welcome to Orre MMC.',
+              'Your KYC documents have been successfully verified. Welcome to Orre LLC.',
           isUnread: false,
           opacity: 0.7,
         ),

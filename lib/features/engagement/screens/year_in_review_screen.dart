@@ -111,7 +111,7 @@ class YearInReviewScreen extends StatelessWidget {
             children: [
               const TextSpan(text: 'Your 2023 \n'),
               TextSpan(
-                text: 'at Orre MMC',
+                text: 'at Orre LLC',
                 style: TextStyle(
                   color: _gold,
                   shadows: [

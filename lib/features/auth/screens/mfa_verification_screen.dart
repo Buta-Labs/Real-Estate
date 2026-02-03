@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:orre_mmc_app/features/auth/controllers/auth_controller.dart';
+import 'package:orre_mmc_app/router/app_router.dart';
 import 'package:orre_mmc_app/shared/widgets/glass_container.dart';
 import 'package:orre_mmc_app/theme/app_colors.dart';
 
@@ -68,6 +69,10 @@ class _MfaVerificationScreenState extends ConsumerState<MfaVerificationScreen> {
             _verificationId!,
             _codeController.text.trim(),
           );
+
+      // Update MFA state locally to trigger immediate redirect/update
+      ref.read(mfaProvider.notifier).state = true;
+
       // Navigation should be handled by the auth state listener in the parent or main wrapper
       // But since we are here, we might need to manually pop or let the stream listener handle it.
       // If sign in is successful, the authStateChanges stream will fire.

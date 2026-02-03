@@ -30,6 +30,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     }
   }
 
+  Future<void> _handleGoogleLogin() async {
+    await ref.read(authControllerProvider.notifier).signInWithGoogle();
+    if (mounted && ref.read(authControllerProvider).hasError == false) {
+      context.go('/dashboard');
+    }
+  }
+
   Future<void> _handleBiometricLogin() async {
     final bioService = ref.read(biometricServiceProvider);
     final credentials = await bioService.loginWithBiometrics();
@@ -151,7 +158,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       ),
                     ),
                     Text(
-                      'Orre MMC',
+                      'Orre LLC',
                       style: GoogleFonts.manrope(
                         fontSize: 36,
                         fontWeight: FontWeight.w800,
@@ -161,12 +168,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'PREMIUM FRACTIONAL INVESTMENT',
+                      'Ownership, Rights, Returns, Equity',
                       style: GoogleFonts.manrope(
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
                         color: Colors.grey[400],
-                        letterSpacing: 1.5,
+                        letterSpacing: 1.2,
                       ),
                     ),
                     const SizedBox(height: 48),
@@ -277,6 +283,28 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       children: [
                         Expanded(
                           child: GestureDetector(
+                            onTap: _handleGoogleLogin,
+                            child: _buildSocialButton(
+                              'Google',
+                              Icons.g_mobiledata,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: () => context.push('/phone-login'),
+                            child: _buildSocialButton('Phone', Icons.phone),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: GestureDetector(
                             onTap: _handleBiometricLogin,
                             child: _buildSocialButton(
                               'Face ID',
@@ -284,7 +312,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             ),
                           ),
                         ),
-                        const SizedBox(width: 16),
+                        const SizedBox(width: 8),
                         Expanded(
                           child: _buildSocialButton(
                             'Wallet',
@@ -298,6 +326,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               ),
             ),
           ),
+
+          // ... Footer
 
           // Footer
           Positioned(

@@ -4,6 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:orre_mmc_app/theme/app_colors.dart';
 import 'package:orre_mmc_app/features/wallet/providers/wallet_provider.dart';
+import 'package:orre_mmc_app/features/auth/repositories/auth_repository.dart';
+import 'package:orre_mmc_app/features/wallet/repositories/transaction_repository.dart';
 
 final walletCurrencyProvider = NotifierProvider<WalletCurrencyNotifier, String>(
   WalletCurrencyNotifier.new,
@@ -78,7 +80,7 @@ class WalletScreen extends ConsumerWidget {
                   const SizedBox(height: 16),
                   _buildActionButtons(context),
                   const SizedBox(height: 32),
-                  _buildRecentActivity(),
+                  _buildRecentActivity(ref),
                   const SizedBox(height: 100), // Bottom padding for scrolling
                 ],
               ),
@@ -432,7 +434,12 @@ class WalletScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildRecentActivity() {
+  Widget _buildRecentActivity(WidgetRef ref) {
+    final user = ref.watch(authRepositoryProvider).currentUser;
+    if (user == null) return const SizedBox();
+
+    final historyAsync = ref.watch(transactionHistoryProvider(user.uid));
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -451,34 +458,90 @@ class WalletScreen extends ConsumerWidget {
           ],
         ),
         const SizedBox(height: 12),
-        _buildActivityItem(
-          icon: Icons.apartment,
-          iconColor: AppColors.primary,
-          title: 'Rental Income',
-          subtitle: 'Unit 4B • Today, 9:41 AM',
-          amount: '+\$450.00',
-          amountColor: AppColors.primary,
-          status: 'Completed',
-        ),
-        const SizedBox(height: 12),
-        _buildActivityItem(
-          icon: Icons.candlestick_chart,
-          iconColor: Colors.white,
-          title: 'Trade Execution',
-          subtitle: 'Fractional Buy • Yesterday',
-          amount: '-\$2,000.00',
-          amountColor: Colors.white,
-          status: 'Completed',
-        ),
-        const SizedBox(height: 12),
-        _buildActivityItem(
-          icon: Icons.account_balance_wallet,
-          iconColor: Colors.white,
-          title: 'Withdrawal',
-          subtitle: 'To External Wallet • Oct 24',
-          amount: '-\$500.00',
-          amountColor: Colors.white,
-          status: 'Pending',
+        historyAsync.when(
+          data: (transactions) {
+            if (transactions.isEmpty) {
+              return Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Text(
+                    'No recent transactions',
+                    style: TextStyle(
+                      color: Colors.white.withValues(alpha: 0.5),
+                    ),
+                  ),
+                ),
+              );
+            }
+            return Column(
+              children: transactions.map((tx) {
+                final type = tx['type'] as String;
+                final amount = tx['amount'] as double;
+                final currency = tx['currency'] as String;
+                final timestamp = tx['timestamp'];
+                final status = tx['status'] as String;
+
+                // Determine Icon & Color
+                IconData icon;
+                Color iconColor;
+                String title;
+                String amountPrefix = '';
+
+                if (type == 'deposit') {
+                  icon = Icons.arrow_downward;
+                  iconColor = AppColors.primary;
+                  title = 'Deposit';
+                  amountPrefix = '+';
+                } else if (type == 'withdraw') {
+                  icon = Icons.arrow_upward;
+                  iconColor = Colors.orange;
+                  title = 'Withdrawal';
+                  amountPrefix = '-';
+                } else {
+                  icon = Icons.swap_horiz;
+                  iconColor = Colors.white;
+                  title = type.toUpperCase();
+                }
+
+                String dateStr = 'Recent';
+                // Simple date parsing if needed, similar to Login History
+                if (timestamp != null) {
+                  try {
+                    final date = (timestamp as dynamic).toDate();
+                    final now = DateTime.now();
+                    final diff = now.difference(date);
+                    if (diff.inDays == 0) {
+                      dateStr = 'Today';
+                    } else if (diff.inDays == 1) {
+                      dateStr = 'Yesterday';
+                    } else {
+                      dateStr = '${date.month}/${date.day}';
+                    }
+                  } catch (_) {}
+                }
+
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: _buildActivityItem(
+                    icon: icon,
+                    iconColor: iconColor,
+                    title: title,
+                    subtitle: '$status • $dateStr',
+                    amount: '$amountPrefix\$$amount $currency',
+                    amountColor: type == 'deposit'
+                        ? AppColors.primary
+                        : Colors.white,
+                    status: status.toUpperCase(),
+                  ),
+                );
+              }).toList(),
+            );
+          },
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (e, s) => Text(
+            'Error loading history: $e',
+            style: const TextStyle(color: Colors.red),
+          ),
         ),
       ],
     );

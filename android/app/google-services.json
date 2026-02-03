@@ -1,6 +1,7 @@
 {
   "project_info": {
     "project_number": "99513276497",
+    "firebase_url": "https://realestate-47011-default-rtdb.europe-west1.firebasedatabase.app",
     "project_id": "realestate-47011",
     "storage_bucket": "realestate-47011.firebasestorage.app"
   },
@@ -12,7 +13,20 @@
           "package_name": "com.orre.mmc.orre_mmc_app"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "99513276497-nmn0623ibq8lqt2djr82o9gsudocft6e.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.orre.mmc.orre_mmc_app",
+            "certificate_hash": "8b78924ecbbe2015ac63eed000bd4ee1462ae8d5"
+          }
+        },
+        {
+          "client_id": "99513276497-37jaa0jlojlh9bbuv12146o675l6k4cf.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyCnTcjexzMGKcMIGvm-jGim-vJo0ZV7XME"
@@ -20,7 +34,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "99513276497-37jaa0jlojlh9bbuv12146o675l6k4cf.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "99513276497-iu2plflpnss2152h61diqc9p2od2ip57.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.orre.mmc.orreMmcApp"
+              }
+            }
+          ]
         }
       }
     }

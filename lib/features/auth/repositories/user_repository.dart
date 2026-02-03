@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:orre_mmc_app/features/auth/models/user_model.dart';
@@ -5,6 +6,11 @@ import 'package:orre_mmc_app/features/auth/models/user_model.dart';
 final userRepositoryProvider = Provider<UserRepository>((ref) {
   return UserRepository(FirebaseFirestore.instance);
 });
+
+final loginHistoryProvider = StreamProvider.autoDispose
+    .family<List<Map<String, dynamic>>, String>((ref, uid) {
+      return ref.watch(userRepositoryProvider).getLoginHistory(uid);
+    });
 
 class UserRepository {
   final FirebaseFirestore _firestore;
@@ -52,6 +58,41 @@ class UserRepository {
       }
       return null;
     });
+  }
+
+  Future<void> logLoginEvent(String uid, String method) async {
+    try {
+      await _firestore
+          .collection('users')
+          .doc(uid)
+          .collection('login_history')
+          .add({'timestamp': FieldValue.serverTimestamp(), 'method': method});
+    } catch (e) {
+      // Don't block login if logging fails, just print or ignore
+      debugPrint('Failed to log login event: $e');
+    }
+  }
+
+  Stream<List<Map<String, dynamic>>> getLoginHistory(String uid) {
+    return _firestore
+        .collection('users')
+        .doc(uid)
+        .collection('login_history')
+        .orderBy('timestamp', descending: true)
+        .limit(20)
+        .snapshots()
+        .map((snapshot) {
+          return snapshot.docs.map((doc) {
+            final data = doc.data();
+            // Convert Timestamp to DateTime for easy UI consumption if needed,
+            // or just pass data. Let's pass data for now, UI can parse.
+            // Actually, let's normalize it to be safer.
+            return {
+              'timestamp': data['timestamp'] ?? Timestamp.now(),
+              'method': data['method'] ?? 'unknown',
+            };
+          }).toList();
+        });
   }
 
   void throwException(dynamic e) {

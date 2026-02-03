@@ -3,6 +3,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:orre_mmc_app/core/blockchain/blockchain_repository.dart';
+import 'package:orre_mmc_app/features/auth/repositories/auth_repository.dart';
+import 'package:orre_mmc_app/features/wallet/repositories/transaction_repository.dart';
 import 'package:orre_mmc_app/core/blockchain/blockchain_result.dart';
 import 'package:orre_mmc_app/theme/app_colors.dart';
 
@@ -117,7 +119,7 @@ class DepositScreen extends ConsumerWidget {
     return Scaffold(
       backgroundColor: AppColors.backgroundDark,
       appBar: AppBar(
-        title: const Text('Deposit'),
+        title: const Text('Orre LLC Deposit'),
         centerTitle: true,
         backgroundColor: AppColors.backgroundDark.withValues(alpha: 0.9),
         leading: IconButton(
@@ -155,8 +157,25 @@ class DepositScreen extends ConsumerWidget {
               isRecommended: true,
               onTap: () {
                 // Navigate to Bank Transfer flow (mock)
+                final user = ref.read(authRepositoryProvider).currentUser;
+                if (user != null) {
+                  ref
+                      .read(transactionRepositoryProvider)
+                      .logTransaction(
+                        uid: user.uid,
+                        type: 'deposit',
+                        amount: 5000.00, // Mock amount
+                        currency: 'USD',
+                        status: 'pending',
+                        description: 'Bank Transfer Deposit',
+                      );
+                }
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Bank Transfer selected')),
+                  const SnackBar(
+                    content: Text(
+                      'Bank Transfer initiated (Mock Deposit Logged)',
+                    ),
+                  ),
                 );
               },
             ),
@@ -185,7 +204,7 @@ class DepositScreen extends ConsumerWidget {
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
-                      'Orre MMC acts as a bridge for fractional real estate. All investments are secured by physical property deeds.',
+                      'Orre LLC acts as a bridge for fractional real estate. All investments are secured by physical property deeds.',
                       style: TextStyle(
                         color: AppColors.primary.withValues(alpha: 0.8),
                         fontSize: 12,

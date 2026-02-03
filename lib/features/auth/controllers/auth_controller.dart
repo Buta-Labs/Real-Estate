@@ -33,6 +33,28 @@ class AuthController extends AsyncNotifier<void> {
     );
   }
 
+  // ... (previous methods)
+
+  Future<void> signInWithGoogle() async {
+    state = const AsyncValue.loading();
+    state = await AsyncValue.guard(
+      () => ref.read(authRepositoryProvider).signInWithGoogle(),
+    );
+  }
+
+  Future<String> startPhoneLogin(String phoneNumber) async {
+    return await ref.read(authRepositoryProvider).startPhoneLogin(phoneNumber);
+  }
+
+  Future<void> verifyPhoneLogin(String verificationId, String smsCode) async {
+    state = const AsyncValue.loading();
+    state = await AsyncValue.guard(
+      () => ref
+          .read(authRepositoryProvider)
+          .verifyPhoneLogin(verificationId, smsCode),
+    );
+  }
+
   // MFA Methods
   Future<String> enrollMfa(String phoneNumber) async {
     // We don't necessarily want to set global loading state here as it might be a local UI action
