@@ -12,7 +12,7 @@ plugins {
 }
 
 android {
-    namespace = "com.orre.mmc.orre_mmc_app"
+    namespace = "com.orre.app"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -47,7 +47,7 @@ android {
 
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "com.orre.mmc.orre_mmc_app"
+        applicationId = "com.orre.app"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion

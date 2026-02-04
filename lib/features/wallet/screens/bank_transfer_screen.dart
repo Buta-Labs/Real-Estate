@@ -20,7 +20,7 @@ class BankTransferScreen extends StatelessWidget {
               icon: const Icon(Icons.arrow_back_ios_new, size: 20),
               onPressed: () => context.pop(),
             ),
-            title: const Text('Orre LLC Bank Transfer Details'),
+            title: const Text('Orre Bank Transfer Details'),
             centerTitle: true,
             actions: [
               IconButton(
@@ -200,11 +200,7 @@ class BankTransferScreen extends StatelessWidget {
   Widget _buildDetailsList() {
     return Column(
       children: [
-        _buildDetailItem(
-          'Beneficiary Name',
-          'Orre MMC Investments LLC',
-          Icons.person,
-        ),
+        _buildDetailItem('Beneficiary Name', 'Orre MMC', Icons.person),
         const SizedBox(height: 12),
         _buildDetailItem(
           'IBAN / Account',

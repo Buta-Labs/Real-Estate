@@ -14,6 +14,7 @@ class SignupScreen extends ConsumerStatefulWidget {
 }
 
 class _SignupScreenState extends ConsumerState<SignupScreen> {
+  final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
@@ -26,9 +27,20 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
       return;
     }
 
+    if (_nameController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter your full name')),
+      );
+      return;
+    }
+
     await ref
         .read(authControllerProvider.notifier)
-        .signUp(_emailController.text.trim(), _passwordController.text.trim());
+        .signUp(
+          email: _emailController.text.trim(),
+          password: _passwordController.text.trim(),
+          displayName: _nameController.text.trim(),
+        );
 
     if (mounted && ref.read(authControllerProvider).hasError == false) {
       context.go('/dashboard');
@@ -95,6 +107,12 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                     ),
                     const SizedBox(height: 48),
 
+                    _buildInputField(
+                      'FULL NAME',
+                      Icons.person_outline,
+                      _nameController,
+                    ),
+                    const SizedBox(height: 16),
                     _buildInputField(
                       'EMAIL',
                       Icons.mail_outline,

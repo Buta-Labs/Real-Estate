@@ -8,18 +8,18 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:99513276497:android:51ed2443e48f7ef9dac070",
+        "mobilesdk_app_id": "1:99513276497:android:d89734228b1844e9dac070",
         "android_client_info": {
-          "package_name": "com.orre.mmc.orre_mmc_app"
+          "package_name": "com.orre.app"
         }
       },
       "oauth_client": [
         {
-          "client_id": "99513276497-nmn0623ibq8lqt2djr82o9gsudocft6e.apps.googleusercontent.com",
+          "client_id": "99513276497-kfcb4rit7kbcdr6net6upibhs5kf3743.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
-            "package_name": "com.orre.mmc.orre_mmc_app",
-            "certificate_hash": "8b78924ecbbe2015ac63eed000bd4ee1462ae8d5"
+            "package_name": "com.orre.app",
+            "certificate_hash": "9675db785c6c8bd0b980a210530343777f096092"
           }
         },
         {
@@ -40,10 +40,10 @@
               "client_type": 3
             },
             {
-              "client_id": "99513276497-iu2plflpnss2152h61diqc9p2od2ip57.apps.googleusercontent.com",
+              "client_id": "99513276497-gttf5ao788ldr7t846v4dkekbpjn1s0o.apps.googleusercontent.com",
               "client_type": 2,
               "ios_info": {
-                "bundle_id": "com.orre.mmc.orreMmcApp"
+                "bundle_id": "com.orre.app"
               }
             }
           ]

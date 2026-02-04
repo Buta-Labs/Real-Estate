@@ -3,10 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:orre_mmc_app/core/services/biometric_service.dart';
+
 import 'package:orre_mmc_app/features/auth/controllers/auth_controller.dart';
 import 'package:orre_mmc_app/shared/widgets/glass_container.dart';
 import 'package:orre_mmc_app/theme/app_colors.dart';
+import 'package:orre_mmc_app/core/services/toast_service.dart';
+import 'package:orre_mmc_app/core/blockchain/blockchain_repository.dart';
+import 'package:orre_mmc_app/core/blockchain/blockchain_result.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -16,8 +19,8 @@ class LoginScreen extends ConsumerStatefulWidget {
 }
 
 class _LoginScreenState extends ConsumerState<LoginScreen> {
-  final _emailController = TextEditingController(text: 'alexander@orremmc.com');
-  final _passwordController = TextEditingController(text: 'password123');
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
 
   Future<void> _handleLogin() async {
     await ref
@@ -37,32 +40,39 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     }
   }
 
-  Future<void> _handleBiometricLogin() async {
-    final bioService = ref.read(biometricServiceProvider);
-    final credentials = await bioService.loginWithBiometrics();
+  Future<void> _handleWalletLogin() async {
+    // 1. Connect Wallet
+    final blockchainRepo = ref.read(blockchainRepositoryProvider);
+    // Show local loading if needed, but the main build handles it via auth state
+    // For wallet connection, we might need a separate loading state or just rely on the modal from WalletConnect
+    // But since we are waiting, let's just let it be.
 
-    if (credentials != null) {
-      if (mounted) {
-        _emailController.text = credentials['email']!;
-        _passwordController.text = credentials['password']!;
-        await _handleLogin();
-      }
-    } else {
-      if (mounted) {
-        final enabled = await bioService.isBiometricEnabled();
-        if (mounted) {
-          if (!enabled) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Please enable Face ID in settings first.'),
-              ),
-            );
-          } else {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Biometric authentication failed.')),
-            );
-          }
+    ToastService().showInfo(context, 'Connecting to Wallet...');
+
+    final result = await blockchainRepo.connectWallet();
+
+    // 2. Handle Result
+    if (mounted) {
+      if (result is Success<String>) {
+        final address = result.data;
+        ToastService().showSuccess(
+          context,
+          'Wallet Connected: ${address.substring(0, 6)}...',
+        );
+
+        // 3. Sign In with Address
+        await ref
+            .read(authControllerProvider.notifier)
+            .signInWithWallet(address);
+
+        if (mounted && ref.read(authControllerProvider).hasError == false) {
+          context.go('/dashboard');
         }
+      } else if (result is Failure<String>) {
+        ToastService().showError(
+          context,
+          'Wallet Connection Failed: ${result.failure.message}',
+        );
       }
     }
   }
@@ -86,9 +96,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           }
         }
 
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(state.error.toString())));
+        ToastService().showError(context, state.error.toString());
       }
     });
 
@@ -158,7 +166,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       ),
                     ),
                     Text(
-                      'Orre LLC',
+                      'Orre',
                       style: GoogleFonts.manrope(
                         fontSize: 36,
                         fontWeight: FontWeight.w800,
@@ -290,33 +298,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             ),
                           ),
                         ),
-                        const SizedBox(width: 8),
-
+                        const SizedBox(width: 16),
                         Expanded(
                           child: GestureDetector(
-                            onTap: () => context.push('/phone-login'),
-                            child: _buildSocialButton('Phone', Icons.phone),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: GestureDetector(
-                            onTap: _handleBiometricLogin,
+                            onTap: _handleWalletLogin,
                             child: _buildSocialButton(
-                              'Face ID',
-                              Icons.fingerprint,
+                              'Wallet',
+                              Icons.account_balance_wallet_outlined,
                             ),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: _buildSocialButton(
-                            'Wallet',
-                            Icons.qr_code_scanner,
                           ),
                         ),
                       ],
@@ -337,18 +326,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                TextButton(
-                  onPressed: () {},
-                  child: Text(
-                    'VIEW APP SITEMAP',
-                    style: GoogleFonts.manrope(
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.primary.withValues(alpha: 0.7),
-                      letterSpacing: 1.5,
-                    ),
-                  ),
-                ),
                 Text(
                   "By continuing you agree to Orre MMC's Terms of Service.",
                   style: TextStyle(color: Colors.grey[600], fontSize: 12),
@@ -356,6 +333,30 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               ],
             ),
           ),
+
+          if (isLoading)
+            Positioned.fill(
+              child: Container(
+                color: Colors.black.withValues(alpha: 0.7),
+                child: Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const CircularProgressIndicator(color: AppColors.primary),
+                      const SizedBox(height: 16),
+                      Text(
+                        'Securing connection...',
+                        style: GoogleFonts.manrope(
+                          color: Colors.white,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
         ],
       ),
     );

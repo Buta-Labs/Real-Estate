@@ -32,7 +32,7 @@ class MyApp extends ConsumerWidget {
     final router = ref.watch(routerProvider);
 
     return MaterialApp.router(
-      title: 'Orre LLC',
+      title: 'Orre',
       theme: AppTheme.darkTheme, // Using dark theme as default
       debugShowCheckedModeBanner: false,
       routerConfig: router,

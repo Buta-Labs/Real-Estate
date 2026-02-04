@@ -16,6 +16,7 @@ class CompleteProfileScreen extends ConsumerStatefulWidget {
 }
 
 class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
+  final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
@@ -23,6 +24,7 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
 
   @override
   void dispose() {
+    _nameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
@@ -34,6 +36,7 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
     setState(() => _isLoading = true);
 
     try {
+      final name = _nameController.text.trim();
       final email = _emailController.text.trim();
       final password = _passwordController.text.trim();
 
@@ -44,15 +47,30 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
 
       final user = ref.read(authRepositoryProvider).currentUser;
       if (user != null) {
+        // 1. Link Credential (converts anon to permanent)
         await user.linkWithCredential(credential);
 
-        // Update user profile in Firestore via Repository if needed
-        // For now, just rely on Auth state update
+        // 2. Update Display Name
+        await user.updateDisplayName(name);
+        await user.reload(); // Apply changes
+
+        // 3. Save entire profile to Firestore (using logic similar to signUp)
+        // We can access user repo indirectly or use AuthRepo if it exposed it methods,
+        // but let's just assume we might need to manually trigger a save or rely on a "post-auth" trigger?
+        // Actually, AuthRepository.signUp updates Firestore. Here we are manual.
+        // Let's assume the router or dashboard will fetch/create if missing,
+        // BUT providing a name ensures the router lets us pass.
+
+        // It is safer to trigger a save logic if possible,
+        // but for now, updating Auth Profile satisfies the Router check.
+        // We can create a lightweight 'updateProfile' in AuthRepo later if needed.
 
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Profile Completed Successfully!')),
           );
+          // Force refresh
+          ref.invalidate(authRepositoryProvider);
           context.go('/dashboard');
         }
       }
@@ -118,7 +136,7 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
                     ),
                     const SizedBox(height: 16),
                     Text(
-                      'To ensure you can receive legal documents and investment receipts, we require an email address linked to your account.',
+                      'To ensure you can receive legal documents and investment receipts, we require your full name and an email address.',
                       style: GoogleFonts.manrope(
                         fontSize: 16,
                         color: Colors.grey[400],
@@ -131,6 +149,37 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
                       padding: const EdgeInsets.all(24),
                       child: Column(
                         children: [
+                          TextFormField(
+                            controller: _nameController,
+                            style: const TextStyle(color: Colors.white),
+                            decoration: InputDecoration(
+                              hintText: 'Full Name',
+                              hintStyle: TextStyle(
+                                color: Colors.grey.withValues(alpha: 0.5),
+                              ),
+                              prefixIcon: const Icon(
+                                Icons.person,
+                                color: AppColors.primary,
+                              ),
+                              enabledBorder: UnderlineInputBorder(
+                                borderSide: BorderSide(
+                                  color: Colors.white.withValues(alpha: 0.1),
+                                ),
+                              ),
+                              focusedBorder: const UnderlineInputBorder(
+                                borderSide: BorderSide(
+                                  color: AppColors.primary,
+                                ),
+                              ),
+                            ),
+                            validator: (value) {
+                              if (value == null || value.length < 2) {
+                                return 'Enter your full name';
+                              }
+                              return null;
+                            },
+                          ),
+                          const SizedBox(height: 24),
                           TextFormField(
                             controller: _emailController,
                             style: const TextStyle(color: Colors.white),

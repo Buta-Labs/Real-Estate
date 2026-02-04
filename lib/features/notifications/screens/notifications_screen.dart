@@ -71,7 +71,7 @@ class _NotificationsScreenState extends State<NotificationsScreen>
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
-                  'Welcome to Orre LLC!',
+                  'Welcome to Orre!',
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 20,
@@ -138,7 +138,7 @@ class _NotificationsScreenState extends State<NotificationsScreen>
           title: 'Identity Verified',
           time: '2d ago',
           message:
-              'Your KYC documents have been successfully verified. Welcome to Orre LLC.',
+              'Your KYC documents have been successfully verified. Welcome to Orre.',
           isUnread: false,
           opacity: 0.7,
         ),

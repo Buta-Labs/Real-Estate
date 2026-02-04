@@ -19,10 +19,20 @@ class AuthController extends AsyncNotifier<void> {
     );
   }
 
-  Future<void> signUp(String email, String password) async {
+  Future<void> signUp({
+    required String email,
+    required String password,
+    required String displayName,
+  }) async {
     state = const AsyncValue.loading();
     state = await AsyncValue.guard(
-      () => ref.read(authRepositoryProvider).signUpWithEmail(email, password),
+      () => ref
+          .read(authRepositoryProvider)
+          .signUpWithEmail(
+            email: email,
+            password: password,
+            displayName: displayName,
+          ),
     );
   }
 
@@ -39,6 +49,13 @@ class AuthController extends AsyncNotifier<void> {
     state = const AsyncValue.loading();
     state = await AsyncValue.guard(
       () => ref.read(authRepositoryProvider).signInWithGoogle(),
+    );
+  }
+
+  Future<void> signInWithWallet(String walletAddress) async {
+    state = const AsyncValue.loading();
+    state = await AsyncValue.guard(
+      () => ref.read(authRepositoryProvider).signInWithWallet(walletAddress),
     );
   }
 

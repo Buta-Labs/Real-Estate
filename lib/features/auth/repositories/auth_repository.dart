@@ -43,7 +43,11 @@ class AuthRepository {
     }
   }
 
-  Future<UserCredential> signUpWithEmail(String email, String password) async {
+  Future<UserCredential> signUpWithEmail({
+    required String email,
+    required String password,
+    required String displayName,
+  }) async {
     try {
       final credential = await _firebaseAuth.createUserWithEmailAndPassword(
         email: email,
@@ -51,10 +55,16 @@ class AuthRepository {
       );
 
       if (credential.user != null) {
+        // Update Firebase Auth Profile
+        await credential.user!.updateDisplayName(displayName);
+        await credential.user!.reload(); // Reload to apply changes locally
+
+        // Save to Firestore
         await _userRepository.saveUser(
           UserModel(
             uid: credential.user!.uid,
             email: email,
+            displayName: displayName,
             createdAt: DateTime.now(),
           ),
         );
@@ -195,6 +205,37 @@ class AuthRepository {
         _userRepository.logLoginEvent(userCredential.user!.uid, 'google');
       }
 
+      return userCredential;
+    } catch (e) {
+      debugPrint('Google Sign In Error: $e');
+      if (e.runtimeType.toString().contains('PlatformException')) {
+        debugPrint(
+          'PLATFORM EXCEPTION: This usually means the SHA-1/SHA-256 fingerprint is not configured in Firebase Console.',
+        );
+      }
+      throw _handleError(e);
+    }
+  }
+
+  // Wallet Login (Anonymous + Profile Link)
+  Future<UserCredential> signInWithWallet(String walletAddress) async {
+    try {
+      // 1. Sign in anonymously to establish a session
+      final userCredential = await _firebaseAuth.signInAnonymously();
+
+      // 2. Save/Update user with wallet address
+      if (userCredential.user != null) {
+        await _userRepository.saveUser(
+          UserModel(
+            uid: userCredential.user!.uid,
+            email: '', // Empty initially
+            displayName: '', // Empty initially
+            walletAddress: walletAddress,
+            kycStatus: 'none',
+          ),
+        );
+        _userRepository.logLoginEvent(userCredential.user!.uid, 'wallet');
+      }
       return userCredential;
     } catch (e) {
       throw _handleError(e);

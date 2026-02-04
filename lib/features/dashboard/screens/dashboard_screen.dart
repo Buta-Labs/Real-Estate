@@ -20,7 +20,7 @@ class DashboardScreen extends ConsumerWidget {
 
     final user = userAsync.valueOrNull;
     final displayName =
-        user?.displayName ?? user?.email.split('@')[0] ?? 'Investor';
+        user?.displayName ?? user?.email.split('@')[0] ?? 'User';
     final kycStatus = user?.kycStatus ?? 'none';
     final balance = walletBalanceAsync.valueOrNull ?? '0.00';
 
@@ -35,19 +35,22 @@ class DashboardScreen extends ConsumerWidget {
             elevation: 0,
             title: Row(
               children: [
-                CircleAvatar(
-                  radius: 20,
-                  backgroundImage: user?.photoUrl != null
-                      ? NetworkImage(user!.photoUrl!)
-                      : const NetworkImage(
-                          'https://lh3.googleusercontent.com/aida-public/AB6AXuCY0ZlgXp1ZlhT7-z36bX049q9hxHyq13xMEb3mQBmETZCFcbMcJqP0OXIhcMr_g31hey5Xxv97KKKrZ0j9EJV04lYq3kNgwC7NeyX3UfSThQWTOg2NDeyJCMcxB8anWc5PG-8ZgFeDAtWhO55wUju5OQwQZRj4hf6a4JBKqrfw-1fnQP30BCtpjZLyC8nJF4NiEolrTjXfKbggVfs7GM6w35ChaW3t7cfWHx0zEtOdslhwYTjkYxv1fbxWA9pIEzM6egYS69U5fA',
+                GestureDetector(
+                  onTap: () => context.push('/profile'),
+                  child: CircleAvatar(
+                    radius: 20,
+                    backgroundImage: user?.photoUrl != null
+                        ? NetworkImage(user!.photoUrl!)
+                        : const NetworkImage(
+                            'https://lh3.googleusercontent.com/aida-public/AB6AXuCY0ZlgXp1ZlhT7-z36bX049q9hxHyq13xMEb3mQBmETZCFcbMcJqP0OXIhcMr_g31hey5Xxv97KKKrZ0j9EJV04lYq3kNgwC7NeyX3UfSThQWTOg2NDeyJCMcxB8anWc5PG-8ZgFeDAtWhO55wUju5OQwQZRj4hf6a4JBKqrfw-1fnQP30BCtpjZLyC8nJF4NiEolrTjXfKbggVfs7GM6w35ChaW3t7cfWHx0zEtOdslhwYTjkYxv1fbxWA9pIEzM6egYS69U5fA',
+                          ),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: AppColors.primary.withValues(alpha: 0.2),
+                          width: 2,
                         ),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: AppColors.primary.withValues(alpha: 0.2),
-                        width: 2,
                       ),
                     ),
                   ),
@@ -88,7 +91,7 @@ class DashboardScreen extends ConsumerWidget {
               Stack(
                 children: [
                   IconButton(
-                    onPressed: () {},
+                    onPressed: () => context.push('/notifications'),
                     icon: const Icon(Icons.notifications, color: Colors.white),
                     style: IconButton.styleFrom(
                       backgroundColor: Colors.white.withValues(alpha: 0.05),
@@ -273,7 +276,7 @@ class DashboardScreen extends ConsumerWidget {
                       ),
                     ),
                     TextButton.icon(
-                      onPressed: () {},
+                      onPressed: () => _showCustomizeShortcuts(context, ref),
                       icon: const Icon(Icons.edit, size: 16),
                       label: const Text(
                         'CUSTOMIZE',
@@ -340,7 +343,7 @@ class DashboardScreen extends ConsumerWidget {
                       ),
                     ),
                     TextButton(
-                      onPressed: () {},
+                      onPressed: () => context.push('/marketplace'),
                       child: const Text(
                         'See All',
                         style: TextStyle(
@@ -502,6 +505,14 @@ class DashboardScreen extends ConsumerWidget {
         icon = Icons.storefront;
         label = 'Invest';
         break;
+      case 'governance':
+        icon = Icons.gavel;
+        label = 'Governance';
+        break;
+      case 'documents':
+        icon = Icons.folder_shared;
+        label = 'Documents';
+        break;
       default:
         icon = Icons.explore;
         label = viewId;
@@ -552,6 +563,85 @@ class DashboardScreen extends ConsumerWidget {
           ),
         ],
       ),
+    );
+  }
+
+  void _showCustomizeShortcuts(BuildContext context, WidgetRef ref) {
+    final allShortcuts = [
+      {'id': 'analytics', 'label': 'Analytics', 'icon': Icons.insights},
+      {'id': 'learning', 'label': 'Learning', 'icon': Icons.school},
+      {'id': 'insights', 'label': 'Insights', 'icon': Icons.lightbulb},
+      {'id': 'referrals', 'label': 'Referrals', 'icon': Icons.emoji_events},
+      {'id': 'marketplace', 'label': 'Invest', 'icon': Icons.storefront},
+      {'id': 'governance', 'label': 'Governance', 'icon': Icons.gavel},
+      {'id': 'documents', 'label': 'Documents', 'icon': Icons.folder_shared},
+    ];
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppColors.backgroundDark,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (context) {
+        return Consumer(
+          builder: (context, ref, _) {
+            final currentPins = ref.watch(pinnedViewsProvider);
+            return Padding(
+              padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Customize Shortcuts',
+                    style: GoogleFonts.manrope(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Pin your most used pages to the dashboard.',
+                    style: GoogleFonts.manrope(
+                      fontSize: 14,
+                      color: Colors.grey[400],
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  ...allShortcuts.map((shortcut) {
+                    final isPinned = currentPins.contains(
+                      shortcut['id'] as String,
+                    );
+                    return ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      leading: Icon(
+                        shortcut['icon'] as IconData,
+                        color: isPinned ? AppColors.primary : Colors.grey[600],
+                      ),
+                      title: Text(
+                        shortcut['label'] as String,
+                        style: TextStyle(
+                          color: isPinned ? Colors.white : Colors.grey[400],
+                        ),
+                      ),
+                      trailing: Switch(
+                        value: isPinned,
+                        activeColor: AppColors.primary,
+                        onChanged: (value) {
+                          ref
+                              .read(pinnedViewsProvider.notifier)
+                              .togglePin(shortcut['id'] as String);
+                        },
+                      ),
+                    );
+                  }),
+                ],
+              ),
+            );
+          },
+        );
+      },
     );
   }
 }

@@ -54,7 +54,6 @@ import 'package:orre_mmc_app/features/onboarding/screens/kyc_intro_screen.dart';
 import 'package:orre_mmc_app/features/onboarding/screens/scanner_screen.dart';
 import 'package:orre_mmc_app/features/profile/screens/edit_profile_screen.dart';
 import 'package:orre_mmc_app/shared/screens/loading_screen.dart';
-import 'package:orre_mmc_app/theme/app_colors.dart';
 import 'package:orre_mmc_app/features/notifications/screens/notifications_screen.dart';
 import 'package:orre_mmc_app/features/engagement/screens/year_in_review_screen.dart';
 import 'package:orre_mmc_app/features/engagement/screens/level_up_screen.dart';
@@ -62,40 +61,57 @@ import 'package:orre_mmc_app/features/engagement/screens/level_up_screen.dart';
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
 
 /// Tracks if MFA is enrolled. null = loading, true = enrolled, false = not enrolled.
-final mfaProvider = StateProvider<bool?>((ref) => null);
+final mfaProvider = StateNotifierProvider<MfaNotifier, bool?>((ref) {
+  return MfaNotifier(ref);
+});
+
+class MfaNotifier extends StateNotifier<bool?> {
+  final Ref ref;
+
+  MfaNotifier(this.ref) : super(null) {
+    final authRepo = ref.read(authRepositoryProvider);
+
+    ref.listen(authStateProvider, (previous, next) {
+      Future.microtask(() {
+        final user = next.value;
+        final previousUser = previous?.value;
+
+        if (user == null) {
+          state = false;
+        } else {
+          // Only reset to null if the user has changed to prevent flashing
+          if (previousUser?.uid != user.uid) {
+            state = null;
+          }
+
+          // Trigger async check
+          unawaited(() async {
+            try {
+              final dynamic mf = (user as dynamic).multiFactor;
+              // Try async getEnrolledFactors first
+              final List<dynamic> factors = await mf.getEnrolledFactors();
+              if (mounted) state = factors.isNotEmpty;
+            } catch (e) {
+              // Fallback to sync check using captured repo
+              if (mounted) state = authRepo.hasMfaEnrolled(user);
+            }
+          }());
+        }
+      });
+    }, fireImmediately: true);
+  }
+
+  void setVerified(bool isVerified) {
+    state = isVerified;
+  }
+}
 
 final routerProvider = Provider<GoRouter>((ref) {
-  // Listen to auth changes to refresh MFA status
-  ref.listen(authStateProvider, (previous, next) {
-    final user = next.value;
-    if (user == null) {
-      ref.read(mfaProvider.notifier).state = false;
-    } else {
-      // RESET to null immediately to prevent "stale false" flashes during login/verification
-      ref.read(mfaProvider.notifier).state = null;
-
-      // Trigger async check
-      unawaited(() async {
-        try {
-          final dynamic mf = (user as dynamic).multiFactor;
-          // Try async getEnrolledFactors first
-          final List<dynamic> factors = await mf.getEnrolledFactors();
-          ref.read(mfaProvider.notifier).state = factors.isNotEmpty;
-        } catch (e) {
-          // Fallback to sync check
-          ref.read(mfaProvider.notifier).state = ref
-              .read(authRepositoryProvider)
-              .hasMfaEnrolled(user);
-        }
-      }());
-    }
-  }, fireImmediately: true);
-
   return GoRouter(
     navigatorKey: _rootNavigatorKey,
     initialLocation: '/login', // Start at login
     refreshListenable: GoRouterRefreshStream(
-      ref.watch(authStateProvider.stream),
+      ref.read(authRepositoryProvider).authStateChanges(),
     ),
     routes: [
       GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
@@ -353,13 +369,16 @@ final routerProvider = Provider<GoRouter>((ref) {
       final loggingIn = state.matchedLocation == '/login';
 
       if (user == null) {
-        return loggingIn ? null : '/login';
+        final isPublicRoute =
+            loggingIn ||
+            state.matchedLocation == '/signup' ||
+            state.matchedLocation == '/phone-login';
+        return isPublicRoute ? null : '/login';
       }
 
       // If MFA status is still loading (null), go to loading screen
       if (hasMfaEnrolledValue == null) return '/loading';
 
-      final isLoggedIn = user != null;
       final hasMfa = hasMfaEnrolledValue;
       final hasPhoneNumber =
           user.phoneNumber != null && user.phoneNumber!.isNotEmpty;
@@ -371,20 +390,22 @@ final routerProvider = Provider<GoRouter>((ref) {
       final isMfaEnrollment = state.uri.toString() == '/mfa-enrollment';
       final isCompleteProfile = state.uri.toString() == '/complete-profile';
 
-      // 2. Authenticated users:
-      // Enforce Mandatory MFA (Phone Number Linked OR Multi-Factor Enrolled)
-      if (!hasMfa && !hasPhoneNumber) {
-        if (!isMfaEnrollment) {
-          return '/mfa-enrollment';
+      // 2. Enforce Mandatory Profile Completion (Email & Name)
+      // Must be done BEFORE MFA, so user knows who they are setting up security for.
+      if (user.email == null ||
+          user.email!.isEmpty ||
+          user.displayName == null ||
+          user.displayName!.isEmpty) {
+        if (!isCompleteProfile) {
+          return '/complete-profile';
         }
         return null;
       }
 
-      // 3. Enforce Mandatory Email (Linked to Account)
-      // If user is logged in (likely via Phone) but has no email, MUST go to Complete Profile.
-      if (isLoggedIn && (user.email == null || user.email!.isEmpty)) {
-        if (!isCompleteProfile) {
-          return '/complete-profile';
+      // 3. Enforce Mandatory MFA (Phone Number Linked OR Multi-Factor Enrolled)
+      if (!hasMfa && !hasPhoneNumber) {
+        if (!isMfaEnrollment) {
+          return '/mfa-enrollment';
         }
         return null;
       }

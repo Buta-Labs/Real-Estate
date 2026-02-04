@@ -29,7 +29,7 @@ class BlockchainRepository {
     _web3App = await Web3App.createInstance(
       projectId: _projectId,
       metadata: const PairingMetadata(
-        name: 'Orre LLC',
+        name: 'Orre',
         description: 'Orre Real Estate Tokenization App',
         url: 'https://orre.com',
         icons: ['https://orre.com/favicon.ico'],

@@ -120,7 +120,7 @@ class _MfaEnrollmentScreenState extends ConsumerState<MfaEnrollmentScreen> {
           .verifyMfaEnrollment(_verificationId!, code);
 
       // Update MFA state locally to trigger immediate redirect/update
-      ref.read(mfaProvider.notifier).state = true;
+      ref.read(mfaProvider.notifier).setVerified(true);
 
       if (mounted) {
         _showCustomToast('Secure Account Enabled!');

@@ -1,4 +1,4 @@
-package com.orre.mmc.orre_mmc_app
+package com.orre.app
 
 import io.flutter.embedding.android.FlutterFragmentActivity
 

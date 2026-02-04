@@ -14,11 +14,10 @@ class ProfileScreen extends ConsumerWidget {
     final userAsync = ref.watch(userProvider);
     final user = userAsync.valueOrNull;
 
-    final displayName = user?.displayName ?? user?.email.split('@')[0] ?? 'Investor';
-    final email = user?.email ?? 'No email';
+    final displayName =
+        user?.displayName ?? user?.email.split('@')[0] ?? 'User';
     final photoUrl = user?.photoUrl;
     final kycStatus = user?.kycStatus ?? 'none';
-    final isVerified = kycStatus == 'verified';
 
     return Scaffold(
       backgroundColor: AppColors.backgroundDark,
@@ -31,7 +30,7 @@ class ProfileScreen extends ConsumerWidget {
               onPressed: () => context.pop(),
             ),
             title: const Text(
-              'Settings',
+              'Profile',
               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
             ),
             centerTitle: true,
@@ -57,8 +56,9 @@ class ProfileScreen extends ConsumerWidget {
                             image: photoUrl != null
                                 ? NetworkImage(photoUrl)
                                 : const NetworkImage(
-                                  'https://lh3.googleusercontent.com/aida-public/AB6AXuCY0ZlgXp1ZlhT7-z36bX049q9hxHyq13xMEb3mQBmETZCFcbMcJqP0OXIhcMr_g31hey5Xxv97KKKrZ0j9EJV04lYq3kNgwC7NeyX3UfSThQWTOg2NDeyJCMcxB8anWc5PG-8ZgFeDAtWhO55wUju5OQwQZRj4hf6a4JBKqrfw-1fnQP30BCtpjZLyC8nJF4NiEolrTjXfKbggVfs7GM6w35ChaW3t7cfWHx0zEtOdslhwYTjkYxv1fbxWA9pIEzM6egYS69U5fA',
-                                ) as ImageProvider,
+                                        'https://lh3.googleusercontent.com/aida-public/AB6AXuCY0ZlgXp1ZlhT7-z36bX049q9hxHyq13xMEb3mQBmETZCFcbMcJqP0OXIhcMr_g31hey5Xxv97KKKrZ0j9EJV04lYq3kNgwC7NeyX3UfSThQWTOg2NDeyJCMcxB8anWc5PG-8ZgFeDAtWhO55wUju5OQwQZRj4hf6a4JBKqrfw-1fnQP30BCtpjZLyC8nJF4NiEolrTjXfKbggVfs7GM6w35ChaW3t7cfWHx0zEtOdslhwYTjkYxv1fbxWA9pIEzM6egYS69U5fA',
+                                      )
+                                      as ImageProvider,
                             fit: BoxFit.cover,
                           ),
                           boxShadow: [
@@ -70,20 +70,27 @@ class ProfileScreen extends ConsumerWidget {
                           ],
                         ),
                       ),
-                      Container(
-                        padding: const EdgeInsets.all(4),
-                        decoration: BoxDecoration(
-                          color: isVerified ? AppColors.primary : Colors.grey,
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color: AppColors.backgroundDark,
-                            width: 3,
+                      GestureDetector(
+                        onTap: () {
+                          // Logic for settings action if needed, currently just visual or we can navigate to settings screen if separate
+                          // Assuming the user wants this to be the "settings" entry point or just visual
+                          context.push('/security-settings');
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: AppColors.card,
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: AppColors.backgroundDark,
+                              width: 3,
+                            ),
                           ),
-                        ),
-                        child: Icon(
-                          isVerified ? Icons.verified : Icons.pending_actions,
-                          size: 16,
-                          color: isVerified ? Colors.black : Colors.white,
+                          child: const Icon(
+                            Icons.settings,
+                            size: 20,
+                            color: Colors.white,
+                          ),
                         ),
                       ),
                     ],
@@ -97,39 +104,6 @@ class ProfileScreen extends ConsumerWidget {
                     ),
                   ),
                   const SizedBox(height: 8),
-                  GestureDetector(
-                    onTap: () => context.push('/edit-profile'),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 6,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(
-                          color: Colors.white.withValues(alpha: 0.05),
-                        ),
-                      ),
-                      child: const Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(Icons.edit, size: 14, color: AppColors.primary),
-                          SizedBox(width: 8),
-                          Text(
-                            'EDIT PROFILE',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 10,
-                              fontWeight: FontWeight.bold,
-                              letterSpacing: 1,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
                   Container(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 12,
@@ -168,7 +142,7 @@ class ProfileScreen extends ConsumerWidget {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Member since ${user?.createdAt.year ?? 2024}',
+                    'Member since ${user?.createdAt?.year ?? 2024}',
                     style: TextStyle(
                       color: Colors.white.withValues(alpha: 0.4),
                       fontSize: 12,
@@ -191,27 +165,29 @@ class ProfileScreen extends ConsumerWidget {
                       'Security & Privacy',
                       subtitle: 'Enabled',
                       subtitleColor: AppColors.primary,
-                      onTap: () {},
+                      onTap: () => context.push('/security-settings'),
                     ),
                     _buildDivider(),
                     _buildSettingsItem(
                       Icons.document_scanner,
                       'Verify Identity',
                       subtitle: kycStatus.toUpperCase(),
-                      subtitleColor: kycStatus == 'verified' ? AppColors.primary : Colors.orange,
+                      subtitleColor: kycStatus == 'verified'
+                          ? AppColors.primary
+                          : Colors.orange,
                       onTap: () => context.push('/kyc-verification'),
                     ),
                     _buildDivider(),
                     _buildSettingsItem(
                       Icons.vpn_key,
                       'Guest Access',
-                      onTap: () {},
+                      onTap: () => context.push('/digital-key'),
                     ),
                     _buildDivider(),
                     _buildSettingsItem(
                       Icons.folder_shared,
                       'Legal Documents',
-                      onTap: () {},
+                      onTap: () => context.push('/documents'),
                     ),
                   ]),
                   const SizedBox(height: 32),
@@ -224,19 +200,19 @@ class ProfileScreen extends ConsumerWidget {
                       iconColor: const Color(0xFFFFD700),
                       subtitle: '#42',
                       subtitleColor: AppColors.primary,
-                      onTap: () {},
+                      onTap: () => context.push('/leaderboard'),
                     ),
                     _buildDivider(),
                     _buildSettingsItem(
                       Icons.group_add,
                       'Referrals',
-                      onTap: () {},
+                      onTap: () => context.push('/referrals'),
                     ),
                     _buildDivider(),
                     _buildSettingsItem(
                       Icons.gavel,
                       'Governance Hub',
-                      onTap: () {},
+                      onTap: () => context.push('/governance'),
                     ),
                   ]),
                   const SizedBox(height: 32),
@@ -246,15 +222,15 @@ class ProfileScreen extends ConsumerWidget {
                     _buildSettingsItem(
                       Icons.account_balance_wallet,
                       'Wallet Balance',
-                      subtitle: '$142,500.00',
+                      subtitle: '\$142,500.00',
                       subtitleColor: AppColors.primary,
-                      onTap: () {},
+                      onTap: () => context.push('/wallet'),
                     ),
                     _buildDivider(),
                     _buildSettingsItem(
                       Icons.description,
                       'Tax & Reporting',
-                      onTap: () {},
+                      onTap: () => context.push('/tax-reports'),
                     ),
                   ]),
                   const SizedBox(height: 32),
@@ -285,7 +261,7 @@ class ProfileScreen extends ConsumerWidget {
 
                   Center(
                     child: TextButton(
-                      onPressed: () {},
+                      onPressed: () => context.push('/sitemap'),
                       child: Text(
                         'APP SITEMAP',
                         style: TextStyle(

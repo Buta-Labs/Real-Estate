@@ -11,4 +11,4 @@ PRODUCT_NAME = Orre
 PRODUCT_BUNDLE_IDENTIFIER = com.orre.mmc.orreMmcApp
 
 // The copyright displayed in application information
-PRODUCT_COPYRIGHT = Copyright © 2026 Orre LLC. All rights reserved.
+PRODUCT_COPYRIGHT = Copyright © 2026 Orre MMC. All rights reserved.

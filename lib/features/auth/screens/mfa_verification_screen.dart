@@ -71,7 +71,7 @@ class _MfaVerificationScreenState extends ConsumerState<MfaVerificationScreen> {
           );
 
       // Update MFA state locally to trigger immediate redirect/update
-      ref.read(mfaProvider.notifier).state = true;
+      ref.read(mfaProvider.notifier).setVerified(true);
 
       // Navigation should be handled by the auth state listener in the parent or main wrapper
       // But since we are here, we might need to manually pop or let the stream listener handle it.

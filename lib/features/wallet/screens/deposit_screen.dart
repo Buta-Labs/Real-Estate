@@ -119,7 +119,7 @@ class DepositScreen extends ConsumerWidget {
     return Scaffold(
       backgroundColor: AppColors.backgroundDark,
       appBar: AppBar(
-        title: const Text('Orre LLC Deposit'),
+        title: const Text('Orre Deposit'),
         centerTitle: true,
         backgroundColor: AppColors.backgroundDark.withValues(alpha: 0.9),
         leading: IconButton(
@@ -204,7 +204,7 @@ class DepositScreen extends ConsumerWidget {
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
-                      'Orre LLC acts as a bridge for fractional real estate. All investments are secured by physical property deeds.',
+                      'Orre acts as a bridge for fractional real estate. All investments are secured by physical property deeds.',
                       style: TextStyle(
                         color: AppColors.primary.withValues(alpha: 0.8),
                         fontSize: 12,

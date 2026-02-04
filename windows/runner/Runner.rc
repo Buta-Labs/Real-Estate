@@ -89,13 +89,13 @@ BEGIN
     BEGIN
         BLOCK "040904e4"
         BEGIN
-            VALUE "CompanyName", "Orre LLC" "\0"
+            VALUE "CompanyName", "Orre" "\0"
             VALUE "FileDescription", "orre_mmc_app" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
             VALUE "InternalName", "orre_mmc_app" "\0"
-            VALUE "LegalCopyright", "Copyright (C) 2026 Orre LLC. All rights reserved." "\0"
+            VALUE "LegalCopyright", "Copyright (C) 2026 Orre MMC. All rights reserved." "\0"
             VALUE "OriginalFilename", "orre_mmc_app.exe" "\0"
-            VALUE "ProductName", "Orre LLC" "\0"
+            VALUE "ProductName", "Orre" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END

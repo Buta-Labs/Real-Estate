@@ -54,7 +54,7 @@ class ExitStrategyScreen extends StatelessWidget {
                     'Secondary Market (P2P)',
                     'List your tokens on our internal marketplace to sell directly to other investors. Provides immediate liquidity based on current market demand.',
                     'Processing: ~24-48h',
-                    'Orre LLC Buyback',
+                    'Orre Buyback',
                     AppColors.primary,
                   ),
                   const SizedBox(height: 16),

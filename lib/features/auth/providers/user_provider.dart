@@ -22,15 +22,32 @@ final userProvider = StreamProvider<UserModel?>((ref) async* {
   if (authUser == null) {
     yield null;
   } else {
-    // Watch the Firestore document for real-time updates
-    // UserRepository typically encapsulates this. Let's add a stream method to UserRepository or just fetch once and subscribe.
-    // Better: UserRepository.userStream(uid)
+    // 1. Create a fallback UserModel from Auth data
+    final fallbackUser = UserModel(
+      uid: authUser.uid,
+      email: authUser.email ?? '',
+      displayName: authUser.displayName,
+      photoUrl: authUser.photoURL,
+      phoneNumber: authUser.phoneNumber,
+    );
 
-    // For now, let's assume we want real-time updates (e.g. KYC status change)
-    // We need to add streamUser to UserRepository.
-    // If not available, we can just do one-off fetch, but stream is better for "Session Management".
+    // 2. Watch Firestore, but catch permission errors/nulls
+    try {
+      final userStream = ref
+          .watch(userRepositoryProvider)
+          .userStream(authUser.uid);
 
-    // Let's assume we will add streamUser to UserRepository.
-    yield* ref.watch(userRepositoryProvider).userStream(authUser.uid);
+      await for (final firestoreUser in userStream) {
+        if (firestoreUser != null) {
+          yield firestoreUser;
+        } else {
+          // If doc doesn't exist yet, use fallback
+          yield fallbackUser;
+        }
+      }
+    } catch (e) {
+      // If Firestore fails (e.g. permission denied), yield the fallback
+      yield fallbackUser;
+    }
   }
 });
