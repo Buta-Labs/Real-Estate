@@ -148,6 +148,7 @@ class BlockchainRepository {
   Future<BlockchainResult<String>> purchaseToken(
     String propertyContractAddress,
     double amountInUsdt, {
+    String? legalDocHash, // PDF hash for legal compliance
     Function(String)? onStatusChanged,
   }) async {
     try {

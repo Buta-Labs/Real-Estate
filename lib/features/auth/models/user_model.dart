@@ -9,6 +9,11 @@ class UserModel {
   final String? walletAddress;
   final String kycStatus; // 'none', 'pending', 'verified', 'rejected'
   final bool biometricEnabled;
+  final String? fullLegalName; // Full legal name for contracts
+  final String? country;
+  final String? address;
+  final String? idNumber;
+  final DateTime? tier2AcknowledgmentTime;
   final DateTime? createdAt;
   final DateTime? updatedAt;
 
@@ -21,6 +26,11 @@ class UserModel {
     this.walletAddress,
     this.kycStatus = 'none',
     this.biometricEnabled = false,
+    this.fullLegalName,
+    this.country,
+    this.address,
+    this.idNumber,
+    this.tier2AcknowledgmentTime,
     this.createdAt,
     this.updatedAt,
   });
@@ -39,6 +49,12 @@ class UserModel {
       walletAddress: data['walletAddress'],
       kycStatus: data['kycStatus'] ?? 'none',
       biometricEnabled: data['biometricEnabled'] ?? false,
+      fullLegalName: data['fullLegalName'],
+      country: data['country'],
+      address: data['address'],
+      idNumber: data['idNumber'],
+      tier2AcknowledgmentTime: (data['tier2AcknowledgmentTime'] as Timestamp?)
+          ?.toDate(),
       createdAt: (data['createdAt'] as Timestamp?)?.toDate(),
       updatedAt: (data['updatedAt'] as Timestamp?)?.toDate(),
     );
@@ -53,8 +69,23 @@ class UserModel {
       'walletAddress': walletAddress,
       'kycStatus': kycStatus,
       'biometricEnabled': biometricEnabled,
+      'fullLegalName': fullLegalName,
+      'country': country,
+      'address': address,
+      'idNumber': idNumber,
+      'tier2AcknowledgmentTime': tier2AcknowledgmentTime,
       'createdAt': createdAt ?? FieldValue.serverTimestamp(),
       'updatedAt': FieldValue.serverTimestamp(),
     };
+  }
+
+  /// Check if user has completed required profile fields for contracts
+  bool hasCompletedContractProfile() {
+    return fullLegalName != null &&
+        fullLegalName!.isNotEmpty &&
+        country != null &&
+        country!.isNotEmpty &&
+        idNumber != null &&
+        idNumber!.isNotEmpty;
   }
 }
