@@ -1,7 +1,9 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:orre_mmc_app/features/auth/controllers/auth_controller.dart';
 import 'package:orre_mmc_app/shared/widgets/glass_container.dart';
 import 'package:orre_mmc_app/theme/app_colors.dart';
@@ -18,6 +20,21 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
+  File? _imageFile;
+
+  Future<void> _pickImage() async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 70,
+    );
+
+    if (pickedFile != null) {
+      setState(() {
+        _imageFile = File(pickedFile.path);
+      });
+    }
+  }
 
   Future<void> _handleSignup() async {
     if (_passwordController.text != _confirmPasswordController.text) {
@@ -40,6 +57,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
           email: _emailController.text.trim(),
           password: _passwordController.text.trim(),
           displayName: _nameController.text.trim(),
+          imageFile: _imageFile,
         );
 
     if (mounted && ref.read(authControllerProvider).hasError == false) {
@@ -105,7 +123,53 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                         color: Colors.grey[400],
                       ),
                     ),
-                    const SizedBox(height: 48),
+                    const SizedBox(height: 32),
+
+                    // Profile Image Picker
+                    GestureDetector(
+                      onTap: _pickImage,
+                      child: Stack(
+                        children: [
+                          CircleAvatar(
+                            radius: 45,
+                            backgroundColor: Colors.white.withValues(
+                              alpha: 0.1,
+                            ),
+                            backgroundImage: _imageFile != null
+                                ? FileImage(_imageFile!)
+                                : null,
+                            child: _imageFile == null
+                                ? Icon(
+                                    Icons.add_a_photo_outlined,
+                                    size: 32,
+                                    color: AppColors.primary,
+                                  )
+                                : null,
+                          ),
+                          Positioned(
+                            bottom: 0,
+                            right: 0,
+                            child: Container(
+                              padding: const EdgeInsets.all(4),
+                              decoration: BoxDecoration(
+                                color: AppColors.primary,
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: AppColors.backgroundDark,
+                                  width: 2,
+                                ),
+                              ),
+                              child: const Icon(
+                                Icons.edit,
+                                size: 14,
+                                color: Colors.black,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 32),
 
                     _buildInputField(
                       'FULL NAME',

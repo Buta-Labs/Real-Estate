@@ -1,8 +1,10 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:orre_mmc_app/features/auth/controllers/auth_controller.dart';
+import 'package:orre_mmc_app/features/auth/repositories/auth_repository.dart';
 import 'package:orre_mmc_app/router/app_router.dart';
 import 'package:orre_mmc_app/shared/widgets/glass_container.dart';
 import 'package:orre_mmc_app/theme/app_colors.dart';
@@ -137,12 +139,242 @@ class _MfaEnrollmentScreenState extends ConsumerState<MfaEnrollmentScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final hasMfaVal = ref.watch(mfaProvider);
+    final authRepo = ref.read(authRepositoryProvider);
+    final user = authRepo.currentUser;
+    final isEnrolled = (hasMfaVal == true) || authRepo.hasMfaEnrolled(user);
+
+    // Show "MFA Active" UI if already enrolled and not in the "sending code" phase
+    if (isEnrolled && !_isCodeSent) {
+      final rawPhone = authRepo.getEnrolledPhoneNumber(user);
+      String maskedPhone = rawPhone ?? 'Protected';
+      if (maskedPhone.length > 7 && rawPhone != null) {
+        maskedPhone =
+            '${maskedPhone.substring(0, 3)} **** ${maskedPhone.substring(maskedPhone.length - 2)}';
+      }
+
+      return Scaffold(
+        backgroundColor: AppColors.backgroundDark,
+        extendBodyBehindAppBar: true,
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          leading: IconButton(
+            icon: Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.05),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.arrow_back_ios_new, size: 16),
+            ),
+            onPressed: () => context.pop(),
+          ),
+        ),
+        body: Stack(
+          children: [
+            // Background Glows
+            Positioned(
+              top: -100,
+              right: -50,
+              child: Container(
+                width: 300,
+                height: 300,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: AppColors.primary.withValues(alpha: 0.15),
+                ),
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 70, sigmaY: 70),
+                  child: Container(color: Colors.transparent),
+                ),
+              ),
+            ),
+            Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    GlassContainer(
+                      borderRadius: BorderRadius.circular(32),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 32,
+                        vertical: 40,
+                      ),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          // Status Icon with Pulse-like decoration
+                          Stack(
+                            alignment: Alignment.center,
+                            children: [
+                              Container(
+                                width: 100,
+                                height: 100,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
+                                    color: AppColors.primary.withValues(
+                                      alpha: 0.1,
+                                    ),
+                                    width: 2,
+                                  ),
+                                ),
+                              ),
+                              Container(
+                                padding: const EdgeInsets.all(24),
+                                decoration: BoxDecoration(
+                                  color: AppColors.primary.withValues(
+                                    alpha: 0.1,
+                                  ),
+                                  shape: BoxShape.circle,
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: AppColors.primary.withValues(
+                                        alpha: 0.2,
+                                      ),
+                                      blurRadius: 20,
+                                      spreadRadius: 5,
+                                    ),
+                                  ],
+                                ),
+                                child: const Icon(
+                                  Icons.shield_rounded,
+                                  color: AppColors.primary,
+                                  size: 40,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 32),
+                          Text(
+                            'Security is Active',
+                            style: GoogleFonts.manrope(
+                              fontSize: 26,
+                              fontWeight: FontWeight.w800,
+                              color: Colors.white,
+                              letterSpacing: -0.5,
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          Text(
+                            'Your account is fully protected with two-factor SMS authentication.',
+                            textAlign: TextAlign.center,
+                            style: GoogleFonts.manrope(
+                              fontSize: 14,
+                              color: Colors.grey[400],
+                              height: 1.5,
+                            ),
+                          ),
+                          const SizedBox(height: 40),
+                          // Phone Display Box
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 20,
+                              vertical: 16,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.05),
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(
+                                color: Colors.white.withValues(alpha: 0.1),
+                              ),
+                            ),
+                            child: Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.primary.withValues(
+                                      alpha: 0.1,
+                                    ),
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  child: const Icon(
+                                    Icons.phone_rounded,
+                                    color: AppColors.primary,
+                                    size: 18,
+                                  ),
+                                ),
+                                const SizedBox(width: 16),
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'VERIFIED NUMBER',
+                                      style: GoogleFonts.manrope(
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.grey[500],
+                                        letterSpacing: 1,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      maskedPhone,
+                                      style: GoogleFonts.manrope(
+                                        fontSize: 16,
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const Spacer(),
+                                const Icon(
+                                  Icons.check_circle,
+                                  color: AppColors.primary,
+                                  size: 18,
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 48),
+                          _buildButton('Update Phone Number', () {
+                            setState(() => _isCodeSent = false);
+                            _phoneController.text = ''; // Clear for new number
+                          }),
+                          const SizedBox(height: 16),
+                          TextButton(
+                            onPressed: () {
+                              // Optional: Implement disable logic if needed
+                              _showCustomToast(
+                                'Contact support to disable MFA for security reasons.',
+                                isError: true,
+                              );
+                            },
+                            child: Text(
+                              'Disable 2FA',
+                              style: GoogleFonts.manrope(
+                                color: Colors.white38,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 13,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
     return Scaffold(
       backgroundColor: AppColors.backgroundDark,
       appBar: AppBar(
         title: Text('Enable SMS MFA', style: GoogleFonts.manrope()),
         backgroundColor: Colors.transparent,
         elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new, size: 20),
+          onPressed: () => context.pop(),
+        ),
         actions: [
           TextButton.icon(
             onPressed: _signOut,

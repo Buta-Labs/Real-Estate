@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:orre_mmc_app/core/blockchain/blockchain_repository.dart';
 import 'package:orre_mmc_app/core/blockchain/blockchain_result.dart';
 import 'package:orre_mmc_app/theme/app_colors.dart';
+import 'package:orre_mmc_app/core/services/toast_service.dart';
 
 class CheckoutScreen extends ConsumerStatefulWidget {
   const CheckoutScreen({super.key});
@@ -33,7 +34,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
       final balance = await repository.getNativeBalance();
       if (balance == "0.00") {
         // Try to connect if not connected
-        final result = await repository.connectWallet();
+        final result = await repository.connectWallet(context);
         if (result is Failure) {
           _showError('Please connect your wallet first.');
           setState(() => _isLoading = false);
@@ -46,12 +47,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
         _demoContractAddress,
         _amount,
         onStatusChanged: (status) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(status),
-              duration: const Duration(seconds: 1),
-            ),
-          );
+          ToastService().showInfo(context, status);
         },
       );
 
@@ -70,9 +66,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
   }
 
   void _showError(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), backgroundColor: Colors.red),
-    );
+    ToastService().showError(context, message);
   }
 
   @override

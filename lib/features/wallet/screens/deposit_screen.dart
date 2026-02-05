@@ -7,6 +7,7 @@ import 'package:orre_mmc_app/features/auth/repositories/auth_repository.dart';
 import 'package:orre_mmc_app/features/wallet/repositories/transaction_repository.dart';
 import 'package:orre_mmc_app/core/blockchain/blockchain_result.dart';
 import 'package:orre_mmc_app/theme/app_colors.dart';
+import 'package:orre_mmc_app/core/services/toast_service.dart';
 
 class DepositScreen extends ConsumerWidget {
   const DepositScreen({super.key});
@@ -14,16 +15,14 @@ class DepositScreen extends ConsumerWidget {
   void _showCryptoDepositSheet(BuildContext context, WidgetRef ref) async {
     // Get address
     final repository = ref.read(blockchainRepositoryProvider);
-    final result = await repository.connectWallet();
+    final result = await repository.connectWallet(context);
 
     String address = '';
     if (result is Success<String>) {
       address = result.data;
     } else {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Please connect wallet first')),
-        );
+        ToastService().showError(context, 'Please connect wallet first');
       }
       return;
     }
@@ -53,7 +52,7 @@ class DepositScreen extends ConsumerWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              'Send MATIC, USDT, or USDC (Polygon) to this address.',
+              'Send ETH, USDT, or USDC (Base) to this address.',
               style: TextStyle(color: Colors.grey[400], fontSize: 14),
               textAlign: TextAlign.center,
             ),
@@ -98,9 +97,7 @@ class DepositScreen extends ConsumerWidget {
                     icon: const Icon(Icons.copy, color: AppColors.primary),
                     onPressed: () {
                       Clipboard.setData(ClipboardData(text: address));
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Address copied!')),
-                      );
+                      ToastService().showSuccess(context, 'Address copied!');
                       context.pop();
                     },
                   ),
@@ -170,12 +167,9 @@ class DepositScreen extends ConsumerWidget {
                         description: 'Bank Transfer Deposit',
                       );
                 }
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text(
-                      'Bank Transfer initiated (Mock Deposit Logged)',
-                    ),
-                  ),
+                ToastService().showSuccess(
+                  context,
+                  'Bank Transfer initiated (Mock Deposit Logged)',
                 );
               },
             ),

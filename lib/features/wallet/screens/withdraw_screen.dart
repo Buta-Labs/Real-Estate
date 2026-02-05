@@ -5,6 +5,7 @@ import 'package:orre_mmc_app/core/blockchain/blockchain_repository.dart';
 import 'package:orre_mmc_app/core/blockchain/blockchain_result.dart';
 import 'package:orre_mmc_app/theme/app_colors.dart';
 import 'package:orre_mmc_app/features/wallet/providers/wallet_provider.dart';
+import 'package:orre_mmc_app/core/services/toast_service.dart';
 
 class WithdrawScreen extends ConsumerStatefulWidget {
   const WithdrawScreen({super.key});
@@ -21,9 +22,9 @@ class _WithdrawScreenState extends ConsumerState<WithdrawScreen> {
 
   // Mock Token Addresses
   static const String _usdtAddress =
-      '0xc2132D05D31c914a87C6611C10748AEb04B58e8F'; // Polygon USDT
+      '0x8d9cb8f3191fd685e2c14d2ac3fb2b16d44eafc3'; // Base Sepolia USDT
   static const String _usdcAddress =
-      '0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359'; // Polygon USDC
+      '0x036CbD53842c5426634e7929541eC2318f3dCF7e'; // Base Sepolia USDC
 
   Future<void> _handleWithdrawal() async {
     final amountText = _amountController.text;
@@ -51,7 +52,7 @@ class _WithdrawScreenState extends ConsumerState<WithdrawScreen> {
     }
 
     if (amount > currentBalance) {
-      _showError('Insufficient balance (Native MATIC)');
+      _showError('Insufficient balance (Native ETH)');
       return;
     }
 
@@ -61,7 +62,7 @@ class _WithdrawScreenState extends ConsumerState<WithdrawScreen> {
       final repository = ref.read(blockchainRepositoryProvider);
 
       // Ensure connected
-      await repository.connectWallet();
+      await repository.connectWallet(context);
 
       final tokenAddress = _selectedAsset == 'USDT'
           ? _usdtAddress
@@ -72,20 +73,13 @@ class _WithdrawScreenState extends ConsumerState<WithdrawScreen> {
         address,
         amount,
         onStatusChanged: (status) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(status),
-              duration: const Duration(seconds: 1),
-            ),
-          );
+          ToastService().showInfo(context, status);
         },
       );
 
       if (result is Success) {
         if (mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(const SnackBar(content: Text('Withdrawal Confirmed')));
+          ToastService().showSuccess(context, 'Withdrawal Confirmed');
           context.pop();
         }
       } else if (result is Failure) {
@@ -99,9 +93,7 @@ class _WithdrawScreenState extends ConsumerState<WithdrawScreen> {
   }
 
   void _showError(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), backgroundColor: Colors.red),
-    );
+    ToastService().showError(context, message);
   }
 
   @override
@@ -218,7 +210,7 @@ class _WithdrawScreenState extends ConsumerState<WithdrawScreen> {
               final balanceAsync = ref.watch(walletBalanceProvider);
               return balanceAsync.when(
                 data: (balance) => Text(
-                  'Available: $balance MATIC', // Showing Native for MVP
+                  'Available: $balance ETH', // Showing Native for MVP
                   style: TextStyle(color: Colors.grey[400], fontSize: 12),
                 ),
                 loading: () => const SizedBox(

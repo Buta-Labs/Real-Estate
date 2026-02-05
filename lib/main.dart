@@ -7,6 +7,7 @@ import 'package:orre_mmc_app/firebase_options.dart';
 import 'package:flutter/foundation.dart';
 import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:orre_mmc_app/core/config/app_config.dart';
+import 'package:reown_appkit/reown_appkit.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -31,11 +32,14 @@ class MyApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final router = ref.watch(routerProvider);
 
-    return MaterialApp.router(
-      title: 'Orre',
-      theme: AppTheme.darkTheme, // Using dark theme as default
-      debugShowCheckedModeBanner: false,
-      routerConfig: router,
+    return ReownAppKitModalTheme(
+      isDarkMode: true,
+      child: MaterialApp.router(
+        title: 'Orre',
+        theme: AppTheme.darkTheme, // Using dark theme as default
+        debugShowCheckedModeBanner: false,
+        routerConfig: router,
+      ),
     );
   }
 }

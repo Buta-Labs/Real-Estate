@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:orre_mmc_app/core/services/toast_service.dart';
 import 'package:orre_mmc_app/core/blockchain/blockchain_repository.dart';
 import 'package:orre_mmc_app/features/auth/repositories/auth_repository.dart';
 import 'package:orre_mmc_app/features/auth/repositories/user_repository.dart';
@@ -25,19 +26,9 @@ final walletBalanceProvider = FutureProvider.autoDispose<String>((ref) async {
   return repository.getNativeBalance();
 });
 
-Future<void> connectWallet(WidgetRef ref) async {
+Future<void> connectWallet(BuildContext context, WidgetRef ref) async {
   final repository = ref.read(blockchainRepositoryProvider);
-  final result = await repository.connectWallet(
-    onDisplayUri: (uri) {
-      // In a real app with walletconnect_flutter_v2,
-      // we might need to show a QR code dialog here if using the Core directly,
-      // or if using Web3Modal it handles it.
-      // Since we are using the simple Core approach in Repo:
-      // We should ideally launch the URI or show QR.
-      // For this MVP, let's assume deep link launch or print.
-      debugPrint('WalletConnect URI: $uri');
-    },
-  );
+  final result = await repository.connectWallet(context);
 
   result.when(
     success: (address) async {
@@ -56,7 +47,10 @@ Future<void> connectWallet(WidgetRef ref) async {
       }
     },
     failure: (error) {
-      debugPrint('Wallet connection failed: $error');
+      debugPrint('Wallet connection failed: ${error.message}');
+      if (context.mounted) {
+        ToastService().showError(context, error.message);
+      }
     },
   );
 }

@@ -1,29 +1,42 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart' as google_sign_in;
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:orre_mmc_app/features/auth/models/user_model.dart';
 import 'package:orre_mmc_app/features/auth/repositories/user_repository.dart';
+import 'package:orre_mmc_app/features/auth/repositories/storage_repository.dart';
 
 final authRepositoryProvider = Provider<AuthRepository>((ref) {
   return AuthRepository(
     FirebaseAuth.instance,
     ref.read(userRepositoryProvider),
+    ref.read(storageRepositoryProvider),
   );
 });
 
 final authStateProvider = StreamProvider<User?>((ref) {
-  return ref.watch(authRepositoryProvider).authStateChanges();
+  return ref.watch(authRepositoryProvider).userChanges();
 });
+
+/// Tracks if the user has completed MFA for the current app session.
+final mfaVerifiedProvider = StateProvider<bool>((ref) => false);
 
 class AuthRepository {
   final FirebaseAuth _firebaseAuth;
   final UserRepository _userRepository;
+  final StorageRepository _storageRepository;
 
-  AuthRepository(this._firebaseAuth, this._userRepository);
+  AuthRepository(
+    this._firebaseAuth,
+    this._userRepository,
+    this._storageRepository,
+  );
 
   Stream<User?> authStateChanges() => _firebaseAuth.authStateChanges();
+
+  Stream<User?> userChanges() => _firebaseAuth.userChanges();
 
   User? get currentUser => _firebaseAuth.currentUser;
 
@@ -47,6 +60,7 @@ class AuthRepository {
     required String email,
     required String password,
     required String displayName,
+    File? imageFile,
   }) async {
     try {
       final credential = await _firebaseAuth.createUserWithEmailAndPassword(
@@ -55,8 +69,23 @@ class AuthRepository {
       );
 
       if (credential.user != null) {
+        String? photoUrl;
+        if (imageFile != null) {
+          try {
+            photoUrl = await _storageRepository.uploadProfileImage(
+              userId: credential.user!.uid,
+              imageFile: imageFile,
+            );
+          } catch (e) {
+            debugPrint('Failed to upload profile image: $e');
+          }
+        }
+
         // Update Firebase Auth Profile
         await credential.user!.updateDisplayName(displayName);
+        if (photoUrl != null) {
+          await credential.user!.updatePhotoURL(photoUrl);
+        }
         await credential.user!.reload(); // Reload to apply changes locally
 
         // Save to Firestore
@@ -65,6 +94,7 @@ class AuthRepository {
             uid: credential.user!.uid,
             email: email,
             displayName: displayName,
+            photoUrl: photoUrl,
             createdAt: DateTime.now(),
           ),
         );
@@ -80,6 +110,42 @@ class AuthRepository {
     await _firebaseAuth.signOut();
   }
 
+  Future<void> updateProfileImage(File imageFile) async {
+    final user = _firebaseAuth.currentUser;
+    if (user == null) throw Exception('User must be logged in.');
+
+    try {
+      final photoUrl = await _storageRepository.uploadProfileImage(
+        userId: user.uid,
+        imageFile: imageFile,
+      );
+
+      // Update Firebase Auth Profile
+      await user.updatePhotoURL(photoUrl);
+      await user.reload();
+
+      // Update Firestore
+      await _userRepository.saveUser(
+        UserModel(
+          uid: user.uid,
+          email: user.email ?? '',
+          displayName: user.displayName,
+          photoUrl: photoUrl,
+          phoneNumber: user.phoneNumber,
+        ),
+      );
+    } catch (e) {
+      throw Exception('Failed to update profile image: $e');
+    }
+  }
+
+  Future<void> resendMfaCode(String phoneNumber) async {
+    final user = _firebaseAuth.currentUser;
+    if (user == null) {
+      throw Exception('User must be logged in to enroll in MFA.');
+    }
+  }
+
   // MFA: Enroll a phone number
   Future<String> enrollMfa(String phoneNumber) async {
     final user = _firebaseAuth.currentUser;
@@ -87,7 +153,21 @@ class AuthRepository {
       throw Exception('User must be logged in to enroll in MFA.');
     }
 
-    final session = await user.multiFactor.getSession();
+    // Firebase requires a verified email to use native MFA sessions.
+    // If unverified, we skip the session and perform a standard phone linking verifyPhoneNumber.
+    final bool canUseNativeMfa =
+        user.emailVerified || user.isAnonymous || user.email == null;
+
+    MultiFactorSession? session;
+    if (canUseNativeMfa) {
+      try {
+        session = await user.multiFactor.getSession();
+      } catch (e) {
+        debugPrint('Could not get native MFA session: $e');
+        // If getting session fails, we'll continue without it and use linking fallback
+      }
+    }
+
     final completer = Completer<String>();
 
     await _firebaseAuth.verifyPhoneNumber(
@@ -118,9 +198,17 @@ class AuthRepository {
       smsCode: smsCode,
     );
 
-    final assertion = PhoneMultiFactorGenerator.getAssertion(credential);
-    await user.multiFactor.enroll(assertion);
-    await user.reload(); // Ensure the user object reflects the new MFA state
+    try {
+      final assertion = PhoneMultiFactorGenerator.getAssertion(credential);
+      await user.multiFactor.enroll(assertion);
+    } catch (e) {
+      debugPrint('Native MFA enrollment failed, falling back to linking: $e');
+      // Fallback: Link the phone number directly if native MFA is blocked (e.g. unverified email)
+      // This ensures the phone number is verified and saved to the account.
+      await user.linkWithCredential(credential);
+    }
+
+    await user.reload(); // Ensure the user object reflects the new state
   }
 
   Future<UserCredential> resolveMfaSignIn(
@@ -161,6 +249,35 @@ class AuthRepository {
       // If the property check fails, fall back to phoneNumber
       return user.phoneNumber != null && user.phoneNumber!.isNotEmpty;
     }
+  }
+
+  String? getEnrolledPhoneNumber(User? user) {
+    if (user == null) return null;
+
+    try {
+      // 1. Check top-level phone number
+      if (user.phoneNumber != null && user.phoneNumber!.isNotEmpty) {
+        return user.phoneNumber;
+      }
+
+      // 2. Check MFA factors
+      final dynamic mf = (user as dynamic).multiFactor;
+      final dynamic factors = mf.enrolledFactors;
+      if (factors is List && factors.isNotEmpty) {
+        final factor = factors.first;
+        if (factor is PhoneMultiFactorInfo) {
+          return factor.phoneNumber;
+        }
+        // Fallback for dynamic/reflected access
+        try {
+          return (factor as dynamic).phoneNumber as String?;
+        } catch (_) {}
+      }
+    } catch (e) {
+      debugPrint('Error getting enrolled phone number: $e');
+    }
+
+    return null;
   }
 
   // ... (previous methods)

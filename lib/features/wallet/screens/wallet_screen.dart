@@ -153,7 +153,7 @@ class WalletScreen extends ConsumerWidget {
         ),
         if (!isConnected)
           ElevatedButton(
-            onPressed: () => connectWallet(ref),
+            onPressed: () => connectWallet(context, ref),
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.primary,
               foregroundColor: Colors.black,

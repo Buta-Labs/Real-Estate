@@ -1,5 +1,7 @@
+import 'dart:io';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:orre_mmc_app/core/services/biometric_service.dart';
 import 'package:orre_mmc_app/features/auth/repositories/auth_repository.dart';
 
 final authControllerProvider = AsyncNotifierProvider<AuthController, void>(
@@ -23,6 +25,7 @@ class AuthController extends AsyncNotifier<void> {
     required String email,
     required String password,
     required String displayName,
+    File? imageFile,
   }) async {
     state = const AsyncValue.loading();
     state = await AsyncValue.guard(
@@ -32,6 +35,7 @@ class AuthController extends AsyncNotifier<void> {
             email: email,
             password: password,
             displayName: displayName,
+            imageFile: imageFile,
           ),
     );
   }
@@ -104,11 +108,28 @@ class AuthController extends AsyncNotifier<void> {
     String verificationId,
     String smsCode,
   ) async {
-    state = const AsyncValue.loading();
     state = await AsyncValue.guard(
       () => ref
           .read(authRepositoryProvider)
           .resolveMfaSignIn(resolver, verificationId, smsCode),
     );
+  }
+
+  Future<void> updateProfileImage(File imageFile) async {
+    state = const AsyncValue.loading();
+    state = await AsyncValue.guard(
+      () => ref.read(authRepositoryProvider).updateProfileImage(imageFile),
+    );
+  }
+
+  Future<void> signInWithBiometrics() async {
+    final bioService = ref.read(biometricServiceProvider);
+    final credentials = await bioService.loginWithBiometrics();
+
+    if (credentials != null) {
+      final email = credentials['email']!;
+      final password = credentials['password']!;
+      await signIn(email, password);
+    }
   }
 }

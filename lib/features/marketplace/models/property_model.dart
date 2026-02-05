@@ -8,6 +8,8 @@ class Property {
   final String imageUrl;
   final String tag;
   final String contractAddress;
+  final int tierIndex;
+  final String legalDocHash;
 
   Property({
     required this.id,
@@ -19,6 +21,8 @@ class Property {
     required this.imageUrl,
     required this.tag,
     required this.contractAddress,
+    this.tierIndex = 0,
+    this.legalDocHash = '',
   });
 
   Map<String, dynamic> toMap() {
@@ -31,6 +35,8 @@ class Property {
       'imageUrl': imageUrl,
       'tag': tag,
       'contractAddress': contractAddress,
+      'tierIndex': tierIndex,
+      'legalDocHash': legalDocHash,
     };
   }
 
@@ -45,6 +51,8 @@ class Property {
       imageUrl: map['imageUrl'] ?? '',
       tag: map['tag'] ?? '',
       contractAddress: map['contractAddress'] ?? '',
+      tierIndex: (map['tierIndex'] ?? 0).toInt(),
+      legalDocHash: map['legalDocHash'] ?? '',
     );
   }
 }

@@ -4,14 +4,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:orre_mmc_app/features/auth/controllers/auth_controller.dart';
-import 'package:orre_mmc_app/router/app_router.dart';
+import 'package:orre_mmc_app/features/auth/repositories/auth_repository.dart';
 import 'package:orre_mmc_app/shared/widgets/glass_container.dart';
 import 'package:orre_mmc_app/theme/app_colors.dart';
 
 class MfaVerificationScreen extends ConsumerStatefulWidget {
-  final MultiFactorResolver resolver;
+  final MultiFactorResolver? resolver;
 
-  const MfaVerificationScreen({super.key, required this.resolver});
+  const MfaVerificationScreen({super.key, this.resolver});
 
   @override
   ConsumerState<MfaVerificationScreen> createState() =>
@@ -34,9 +34,23 @@ class _MfaVerificationScreenState extends ConsumerState<MfaVerificationScreen> {
   Future<void> _sendCode() async {
     setState(() => _isLoading = true);
     try {
-      final verificationId = await ref
-          .read(authControllerProvider.notifier)
-          .startMfaSignInVerification(widget.resolver);
+      final String verificationId;
+      if (widget.resolver != null) {
+        verificationId = await ref
+            .read(authControllerProvider.notifier)
+            .startMfaSignInVerification(widget.resolver!);
+      } else {
+        // Custom flow: use user's verified phone number
+        final user = ref.read(authStateProvider).value;
+        final phone = user?.phoneNumber;
+        if (phone == null || phone.isEmpty) {
+          throw Exception('No verified phone number found for this account.');
+        }
+        verificationId = await ref
+            .read(authControllerProvider.notifier)
+            .startPhoneLogin(phone);
+      }
+
       setState(() {
         _verificationId = verificationId;
         _isCodeSent = true;
@@ -62,24 +76,26 @@ class _MfaVerificationScreenState extends ConsumerState<MfaVerificationScreen> {
     setState(() => _isLoading = true);
 
     try {
-      await ref
-          .read(authControllerProvider.notifier)
-          .resolveMfaSignIn(
-            widget.resolver,
-            _verificationId!,
-            _codeController.text.trim(),
-          );
+      if (widget.resolver != null) {
+        await ref
+            .read(authControllerProvider.notifier)
+            .resolveMfaSignIn(
+              widget.resolver!,
+              _verificationId!,
+              _codeController.text.trim(),
+            );
+      } else {
+        // Use verifyPhoneLogin (which links/re-verifies)
+        // OR simply rely on the SMS code matching for session verification.
+        // For a session challenge, we just need to know they confirmed the code.
+        await ref
+            .read(authControllerProvider.notifier)
+            .verifyPhoneLogin(_verificationId!, _codeController.text.trim());
+      }
 
-      // Update MFA state locally to trigger immediate redirect/update
-      ref.read(mfaProvider.notifier).setVerified(true);
+      // Mark session as verified
+      ref.read(mfaVerifiedProvider.notifier).state = true;
 
-      // Navigation should be handled by the auth state listener in the parent or main wrapper
-      // But since we are here, we might need to manually pop or let the stream listener handle it.
-      // If sign in is successful, the authStateChanges stream will fire.
-
-      // However, usually we can just pop this screen or replace it with dashboard?
-      // Better to just let the main router redirect based on auth state?
-      // Or explicitly go to dashboard.
       if (mounted) {
         context.go('/dashboard');
       }
@@ -97,12 +113,20 @@ class _MfaVerificationScreenState extends ConsumerState<MfaVerificationScreen> {
   @override
   Widget build(BuildContext context) {
     // Extract hints
-    final hints = widget.resolver.hints
-        .whereType<PhoneMultiFactorInfo>()
-        .toList();
-    final hintText = hints.isNotEmpty
-        ? 'Code will be sent to ${hints.first.phoneNumber}'
-        : 'Unknown number';
+    String hintText = 'Verification code will be sent to your phone';
+    if (widget.resolver != null) {
+      final hints = widget.resolver!.hints
+          .whereType<PhoneMultiFactorInfo>()
+          .toList();
+      if (hints.isNotEmpty) {
+        hintText = 'Code will be sent to ${hints.first.phoneNumber}';
+      }
+    } else {
+      final user = ref.watch(authStateProvider).value;
+      if (user?.phoneNumber != null && user!.phoneNumber!.isNotEmpty) {
+        hintText = 'Code will be sent to ${user.phoneNumber}';
+      }
+    }
 
     return Scaffold(
       backgroundColor: AppColors.backgroundDark,

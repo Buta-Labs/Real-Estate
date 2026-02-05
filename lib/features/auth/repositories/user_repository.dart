@@ -73,26 +73,29 @@ class UserRepository {
     }
   }
 
-  Stream<List<Map<String, dynamic>>> getLoginHistory(String uid) {
-    return _firestore
-        .collection('users')
-        .doc(uid)
-        .collection('login_history')
-        .orderBy('timestamp', descending: true)
-        .limit(20)
-        .snapshots()
-        .map((snapshot) {
-          return snapshot.docs.map((doc) {
-            final data = doc.data();
-            // Convert Timestamp to DateTime for easy UI consumption if needed,
-            // or just pass data. Let's pass data for now, UI can parse.
-            // Actually, let's normalize it to be safer.
-            return {
-              'timestamp': data['timestamp'] ?? Timestamp.now(),
-              'method': data['method'] ?? 'unknown',
-            };
-          }).toList();
-        });
+  Stream<List<Map<String, dynamic>>> getLoginHistory(String uid) async* {
+    try {
+      final snapshots = _firestore
+          .collection('users')
+          .doc(uid)
+          .collection('login_history')
+          .orderBy('timestamp', descending: true)
+          .limit(20)
+          .snapshots();
+
+      await for (final snapshot in snapshots) {
+        yield snapshot.docs.map((doc) {
+          final data = doc.data();
+          return {
+            'timestamp': data['timestamp'] ?? Timestamp.now(),
+            'method': data['method'] ?? 'unknown',
+          };
+        }).toList();
+      }
+    } catch (e) {
+      debugPrint('Error fetching login history: $e');
+      yield <Map<String, dynamic>>[];
+    }
   }
 
   void throwException(dynamic e) {

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:orre_mmc_app/theme/app_colors.dart';
+import 'package:orre_mmc_app/features/marketplace/domain/stay_logic.dart';
 
 class PropertyCard extends StatelessWidget {
   final String title;
@@ -10,6 +11,7 @@ class PropertyCard extends StatelessWidget {
   final String available;
   final String image;
   final String? tag;
+  final int tierIndex;
   final VoidCallback onTap;
 
   const PropertyCard({
@@ -22,7 +24,30 @@ class PropertyCard extends StatelessWidget {
     required this.image,
     required this.onTap,
     this.tag,
+    this.tierIndex = 0,
   });
+
+  String _getTierLabel(int index) {
+    switch (index) {
+      case 2:
+        return 'OWNER-STAY';
+      case 1:
+        return 'GROWTH';
+      default:
+        return 'RENTAL';
+    }
+  }
+
+  Color _getTierColor(int index) {
+    switch (index) {
+      case 2:
+        return Colors.purpleAccent; // Premium
+      case 1:
+        return Colors.blueAccent; // Growth
+      default:
+        return const Color(0xFF26A17B); // Yield (Primary/Green)
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -86,6 +111,77 @@ class PropertyCard extends StatelessWidget {
                         ),
                       ),
                     ),
+                  // Tier Badge
+                  Positioned(
+                    top: 8,
+                    right: 8,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: _getTierColor(
+                              tierIndex,
+                            ).withValues(alpha: 0.8),
+                            borderRadius: BorderRadius.circular(6),
+                            border: Border.all(
+                              color: Colors.white.withValues(alpha: 0.2),
+                            ),
+                          ),
+                          child: Text(
+                            _getTierLabel(tierIndex),
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                        ),
+                        if (tierIndex == 2) ...[
+                          const SizedBox(height: 4),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.black.withValues(alpha: 0.6),
+                              borderRadius: BorderRadius.circular(4),
+                              border: Border.all(
+                                color: Colors.purpleAccent.withValues(
+                                  alpha: 0.5,
+                                ),
+                              ),
+                            ),
+                            child: Row(
+                              children: [
+                                const Icon(
+                                  Icons.hotel,
+                                  color: Colors.purpleAccent,
+                                  size: 10,
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  // Example: 5000 gives calculateStayRights(5000) days
+                                  '${calculateStayRights(5000).toStringAsFixed(0)} Days / \$5k',
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 9,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
                 ],
               ),
               const SizedBox(height: 12),

@@ -1,1 +1,45 @@
-{"flutter":{"platforms":{"android":{"default":{"projectId":"realestate-47011","appId":"1:99513276497:android:51ed2443e48f7ef9dac070","fileOutput":"android/app/google-services.json"}},"ios":{"default":{"projectId":"realestate-47011","appId":"1:99513276497:ios:ebbcf1a5594965a2dac070","uploadDebugSymbols":false,"fileOutput":"ios/Runner/GoogleService-Info.plist"}},"macos":{"default":{"projectId":"realestate-47011","appId":"1:99513276497:ios:ebbcf1a5594965a2dac070","uploadDebugSymbols":false,"fileOutput":"macos/Runner/GoogleService-Info.plist"}},"dart":{"lib/firebase_options.dart":{"projectId":"realestate-47011","configurations":{"android":"1:99513276497:android:51ed2443e48f7ef9dac070","ios":"1:99513276497:ios:ebbcf1a5594965a2dac070","macos":"1:99513276497:ios:ebbcf1a5594965a2dac070","web":"1:99513276497:web:a44f72b7c7ec536ddac070","windows":"1:99513276497:web:d3977dd0ccd24ae6dac070"}}}}}}
+{
+    "firestore": {
+        "rules": "firestore.rules",
+        "indexes": "firestore.indexes.json"
+    },
+    "flutter": {
+        "platforms": {
+            "android": {
+                "default": {
+                    "projectId": "realestate-47011",
+                    "appId": "1:99513276497:android:51ed2443e48f7ef9dac070",
+                    "fileOutput": "android/app/google-services.json"
+                }
+            },
+            "ios": {
+                "default": {
+                    "projectId": "realestate-47011",
+                    "appId": "1:99513276497:ios:ebbcf1a5594965a2dac070",
+                    "uploadDebugSymbols": false,
+                    "fileOutput": "ios/Runner/GoogleService-Info.plist"
+                }
+            },
+            "macos": {
+                "default": {
+                    "projectId": "realestate-47011",
+                    "appId": "1:99513276497:ios:ebbcf1a5594965a2dac070",
+                    "uploadDebugSymbols": false,
+                    "fileOutput": "macos/Runner/GoogleService-Info.plist"
+                }
+            },
+            "dart": {
+                "lib/firebase_options.dart": {
+                    "projectId": "realestate-47011",
+                    "configurations": {
+                        "android": "1:99513276497:android:51ed2443e48f7ef9dac070",
+                        "ios": "1:99513276497:ios:ebbcf1a5594965a2dac070",
+                        "macos": "1:99513276497:ios:ebbcf1a5594965a2dac070",
+                        "web": "1:99513276497:web:a44f72b7c7ec536ddac070",
+                        "windows": "1:99513276497:web:d3977dd0ccd24ae6dac070"
+                    }
+                }
+            }
+        }
+    }
+}

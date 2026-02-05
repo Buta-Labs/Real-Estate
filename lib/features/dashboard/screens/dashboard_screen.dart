@@ -39,20 +39,22 @@ class DashboardScreen extends ConsumerWidget {
                   onTap: () => context.push('/profile'),
                   child: CircleAvatar(
                     radius: 20,
+                    backgroundColor: AppColors.primary.withValues(alpha: 0.1),
                     backgroundImage: user?.photoUrl != null
                         ? NetworkImage(user!.photoUrl!)
-                        : const NetworkImage(
-                            'https://lh3.googleusercontent.com/aida-public/AB6AXuCY0ZlgXp1ZlhT7-z36bX049q9hxHyq13xMEb3mQBmETZCFcbMcJqP0OXIhcMr_g31hey5Xxv97KKKrZ0j9EJV04lYq3kNgwC7NeyX3UfSThQWTOg2NDeyJCMcxB8anWc5PG-8ZgFeDAtWhO55wUju5OQwQZRj4hf6a4JBKqrfw-1fnQP30BCtpjZLyC8nJF4NiEolrTjXfKbggVfs7GM6w35ChaW3t7cfWHx0zEtOdslhwYTjkYxv1fbxWA9pIEzM6egYS69U5fA',
-                          ),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                          color: AppColors.primary.withValues(alpha: 0.2),
-                          width: 2,
-                        ),
-                      ),
-                    ),
+                        : null,
+                    child: user?.photoUrl == null
+                        ? Text(
+                            displayName.isNotEmpty
+                                ? displayName[0].toUpperCase()
+                                : 'U',
+                            style: TextStyle(
+                              color: AppColors.primary,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                            ),
+                          )
+                        : null,
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -305,7 +307,7 @@ class DashboardScreen extends ConsumerWidget {
                         ),
                     itemCount: pinnedViews.length,
                     itemBuilder: (context, index) {
-                      return _buildShortcutCard(pinnedViews[index]);
+                      return _buildShortcutCard(context, pinnedViews[index]);
                     },
                   )
                 else
@@ -480,7 +482,7 @@ class DashboardScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildShortcutCard(String viewId) {
+  Widget _buildShortcutCard(BuildContext context, String viewId) {
     // Map viewId to icon and label
     IconData icon;
     String label;
@@ -518,50 +520,59 @@ class DashboardScreen extends ConsumerWidget {
         label = viewId;
     }
 
-    return Container(
-      decoration: BoxDecoration(
-        color: const Color(0xFF101622),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      padding: const EdgeInsets.all(12),
-      child: Row(
-        children: [
-          Container(
-            width: 32,
-            height: 32,
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.05),
-              shape: BoxShape.circle,
+    return GestureDetector(
+      onTap: () {
+        if (viewId == 'marketplace') {
+          context.go('/marketplace');
+        } else {
+          context.push('/$viewId');
+        }
+      },
+      child: Container(
+        decoration: BoxDecoration(
+          color: const Color(0xFF101622),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        padding: const EdgeInsets.all(12),
+        child: Row(
+          children: [
+            Container(
+              width: 32,
+              height: 32,
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.05),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, color: Colors.grey[400], size: 16),
             ),
-            child: Icon(icon, color: Colors.grey[400], size: 16),
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  label,
-                  style: GoogleFonts.manrope(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 12,
-                    color: Colors.white,
+            const SizedBox(width: 8),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    label,
+                    style: GoogleFonts.manrope(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 12,
+                      color: Colors.white,
+                    ),
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  overflow: TextOverflow.ellipsis,
-                ),
-                Text(
-                  'Quick Access',
-                  style: GoogleFonts.manrope(
-                    fontSize: 10,
-                    color: Colors.grey[500],
+                  Text(
+                    'Quick Access',
+                    style: GoogleFonts.manrope(
+                      fontSize: 10,
+                      color: Colors.grey[500],
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -580,64 +591,94 @@ class DashboardScreen extends ConsumerWidget {
     showModalBottomSheet(
       context: context,
       backgroundColor: AppColors.backgroundDark,
+      isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       builder: (context) {
-        return Consumer(
-          builder: (context, ref, _) {
-            final currentPins = ref.watch(pinnedViewsProvider);
-            return Padding(
-              padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 24),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Customize Shortcuts',
-                    style: GoogleFonts.manrope(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Pin your most used pages to the dashboard.',
-                    style: GoogleFonts.manrope(
-                      fontSize: 14,
-                      color: Colors.grey[400],
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  ...allShortcuts.map((shortcut) {
-                    final isPinned = currentPins.contains(
-                      shortcut['id'] as String,
-                    );
-                    return ListTile(
-                      contentPadding: EdgeInsets.zero,
-                      leading: Icon(
-                        shortcut['icon'] as IconData,
-                        color: isPinned ? AppColors.primary : Colors.grey[600],
-                      ),
-                      title: Text(
-                        shortcut['label'] as String,
-                        style: TextStyle(
-                          color: isPinned ? Colors.white : Colors.grey[400],
+        return DraggableScrollableSheet(
+          initialChildSize: 0.6,
+          minChildSize: 0.4,
+          maxChildSize: 0.9,
+          expand: false,
+          builder: (context, scrollController) {
+            return Consumer(
+              builder: (context, ref, _) {
+                final currentPins = ref.watch(pinnedViewsProvider);
+                return Container(
+                  padding: const EdgeInsets.fromLTRB(24, 12, 24, 0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Center(
+                        child: Container(
+                          width: 40,
+                          height: 4,
+                          decoration: BoxDecoration(
+                            color: Colors.white24,
+                            borderRadius: BorderRadius.circular(2),
+                          ),
                         ),
                       ),
-                      trailing: Switch(
-                        value: isPinned,
-                        activeColor: AppColors.primary,
-                        onChanged: (value) {
-                          ref
-                              .read(pinnedViewsProvider.notifier)
-                              .togglePin(shortcut['id'] as String);
-                        },
+                      const SizedBox(height: 24),
+                      Text(
+                        'Customize Shortcuts',
+                        style: GoogleFonts.manrope(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                    );
-                  }),
-                ],
-              ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Pin your most used pages to the dashboard.',
+                        style: GoogleFonts.manrope(
+                          fontSize: 14,
+                          color: Colors.grey[400],
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      Expanded(
+                        child: ListView.builder(
+                          controller: scrollController,
+                          itemCount: allShortcuts.length,
+                          itemBuilder: (context, index) {
+                            final shortcut = allShortcuts[index];
+                            final isPinned = currentPins.contains(
+                              shortcut['id'] as String,
+                            );
+                            return ListTile(
+                              contentPadding: EdgeInsets.zero,
+                              leading: Icon(
+                                shortcut['icon'] as IconData,
+                                color: isPinned
+                                    ? AppColors.primary
+                                    : Colors.grey[600],
+                              ),
+                              title: Text(
+                                shortcut['label'] as String,
+                                style: TextStyle(
+                                  color: isPinned
+                                      ? Colors.white
+                                      : Colors.grey[400],
+                                ),
+                              ),
+                              trailing: Switch(
+                                value: isPinned,
+                                activeThumbColor: AppColors.primary,
+                                onChanged: (value) {
+                                  ref
+                                      .read(pinnedViewsProvider.notifier)
+                                      .togglePin(shortcut['id'] as String);
+                                },
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
             );
           },
         );

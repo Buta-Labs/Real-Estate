@@ -58,7 +58,7 @@ import 'package:orre_mmc_app/features/notifications/screens/notifications_screen
 import 'package:orre_mmc_app/features/engagement/screens/year_in_review_screen.dart';
 import 'package:orre_mmc_app/features/engagement/screens/level_up_screen.dart';
 
-final _rootNavigatorKey = GlobalKey<NavigatorState>();
+final rootNavigatorKey = GlobalKey<NavigatorState>();
 
 /// Tracks if MFA is enrolled. null = loading, true = enrolled, false = not enrolled.
 final mfaProvider = StateNotifierProvider<MfaNotifier, bool?>((ref) {
@@ -72,32 +72,30 @@ class MfaNotifier extends StateNotifier<bool?> {
     final authRepo = ref.read(authRepositoryProvider);
 
     ref.listen(authStateProvider, (previous, next) {
-      Future.microtask(() {
-        final user = next.value;
-        final previousUser = previous?.value;
+      final user = next.value;
+      final previousUser = previous?.value;
 
-        if (user == null) {
-          state = false;
-        } else {
-          // Only reset to null if the user has changed to prevent flashing
-          if (previousUser?.uid != user.uid) {
-            state = null;
-          }
-
-          // Trigger async check
-          unawaited(() async {
-            try {
-              final dynamic mf = (user as dynamic).multiFactor;
-              // Try async getEnrolledFactors first
-              final List<dynamic> factors = await mf.getEnrolledFactors();
-              if (mounted) state = factors.isNotEmpty;
-            } catch (e) {
-              // Fallback to sync check using captured repo
-              if (mounted) state = authRepo.hasMfaEnrolled(user);
-            }
-          }());
+      if (user == null) {
+        state = false;
+      } else {
+        // Only reset to null if the user has changed to prevent flashing
+        if (previousUser?.uid != user.uid) {
+          state = null;
         }
-      });
+
+        // Trigger async check
+        unawaited(() async {
+          try {
+            final dynamic mf = (user as dynamic).multiFactor;
+            // Try async getEnrolledFactors first
+            final List<dynamic> factors = await mf.getEnrolledFactors();
+            if (mounted) state = factors.isNotEmpty;
+          } catch (e) {
+            // Fallback to sync check using captured repo
+            if (mounted) state = authRepo.hasMfaEnrolled(user);
+          }
+        }());
+      }
     }, fireImmediately: true);
   }
 
@@ -108,7 +106,7 @@ class MfaNotifier extends StateNotifier<bool?> {
 
 final routerProvider = Provider<GoRouter>((ref) {
   return GoRouter(
-    navigatorKey: _rootNavigatorKey,
+    navigatorKey: rootNavigatorKey,
     initialLocation: '/login', // Start at login
     refreshListenable: GoRouterRefreshStream(
       ref.read(authRepositoryProvider).authStateChanges(),
@@ -205,7 +203,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '/security-settings',
-        builder: (context, state) => const SecuritySettingsScreen(),
+        pageBuilder: (context, state) => MaterialPage(
+          key: const ValueKey('security-settings'),
+          child: const SecuritySettingsScreen(),
+        ),
       ),
       GoRoute(
         path: '/kyc-intro',
@@ -336,23 +337,24 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const SellTokensScreen(),
       ),
       GoRoute(
-        path: '/profile',
-        builder: (context, state) => const ProfileScreen(),
-      ),
-      GoRoute(
         path: '/success',
         builder: (context, state) => const SuccessScreen(),
       ),
       GoRoute(
         path: '/mfa-enrollment',
-        builder: (context, state) => const MfaEnrollmentScreen(),
+        pageBuilder: (context, state) => MaterialPage(
+          key: const ValueKey('mfa-enrollment'),
+          child: const MfaEnrollmentScreen(),
+        ),
       ),
       GoRoute(
         path: '/mfa-verification',
-        builder: (context, state) {
-          final resolver = state.extra as MultiFactorResolver;
-          return MfaVerificationScreen(resolver: resolver);
-        },
+        pageBuilder: (context, state) => MaterialPage(
+          key: const ValueKey('mfa-verification'),
+          child: MfaVerificationScreen(
+            resolver: state.extra as MultiFactorResolver?,
+          ),
+        ),
       ),
       GoRoute(
         path: '/complete-profile',
@@ -366,57 +368,67 @@ final routerProvider = Provider<GoRouter>((ref) {
       if (authState.isLoading) return '/loading';
 
       final user = authState.value;
-      final loggingIn = state.matchedLocation == '/login';
+
+      // 0. Essential: Allow Public Routes
+      final isVerifyMfa = state.matchedLocation == '/mfa-verification';
+      final isLoggingIn = state.matchedLocation == '/login';
+      final isSigningUp = state.matchedLocation == '/signup';
+      final isPhoneLogin = state.matchedLocation == '/phone-login';
+      final isMfaEnrollment = state.matchedLocation == '/mfa-enrollment';
+      final isCompleteProfile = state.matchedLocation == '/complete-profile';
 
       if (user == null) {
-        final isPublicRoute =
-            loggingIn ||
-            state.matchedLocation == '/signup' ||
-            state.matchedLocation == '/phone-login';
-        return isPublicRoute ? null : '/login';
+        // IMPORTANT: Allow /mfa-verification even if user is null
+        // (Firebase Auth considers user null until resolving MFA)
+        if (isVerifyMfa || isLoggingIn || isSigningUp || isPhoneLogin) {
+          return null;
+        }
+        return '/login';
       }
 
-      // If MFA status is still loading (null), go to loading screen
+      // 1. If MFA status is still loading (null), go to loading screen
       if (hasMfaEnrolledValue == null) return '/loading';
 
-      final hasMfa = hasMfaEnrolledValue;
+      final hasMfa = hasMfaEnrolledValue == true;
       final hasPhoneNumber =
           user.phoneNumber != null && user.phoneNumber!.isNotEmpty;
+      final sessionMfaVerified = ref.watch(mfaVerifiedProvider);
 
-      final isLoggingIn = state.uri.toString() == '/login';
-      final isSigningUp = state.uri.toString() == '/signup';
-      final isVerifyMfa = state.uri.toString() == '/mfa-verification';
-      final isPhoneLogin = state.uri.toString() == '/phone-login';
-      final isMfaEnrollment = state.uri.toString() == '/mfa-enrollment';
-      final isCompleteProfile = state.uri.toString() == '/complete-profile';
-
-      // 2. Enforce Mandatory Profile Completion (Email & Name)
-      // Must be done BEFORE MFA, so user knows who they are setting up security for.
-      if (user.email == null ||
+      // 2. Enforce Mandatory Profile Completion (Email & Name) - ONLY FOR WALLET/ANONYMOUS
+      // For Google/Email users, we skip this gate as they provide data during the initial flow.
+      final isMissingProfile =
+          user.email == null ||
           user.email!.isEmpty ||
           user.displayName == null ||
-          user.displayName!.isEmpty) {
+          user.displayName!.isEmpty;
+
+      if (user.isAnonymous && isMissingProfile) {
         if (!isCompleteProfile) {
           return '/complete-profile';
         }
         return null;
       }
 
-      // 3. Enforce Mandatory MFA (Phone Number Linked OR Multi-Factor Enrolled)
+      // If they have a phone number but haven't verified it in THIS session,
+      // they must go to verification.
+      if (hasPhoneNumber && !sessionMfaVerified) {
+        if (!isVerifyMfa) {
+          return '/mfa-verification';
+        }
+        return null;
+      }
+
+      // If they don't have MFA or a phone number at all, they must enroll.
       if (!hasMfa && !hasPhoneNumber) {
-        if (!isMfaEnrollment) {
+        if (!isMfaEnrollment && !isCompleteProfile) {
           return '/mfa-enrollment';
         }
         return null;
       }
 
-      // If they are trying to access auth pages while logged in (and fully verified), send to dashboard
-      // Ensure we don't redirect if we are on the 'complete-profile' page (already handled above but safe to check)
-      if (isLoggingIn ||
-          isSigningUp ||
-          isVerifyMfa ||
-          isPhoneLogin ||
-          isMfaEnrollment) {
+      // 3. If they are trying to access PURE auth pages while logged in (and fully verified), send to dashboard
+      // We EXCLUDE /mfa-enrollment and /mfa-verification here to allow manual pushes from settings.
+      if (isLoggingIn || isSigningUp || isPhoneLogin) {
         return '/dashboard';
       }
 

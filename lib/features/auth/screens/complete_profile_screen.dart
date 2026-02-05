@@ -23,6 +23,22 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
   bool _isLoading = false;
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final user = ref.read(authRepositoryProvider).currentUser;
+      if (user != null) {
+        if (user.displayName != null && user.displayName!.isNotEmpty) {
+          _nameController.text = user.displayName!;
+        }
+        if (user.email != null && user.email!.isNotEmpty) {
+          _emailController.text = user.email!;
+        }
+      }
+    });
+  }
+
+  @override
   void dispose() {
     _nameController.dispose();
     _emailController.dispose();
@@ -30,7 +46,7 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
     super.dispose();
   }
 
-  Future<void> _linkEmail() async {
+  Future<void> _completeProfile() async {
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => _isLoading = true);
@@ -40,34 +56,32 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
       final email = _emailController.text.trim();
       final password = _passwordController.text.trim();
 
-      final credential = EmailAuthProvider.credential(
-        email: email,
-        password: password,
-      );
-
       final user = ref.read(authRepositoryProvider).currentUser;
       if (user != null) {
-        // 1. Link Credential (converts anon to permanent)
-        await user.linkWithCredential(credential);
+        // 1. If anonymous or missing email/password link, we link
+        if (user.isAnonymous && password.isNotEmpty) {
+          final credential = EmailAuthProvider.credential(
+            email: email,
+            password: password,
+          );
+          await user.linkWithCredential(credential);
+        }
 
-        // 2. Update Display Name
-        await user.updateDisplayName(name);
+        // 2. Update Display Name if it changed or was empty
+        if (user.displayName != name) {
+          await user.updateDisplayName(name);
+        }
+
+        // 3. Update Email if it changed (and not anonymous anymore)
+        if (!user.isAnonymous && user.email != email) {
+          await user.verifyBeforeUpdateEmail(email);
+        }
+
         await user.reload(); // Apply changes
-
-        // 3. Save entire profile to Firestore (using logic similar to signUp)
-        // We can access user repo indirectly or use AuthRepo if it exposed it methods,
-        // but let's just assume we might need to manually trigger a save or rely on a "post-auth" trigger?
-        // Actually, AuthRepository.signUp updates Firestore. Here we are manual.
-        // Let's assume the router or dashboard will fetch/create if missing,
-        // BUT providing a name ensures the router lets us pass.
-
-        // It is safer to trigger a save logic if possible,
-        // but for now, updating Auth Profile satisfies the Router check.
-        // We can create a lightweight 'updateProfile' in AuthRepo later if needed.
 
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Profile Completed Successfully!')),
+            const SnackBar(content: Text('Profile Updated Successfully!')),
           );
           // Force refresh
           ref.invalidate(authRepositoryProvider);
@@ -76,7 +90,15 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
       }
     } on FirebaseAuthException catch (e) {
       if (mounted) {
-        String message = 'Failed to link account.';
+        String message = 'Failed to update profile.';
+        if (e.code == 'second-factor-required') {
+          final dynamic dynE = e;
+          final resolver = dynE.resolver as MultiFactorResolver?;
+          if (resolver != null) {
+            context.push('/mfa-verification', extra: resolver);
+            return;
+          }
+        }
         if (e.code == 'credential-already-in-use') {
           message = 'This email is already linked to another account.';
         } else if (e.code == 'email-already-in-use') {
@@ -99,6 +121,24 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    ref.listen(authStateProvider, (_, next) {
+      final user = next.value;
+      if (user != null) {
+        if (_nameController.text.isEmpty &&
+            user.displayName != null &&
+            user.displayName!.isNotEmpty) {
+          _nameController.text = user.displayName!;
+        }
+        if (_emailController.text.isEmpty &&
+            user.email != null &&
+            user.email!.isNotEmpty) {
+          _emailController.text = user.email!;
+        }
+        // Force rebuild if password field needs to hide/show
+        if (mounted) setState(() {});
+      }
+    });
+
     return Scaffold(
       backgroundColor: AppColors.backgroundDark,
       body: Stack(
@@ -210,44 +250,50 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
                               return null;
                             },
                           ),
-                          const SizedBox(height: 24),
-                          TextFormField(
-                            controller: _passwordController,
-                            style: const TextStyle(color: Colors.white),
-                            obscureText: true,
-                            decoration: InputDecoration(
-                              hintText: 'Choose a Password',
-                              hintStyle: TextStyle(
-                                color: Colors.grey.withValues(alpha: 0.5),
-                              ),
-                              prefixIcon: const Icon(
-                                Icons.lock,
-                                color: AppColors.primary,
-                              ),
-                              enabledBorder: UnderlineInputBorder(
-                                borderSide: BorderSide(
-                                  color: Colors.white.withValues(alpha: 0.1),
+                          if (ref
+                                  .read(authRepositoryProvider)
+                                  .currentUser
+                                  ?.isAnonymous ??
+                              true) ...[
+                            const SizedBox(height: 24),
+                            TextFormField(
+                              controller: _passwordController,
+                              style: const TextStyle(color: Colors.white),
+                              obscureText: true,
+                              decoration: InputDecoration(
+                                hintText: 'Choose a Password',
+                                hintStyle: TextStyle(
+                                  color: Colors.grey.withValues(alpha: 0.5),
                                 ),
-                              ),
-                              focusedBorder: const UnderlineInputBorder(
-                                borderSide: BorderSide(
+                                prefixIcon: const Icon(
+                                  Icons.lock,
                                   color: AppColors.primary,
                                 ),
+                                enabledBorder: UnderlineInputBorder(
+                                  borderSide: BorderSide(
+                                    color: Colors.white.withValues(alpha: 0.1),
+                                  ),
+                                ),
+                                focusedBorder: const UnderlineInputBorder(
+                                  borderSide: BorderSide(
+                                    color: AppColors.primary,
+                                  ),
+                                ),
                               ),
+                              validator: (value) {
+                                if (value == null || value.length < 6) {
+                                  return 'Password must be at least 6 chars';
+                                }
+                                return null;
+                              },
                             ),
-                            validator: (value) {
-                              if (value == null || value.length < 6) {
-                                return 'Password must be at least 6 chars';
-                              }
-                              return null;
-                            },
-                          ),
+                          ],
                           const SizedBox(height: 32),
                           SizedBox(
                             width: double.infinity,
                             height: 56,
                             child: ElevatedButton(
-                              onPressed: _isLoading ? null : _linkEmail,
+                              onPressed: _isLoading ? null : _completeProfile,
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: AppColors.primary,
                                 shape: RoundedRectangleBorder(

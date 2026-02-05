@@ -1,15 +1,19 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter/foundation.dart';
 import 'package:orre_mmc_app/features/marketplace/models/property_model.dart';
+import 'package:orre_mmc_app/core/blockchain/blockchain_repository.dart';
 
 final propertyRepositoryProvider = Provider<PropertyRepository>((ref) {
-  return PropertyRepository(FirebaseFirestore.instance);
+  final blockchainRepo = ref.watch(blockchainRepositoryProvider);
+  return PropertyRepository(FirebaseFirestore.instance, blockchainRepo);
 });
 
 class PropertyRepository {
   final FirebaseFirestore _firestore;
+  final BlockchainRepository _blockchainRepository;
 
-  PropertyRepository(this._firestore);
+  PropertyRepository(this._firestore, this._blockchainRepository);
 
   Stream<List<Property>> getProperties() {
     return _firestore.collection('properties').snapshots().map((snapshot) {
@@ -75,6 +79,55 @@ class PropertyRepository {
 
     for (final property in mockProperties) {
       await collection.add(property.toMap());
+    }
+  }
+
+  Future<void> syncMarketplace() async {
+    try {
+      final addresses = await _blockchainRepository.getDeployedProperties();
+
+      for (final address in addresses) {
+        final details = await _blockchainRepository.getPropertyDetails(address);
+        if (details.isEmpty) continue;
+
+        final legalDocHash = details['legalDocHash'] as String;
+        final name = details['name'] as String;
+        final price = details['price'] as double;
+        final tierIndex = details['tierIndex'] as int;
+
+        // Try to find matching property in Firestore
+        // Strategy: Match by legalDocHash.
+        // Fallback: If not found, maybe create a new listing?
+        // For this task, we update existing listings only.
+
+        if (legalDocHash.isNotEmpty) {
+          final query = await _firestore
+              .collection('properties')
+              .where('legalDocHash', isEqualTo: legalDocHash)
+              .limit(1)
+              .get();
+
+          if (query.docs.isNotEmpty) {
+            final doc = query.docs.first;
+            await doc.reference.update({
+              'contractAddress': address,
+              'price': price,
+              'title': name,
+              'tierIndex': tierIndex,
+            });
+            // debugPrint('Updated property ${doc.id} from blockchain');
+          } else {
+            // Optional: If you want to enable matching by title or other fields for legacy support
+            // final titleQuery = await _firestore.collection('properties').where('title', isEqualTo: name).get();
+            // if (titleQuery.docs.isNotEmpty) ...
+            debugPrint(
+              'Property not found in Firestore for hash: $legalDocHash',
+            );
+          }
+        }
+      }
+    } catch (e) {
+      debugPrint('Sync failed: $e');
     }
   }
 }

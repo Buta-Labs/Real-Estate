@@ -1,16 +1,57 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:orre_mmc_app/features/auth/providers/user_provider.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:orre_mmc_app/features/auth/controllers/auth_controller.dart';
 import 'package:orre_mmc_app/features/auth/repositories/auth_repository.dart';
+import 'package:orre_mmc_app/features/auth/providers/user_provider.dart';
 import 'package:orre_mmc_app/shared/widgets/glass_container.dart';
 import 'package:orre_mmc_app/theme/app_colors.dart';
+import 'package:google_fonts/google_fonts.dart';
 
-class ProfileScreen extends ConsumerWidget {
+class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends ConsumerState<ProfileScreen> {
+  bool _isLoading = false;
+
+  Future<void> _pickImage() async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 70,
+    );
+
+    if (pickedFile != null) {
+      setState(() => _isLoading = true);
+      try {
+        await ref
+            .read(authControllerProvider.notifier)
+            .updateProfileImage(File(pickedFile.path));
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Profile image updated!')),
+          );
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('Error: ${e.toString()}')));
+        }
+      } finally {
+        if (mounted) setState(() => _isLoading = false);
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final userAsync = ref.watch(userProvider);
     final user = userAsync.valueOrNull;
 
@@ -29,10 +70,6 @@ class ProfileScreen extends ConsumerWidget {
               icon: const Icon(Icons.arrow_back_ios_new, size: 20),
               onPressed: () => context.pop(),
             ),
-            title: const Text(
-              'Profile',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-            ),
             centerTitle: true,
             expandedHeight: 280,
             flexibleSpace: FlexibleSpaceBar(
@@ -43,37 +80,54 @@ class ProfileScreen extends ConsumerWidget {
                   Stack(
                     alignment: Alignment.bottomRight,
                     children: [
-                      Container(
-                        width: 120,
-                        height: 120,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color: AppColors.backgroundDark,
-                            width: 4,
-                          ),
-                          image: DecorationImage(
-                            image: photoUrl != null
-                                ? NetworkImage(photoUrl)
-                                : const NetworkImage(
-                                        'https://lh3.googleusercontent.com/aida-public/AB6AXuCY0ZlgXp1ZlhT7-z36bX049q9hxHyq13xMEb3mQBmETZCFcbMcJqP0OXIhcMr_g31hey5Xxv97KKKrZ0j9EJV04lYq3kNgwC7NeyX3UfSThQWTOg2NDeyJCMcxB8anWc5PG-8ZgFeDAtWhO55wUju5OQwQZRj4hf6a4JBKqrfw-1fnQP30BCtpjZLyC8nJF4NiEolrTjXfKbggVfs7GM6w35ChaW3t7cfWHx0zEtOdslhwYTjkYxv1fbxWA9pIEzM6egYS69U5fA',
-                                      )
-                                      as ImageProvider,
-                            fit: BoxFit.cover,
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: AppColors.primary.withValues(alpha: 0.2),
-                              blurRadius: 0,
-                              spreadRadius: 2,
+                      GestureDetector(
+                        onTap: _isLoading ? null : _pickImage,
+                        child: Container(
+                          width: 120,
+                          height: 120,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: AppColors.backgroundDark,
+                              width: 4,
                             ),
-                          ],
+                            color: AppColors.card,
+                            image: photoUrl != null && !_isLoading
+                                ? DecorationImage(
+                                    image: NetworkImage(photoUrl),
+                                    fit: BoxFit.cover,
+                                  )
+                                : null,
+                            boxShadow: [
+                              BoxShadow(
+                                color: AppColors.primary.withValues(alpha: 0.2),
+                                blurRadius: 0,
+                                spreadRadius: 2,
+                              ),
+                            ],
+                          ),
+                          child: (photoUrl == null || _isLoading)
+                              ? Center(
+                                  child: _isLoading
+                                      ? const CircularProgressIndicator(
+                                          color: AppColors.primary,
+                                        )
+                                      : Text(
+                                          displayName.isNotEmpty
+                                              ? displayName[0].toUpperCase()
+                                              : 'U',
+                                          style: GoogleFonts.manrope(
+                                            fontSize: 40,
+                                            fontWeight: FontWeight.bold,
+                                            color: AppColors.primary,
+                                          ),
+                                        ),
+                                )
+                              : null,
                         ),
                       ),
                       GestureDetector(
                         onTap: () {
-                          // Logic for settings action if needed, currently just visual or we can navigate to settings screen if separate
-                          // Assuming the user wants this to be the "settings" entry point or just visual
                           context.push('/security-settings');
                         },
                         child: Container(

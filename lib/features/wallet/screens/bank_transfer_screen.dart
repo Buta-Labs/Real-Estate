@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:orre_mmc_app/theme/app_colors.dart';
 import 'package:orre_mmc_app/shared/widgets/glass_container.dart';
+import 'package:orre_mmc_app/core/services/toast_service.dart';
+import 'package:flutter/services.dart';
 
 class BankTransferScreen extends StatelessWidget {
   const BankTransferScreen({super.key});
@@ -62,11 +64,12 @@ class BankTransferScreen extends StatelessWidget {
                   const SizedBox(height: 16),
                   _buildTags(),
                   const SizedBox(height: 16),
-                  _buildReferenceCard(),
                   const SizedBox(height: 16),
-                  _buildDetailsList(),
+                  _buildReferenceCard(context),
+                  const SizedBox(height: 16),
+                  _buildDetailsList(context),
                   const SizedBox(height: 24),
-                  _buildCopyAllButton(),
+                  _buildCopyAllButton(context),
                   const SizedBox(height: 24),
                   Row(
                     children: [
@@ -134,7 +137,7 @@ class BankTransferScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildReferenceCard() {
+  Widget _buildReferenceCard(BuildContext context) {
     return GlassContainer(
       padding: const EdgeInsets.all(20),
       borderRadius: BorderRadius.circular(16),
@@ -187,7 +190,10 @@ class BankTransferScreen extends StatelessWidget {
                 ),
               ),
               IconButton(
-                onPressed: () {},
+                onPressed: () {
+                  Clipboard.setData(const ClipboardData(text: 'ORRE-9928-XT'));
+                  ToastService().showSuccess(context, 'Reference Code Copied!');
+                },
                 icon: const Icon(Icons.copy, color: AppColors.primary),
               ),
             ],
@@ -197,20 +203,22 @@ class BankTransferScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildDetailsList() {
+  Widget _buildDetailsList(BuildContext context) {
     return Column(
       children: [
-        _buildDetailItem('Beneficiary Name', 'Orre MMC', Icons.person),
+        _buildDetailItem(context, 'Beneficiary Name', 'Orre MMC', Icons.person),
         const SizedBox(height: 12),
         _buildDetailItem(
+          context,
           'IBAN / Account',
           'AE76 0000 0000 1234 5678 901',
           Icons.account_balance_wallet,
         ),
         const SizedBox(height: 12),
-        _buildDetailItem('SWIFT / BIC', 'NBADAEAAXXX', Icons.public),
+        _buildDetailItem(context, 'SWIFT / BIC', 'NBADAEAAXXX', Icons.public),
         const SizedBox(height: 12),
         _buildDetailItem(
+          context,
           'Bank Name',
           'First Abu Dhabi Bank',
           Icons.account_balance,
@@ -219,7 +227,12 @@ class BankTransferScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildDetailItem(String label, String value, IconData icon) {
+  Widget _buildDetailItem(
+    BuildContext context,
+    String label,
+    String value,
+    IconData icon,
+  ) {
     return GlassContainer(
       padding: const EdgeInsets.all(16),
       borderRadius: BorderRadius.circular(16),
@@ -262,16 +275,22 @@ class BankTransferScreen extends StatelessWidget {
           ),
           IconButton(
             icon: const Icon(Icons.copy, color: Colors.white38, size: 20),
-            onPressed: () {},
+            onPressed: () {
+              Clipboard.setData(ClipboardData(text: value));
+              ToastService().showSuccess(context, '$label Copied!');
+            },
           ),
         ],
       ),
     );
   }
 
-  Widget _buildCopyAllButton() {
+  Widget _buildCopyAllButton(BuildContext context) {
     return TextButton.icon(
-      onPressed: () {},
+      onPressed: () {
+        // Mock copy all
+        ToastService().showSuccess(context, 'All Bank Details Copied!');
+      },
       icon: const Icon(Icons.copy, color: Colors.white70),
       label: const Text(
         'Copy All Details',

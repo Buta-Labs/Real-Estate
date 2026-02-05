@@ -45,6 +45,17 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
                   centerTitle: true,
                   actions: [
                     IconButton(
+                      icon: const Icon(Icons.sync),
+                      tooltip: 'Sync with Blockchain',
+                      onPressed: () async {
+                        // ToastService().showInfo(context, 'Syncing...');
+                        await ref
+                            .read(propertyRepositoryProvider)
+                            .syncMarketplace();
+                        // ToastService().showSuccess(context, 'Marketplace Synced');
+                      },
+                    ),
+                    IconButton(
                       icon: const Icon(Icons.grid_view),
                       onPressed: () {},
                     ),
@@ -237,6 +248,7 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
                                 available: property.available.toString(),
                                 image: property.imageUrl,
                                 tag: property.tag,
+                                tierIndex: property.tierIndex,
                                 onTap: () => context.push('/property-details'),
                               );
                             }, childCount: properties.length + 1),

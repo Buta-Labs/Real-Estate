@@ -7,6 +7,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:orre_mmc_app/features/auth/controllers/auth_controller.dart';
 import 'package:orre_mmc_app/shared/widgets/glass_container.dart';
 import 'package:orre_mmc_app/theme/app_colors.dart';
+import 'package:orre_mmc_app/core/services/biometric_service.dart';
 import 'package:orre_mmc_app/core/services/toast_service.dart';
 import 'package:orre_mmc_app/core/blockchain/blockchain_repository.dart';
 import 'package:orre_mmc_app/core/blockchain/blockchain_result.dart';
@@ -21,13 +22,35 @@ class LoginScreen extends ConsumerStatefulWidget {
 class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  bool _showBiometricIcon = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkBiometrics();
+  }
+
+  Future<void> _checkBiometrics() async {
+    final enabled = await ref
+        .read(biometricServiceProvider)
+        .isBiometricEnabled();
+    if (mounted) {
+      setState(() => _showBiometricIcon = enabled);
+    }
+  }
 
   Future<void> _handleLogin() async {
     await ref
         .read(authControllerProvider.notifier)
         .signIn(_emailController.text.trim(), _passwordController.text.trim());
 
-    // Navigation and error handling is done via listener or simple check due to void state
+    if (mounted && ref.read(authControllerProvider).hasError == false) {
+      context.go('/dashboard');
+    }
+  }
+
+  Future<void> _handleBiometricLogin() async {
+    await ref.read(authControllerProvider.notifier).signInWithBiometrics();
     if (mounted && ref.read(authControllerProvider).hasError == false) {
       context.go('/dashboard');
     }
@@ -41,17 +64,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
 
   Future<void> _handleWalletLogin() async {
-    // 1. Connect Wallet
     final blockchainRepo = ref.read(blockchainRepositoryProvider);
-    // Show local loading if needed, but the main build handles it via auth state
-    // For wallet connection, we might need a separate loading state or just rely on the modal from WalletConnect
-    // But since we are waiting, let's just let it be.
-
     ToastService().showInfo(context, 'Connecting to Wallet...');
 
-    final result = await blockchainRepo.connectWallet();
+    final result = await blockchainRepo.connectWallet(context);
 
-    // 2. Handle Result
     if (mounted) {
       if (result is Success<String>) {
         final address = result.data;
@@ -60,7 +77,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           'Wallet Connected: ${address.substring(0, 6)}...',
         );
 
-        // 3. Sign In with Address
         await ref
             .read(authControllerProvider.notifier)
             .signInWithWallet(address);
@@ -87,15 +103,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         final error = state.error;
         if (error is FirebaseAuthException &&
             error.code == 'second-factor-required') {
-          // The resolver is available in the exception for this error code
-          // We can cast to dynamic or use specific check if available
           final resolver = (error as dynamic).resolver as MultiFactorResolver?;
           if (resolver != null) {
             context.push('/mfa-verification', extra: resolver);
             return;
           }
         }
-
         ToastService().showError(context, state.error.toString());
       }
     });
@@ -104,7 +117,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       backgroundColor: AppColors.backgroundDark,
       body: Stack(
         children: [
-          // Dynamic Background
           Positioned.fill(
             child: Opacity(
               opacity: 0.4,
@@ -131,8 +143,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               ),
             ),
           ),
-
-          // Content
           SafeArea(
             child: Center(
               child: SingleChildScrollView(
@@ -140,7 +150,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    // Logo Section
                     Container(
                       width: 80,
                       height: 80,
@@ -184,8 +193,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       ),
                     ),
                     const SizedBox(height: 48),
-
-                    // Login Form
                     _buildInputField(
                       'EMAIL',
                       Icons.mail_outline,
@@ -199,65 +206,83 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       obscureText: true,
                     ),
                     const SizedBox(height: 24),
-
-                    // Sign In Button
-                    SizedBox(
-                      width: double.infinity,
-                      height: 56,
-                      child: ElevatedButton(
-                        onPressed: isLoading ? null : _handleLogin,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.primary,
-                          foregroundColor: Colors.black,
-                          elevation: 10,
-                          shadowColor: AppColors.primary.withValues(alpha: 0.2),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          padding: const EdgeInsets.symmetric(vertical: 0),
-                        ),
-                        child: isLoading
-                            ? const SizedBox(
-                                height: 24,
-                                width: 24,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  valueColor: AlwaysStoppedAnimation<Color>(
-                                    Colors.black,
-                                  ),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: SizedBox(
+                            height: 56,
+                            child: ElevatedButton(
+                              onPressed: isLoading ? null : _handleLogin,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.primary,
+                                foregroundColor: Colors.black,
+                                elevation: 10,
+                                shadowColor: AppColors.primary.withValues(
+                                  alpha: 0.2,
                                 ),
-                              )
-                            : Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Text(
-                                    'Sign In',
-                                    style: GoogleFonts.manrope(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 16,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  const Icon(Icons.arrow_forward),
-                                ],
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 0,
+                                ),
                               ),
-                      ),
+                              child: isLoading
+                                  ? const SizedBox(
+                                      height: 24,
+                                      width: 24,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        valueColor:
+                                            AlwaysStoppedAnimation<Color>(
+                                              Colors.black,
+                                            ),
+                                      ),
+                                    )
+                                  : Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        Text(
+                                          'Sign In',
+                                          style: GoogleFonts.manrope(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 16,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 8),
+                                        const Icon(Icons.arrow_forward),
+                                      ],
+                                    ),
+                            ),
+                          ),
+                        ),
+                        if (_showBiometricIcon) ...[
+                          const SizedBox(width: 12),
+                          GestureDetector(
+                            onTap: isLoading ? null : _handleBiometricLogin,
+                            child: GlassContainer(
+                              borderRadius: BorderRadius.circular(16),
+                              padding: const EdgeInsets.all(14),
+                              child: Icon(
+                                Icons.face_unlock_outlined,
+                                color: AppColors.primary,
+                                size: 28,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ],
                     ),
-
                     const SizedBox(height: 24),
-
-                    // Sign Up Link
                     TextButton(
                       onPressed: () => context.go('/signup'),
-                      child: Text(
+                      child: const Text(
                         "Don't have an account? Sign Up",
                         style: TextStyle(color: AppColors.primary),
                       ),
                     ),
-
                     const SizedBox(height: 32),
-
-                    // Divider
                     Row(
                       children: [
                         Expanded(
@@ -283,10 +308,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         ),
                       ],
                     ),
-
                     const SizedBox(height: 24),
-
-                    // Social Login
                     Row(
                       children: [
                         Expanded(
@@ -315,10 +337,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               ),
             ),
           ),
-
-          // ... Footer
-
-          // Footer
           Positioned(
             left: 0,
             right: 0,
@@ -333,7 +351,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               ],
             ),
           ),
-
           if (isLoading)
             Positioned.fill(
               child: Container(
