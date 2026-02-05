@@ -2,8 +2,10 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     // Allow users to read and write their own profile
+    // Modified to allow ADMIN (any auth user for now) to read all users for Dashboard stats
     match /users/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && request.auth.uid == userId;
       
       // Allow users to manage their own login history
       match /login_history/{historyId} {
@@ -16,6 +18,17 @@ service cloud.firestore {
       }
     }
     
+    // Allow public read for projects and properties, write for authenticated users
+    match /projects/{projectId} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+    
+    match /properties/{propertyId} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+
     // Default deny
     match /{document=**} {
       allow read, write: if false;

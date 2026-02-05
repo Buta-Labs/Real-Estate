@@ -26,6 +26,27 @@ final walletBalanceProvider = FutureProvider.autoDispose<String>((ref) async {
   return repository.getNativeBalance();
 });
 
+final usdcBalanceProvider = FutureProvider.autoDispose<String>((ref) async {
+  final repository = ref.watch(blockchainRepositoryProvider);
+  final address = ref.watch(walletAddressProvider);
+  if (address == null) return "0.00";
+
+  // Use the USDC address defined in repository
+  try {
+    // We need to implement a real getTokenBalance in repository or use a generic one
+    // For now, let's assuming repository has a method or we add one.
+    // Actually repository.getTokenBalance takes tokenAddress.
+    // We'll use the static constant from BlockchainRepository if accessible or hardcode it temporarily/expose it.
+    // BlockchainRepository.usdcAddress is static const.
+    final balance = await repository.getTokenBalance(
+      BlockchainRepository.usdcAddress,
+    );
+    return balance.toStringAsFixed(2);
+  } catch (e) {
+    return "0.00";
+  }
+});
+
 Future<void> connectWallet(BuildContext context, WidgetRef ref) async {
   final repository = ref.read(blockchainRepositoryProvider);
   final result = await repository.connectWallet(context);

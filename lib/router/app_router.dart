@@ -57,6 +57,7 @@ import 'package:orre_mmc_app/shared/screens/loading_screen.dart';
 import 'package:orre_mmc_app/features/notifications/screens/notifications_screen.dart';
 import 'package:orre_mmc_app/features/engagement/screens/year_in_review_screen.dart';
 import 'package:orre_mmc_app/features/engagement/screens/level_up_screen.dart';
+import 'package:orre_mmc_app/features/marketplace/models/property_model.dart';
 
 final rootNavigatorKey = GlobalKey<NavigatorState>();
 
@@ -250,7 +251,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '/property-details',
-        builder: (context, state) => const PropertyDetailsScreen(),
+        builder: (context, state) {
+          final property = state.extra as Property;
+          return PropertyDetailsScreen(property: property);
+        },
       ),
       GoRoute(
         path: '/checkout',

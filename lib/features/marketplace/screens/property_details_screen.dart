@@ -2,8 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:orre_mmc_app/theme/app_colors.dart';
 
+import 'package:orre_mmc_app/features/marketplace/models/property_model.dart';
+
 class PropertyDetailsScreen extends StatefulWidget {
-  const PropertyDetailsScreen({super.key});
+  final Property property;
+
+  const PropertyDetailsScreen({super.key, required this.property});
 
   @override
   State<PropertyDetailsScreen> createState() => _PropertyDetailsScreenState();
@@ -16,14 +20,16 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
   @override
   void initState() {
     super.initState();
-    // Simulate finding a hot property
-    Future.delayed(const Duration(seconds: 2), () {
-      if (mounted) {
-        setState(() {
-          _showScarcity = true;
-        });
-      }
-    });
+    // Simulate finding a hot property if it's high demand
+    if (widget.property.tag == 'Trending') {
+      Future.delayed(const Duration(seconds: 2), () {
+        if (mounted) {
+          setState(() {
+            _showScarcity = true;
+          });
+        }
+      });
+    }
   }
 
   @override
@@ -112,8 +118,11 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
           fit: StackFit.expand,
           children: [
             Image.network(
-              'https://lh3.googleusercontent.com/aida-public/AB6AXuB53YcbIZQuktB_lHfjL2ZIKr3UJ10Z3vcOogfM2ZyXWTWYbXA_8cnBtb0esT4tRKq3kKx6nS9Ul04wKSL_EK5IV2S62q-AN-UgPLsMvMM8Hb3cYcBjrUPiy31EUv6LmRPBSKVaOtqj6AWggzM96UXQrc9KhQpbyDXUyrN7OzyZ-tpqdpe4klllC3FGgkKqiAljmJsgR_bna34x5w2k4JIYsapvqS140kI71MrvtfUAEJYjVPpBJIlMZtipr1LvaXyIIlgQsIUCrA',
+              widget.property.imageUrl.isNotEmpty
+                  ? widget.property.imageUrl
+                  : 'https://via.placeholder.com/400',
               fit: BoxFit.cover,
+              errorBuilder: (_, __, ___) => Container(color: Colors.grey[900]),
             ),
             Container(
               decoration: BoxDecoration(
@@ -135,43 +144,44 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.black.withValues(alpha: 0.4),
-                      borderRadius: BorderRadius.circular(4),
-                      border: Border.all(
-                        color: AppColors.primary.withValues(alpha: 0.2),
+                  if (widget.property.condition.isNotEmpty)
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withValues(alpha: 0.4),
+                        borderRadius: BorderRadius.circular(4),
+                        border: Border.all(
+                          color: AppColors.primary.withValues(alpha: 0.2),
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(
+                            Icons.verified,
+                            color: AppColors.primary,
+                            size: 14,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            widget.property.condition.toUpperCase(),
+                            style: const TextStyle(
+                              color: AppColors.primary,
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 1,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                    child: const Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          Icons.verified,
-                          color: AppColors.primary,
-                          size: 14,
-                        ),
-                        SizedBox(width: 4),
-                        Text(
-                          'PREMIUM ASSET',
-                          style: TextStyle(
-                            color: AppColors.primary,
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold,
-                            letterSpacing: 1,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
                   const SizedBox(height: 8),
-                  const Text(
-                    'The Meridien\nPenthouse',
-                    style: TextStyle(
+                  Text(
+                    widget.property.title,
+                    style: const TextStyle(
                       color: Colors.white,
                       fontSize: 32,
                       fontWeight: FontWeight.bold,
@@ -179,13 +189,17 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                     ),
                   ),
                   const SizedBox(height: 8),
-                  const Row(
+                  Row(
                     children: [
-                      Icon(Icons.location_on, color: Colors.grey, size: 18),
-                      SizedBox(width: 4),
+                      const Icon(
+                        Icons.location_on,
+                        color: Colors.grey,
+                        size: 18,
+                      ),
+                      const SizedBox(width: 4),
                       Text(
-                        'Downtown Dubai, UAE',
-                        style: TextStyle(
+                        widget.property.location,
+                        style: const TextStyle(
                           color: Colors.grey,
                           fontSize: 14,
                           fontWeight: FontWeight.w500,
@@ -203,6 +217,8 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
   }
 
   Widget _buildFloatingStatsCard() {
+    // Basic calculation for Asset Value (assuming price is per token and we have total tokens info, or just show price)
+    // For now we display Token Price and Yield
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -221,7 +237,12 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
         children: [
           Row(
             children: [
-              Expanded(child: _buildStatItem('Asset Value', '\$4.5M')),
+              Expanded(
+                child: _buildStatItem(
+                  'Token Price',
+                  '\$${widget.property.price.toStringAsFixed(2)}',
+                ),
+              ),
               Expanded(
                 child: Container(
                   decoration: BoxDecoration(
@@ -234,13 +255,17 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                       ),
                     ),
                   ),
-                  child: _buildStatItem('Token', '\$50', padding: true),
+                  child: _buildStatItem(
+                    'Available',
+                    '${widget.property.available}',
+                    padding: true,
+                  ),
                 ),
               ),
               Expanded(
                 child: _buildStatItem(
-                  'APY',
-                  '12.5%',
+                  'Yield',
+                  '${widget.property.yieldRate}%',
                   valueColor: AppColors.primary,
                 ),
               ),
@@ -252,36 +277,42 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
-                '95% Funded',
-                style: TextStyle(
+              Text(
+                '${widget.property.available > 0 ? "Open for Investment" : "Sold Out"}',
+                style: const TextStyle(
                   color: Colors.white,
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
                 ),
               ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                decoration: BoxDecoration(
-                  color: AppColors.primary.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: const Text(
-                  'High Demand',
-                  style: TextStyle(
-                    color: AppColors.primary,
-                    fontSize: 10,
-                    fontWeight: FontWeight.bold,
+              if (widget.property.tag.isNotEmpty)
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 2,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Text(
+                    widget.property.tag,
+                    style: const TextStyle(
+                      color: AppColors.primary,
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
-              ),
             ],
           ),
           const SizedBox(height: 8),
           ClipRRect(
             borderRadius: BorderRadius.circular(4),
             child: LinearProgressIndicator(
-              value: 0.95,
+              value: widget.property.available > 0
+                  ? 0.4
+                  : 1.0, // Mock progress based on availability
               backgroundColor: const Color(0xFF324467),
               valueColor: const AlwaysStoppedAnimation<Color>(
                 AppColors.primary,
@@ -294,11 +325,11 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                '1,840 Investors',
+                'Investors',
                 style: TextStyle(color: Colors.grey, fontSize: 12),
               ),
               Text(
-                'Closing in 4 days',
+                'Closing soon',
                 style: TextStyle(color: Colors.grey, fontSize: 12),
               ),
             ],

@@ -248,8 +248,12 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
                                 available: property.available.toString(),
                                 image: property.imageUrl,
                                 tag: property.tag,
+                                condition: property.condition,
                                 tierIndex: property.tierIndex,
-                                onTap: () => context.push('/property-details'),
+                                onTap: () => context.push(
+                                  '/property-details',
+                                  extra: property,
+                                ),
                               );
                             }, childCount: properties.length + 1),
                           );

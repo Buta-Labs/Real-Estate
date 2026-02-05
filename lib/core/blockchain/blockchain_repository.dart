@@ -15,7 +15,7 @@ class BlockchainRepository {
       "https://sepolia.base.org"; // Base Sepolia Testnet
   static const int chainId = 84532;
   static const String zavodFactoryAddress =
-      '0xb6A2bF1C7d9460819cFDE08af8E6DEA031b23D09';
+      '0x9dF54ff90dB32e381CE1Bd980266674818318f09';
 
   late final Web3Client _client;
   late final ReownAppKitModal _appKitModal;
@@ -145,32 +145,157 @@ class BlockchainRepository {
     }
   }
 
+  static const String usdcAddress =
+      '0x036CbD53842c5426634e7929541eC2318f3dCF7e';
+
   Future<BlockchainResult<String>> purchaseToken(
     String propertyContractAddress,
-    double amountInUsdt, {
+    double amount, {
     String? legalDocHash, // PDF hash for legal compliance
     Function(String)? onStatusChanged,
   }) async {
     try {
       if (!_appKitModal.isConnected) return const Failure(WalletNotConnected());
 
-      final senderAddress = _appKitModal
+      final senderAddressStr = _appKitModal
           .session
           ?.namespaces?['eip155']
           ?.accounts
           .first
           .split(':')
           .last;
-      if (senderAddress == null) {
+      if (senderAddressStr == null) {
         return const Failure(UnknownError('No account found'));
       }
+      final senderAddress = EthereumAddress.fromHex(senderAddressStr);
+      final propertyAddress = EthereumAddress.fromHex(propertyContractAddress);
+      final usdcAddr = EthereumAddress.fromHex(usdcAddress);
 
-      onStatusChanged?.call('Requesting approval from wallet...');
+      // 1. Fetch Price per Token to calculate total Cost
+      onStatusChanged?.call('Fetching current price...');
 
-      final tx = {
-        'from': senderAddress,
+      const priceAbi =
+          '[{"inputs":[],"name":"pricePerToken","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"}]';
+      final propertyContract = DeployedContract(
+        ContractAbi.fromJson(priceAbi, 'PropertyToken'),
+        propertyAddress,
+      );
+      final priceFunc = propertyContract.function('pricePerToken');
+
+      final priceResult = await _client.call(
+        contract: propertyContract,
+        function: priceFunc,
+        params: [],
+      );
+      final pricePerToken = priceResult.first as BigInt;
+
+      // Calculate Total Cost: amount * pricePerToken
+      // Amount is usually entered as "5 tokens". If input `amount` is double, we handle it.
+      // Assuming amount is integer-like for now as per previous logic (BigInt.from(amount)).
+      // If amount allows decimals (fractional tokens), we need to clarify decimals of PropertyToken (18).
+      final amountBigInt = BigInt.from(amount);
+      final totalCost = amountBigInt * pricePerToken;
+
+      // 2. Check USDC Allowance
+      onStatusChanged?.call('Checking USDC allowance...');
+
+      const erc20Abi =
+          '[{"constant":true,"inputs":[{"name":"_owner","type":"address"},{"name":"_spender","type":"address"}],"name":"allowance","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"_spender","type":"address"},{"name":"_value","type":"uint256"}],"name":"approve","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"}]';
+
+      final usdcContract = DeployedContract(
+        ContractAbi.fromJson(erc20Abi, 'USDC'),
+        usdcAddr,
+      );
+
+      final allowanceFunc = usdcContract.function('allowance');
+      final allowanceResult = await _client.call(
+        contract: usdcContract,
+        function: allowanceFunc,
+        params: [senderAddress, propertyAddress],
+      );
+      final currentAllowance = allowanceResult.first as BigInt;
+
+      // 3. Approve if necessary
+      if (currentAllowance < totalCost) {
+        onStatusChanged?.call('Approving USDC...');
+
+        final approveFunc = usdcContract.function('approve');
+        final approveData = approveFunc.encodeCall([
+          propertyAddress,
+          totalCost,
+        ]);
+
+        final approveDataHex =
+            '0x${approveData.map((b) => b.toRadixString(16).padLeft(2, '0')).join()}';
+
+        final approveTx = {
+          'from': senderAddressStr,
+          'to': usdcAddress,
+          'data': approveDataHex,
+        };
+
+        final approveHash = await _appKitModal.request(
+          topic: _appKitModal.session!.topic!,
+          chainId: 'eip155:$chainId',
+          request: SessionRequestParams(
+            method: 'eth_sendTransaction',
+            params: [approveTx],
+          ),
+        );
+
+        onStatusChanged?.call('Waiting for approval to confirm...');
+
+        // WAIT for transaction receipt
+        // We need a loop to check receipt or use a helper.
+        // Since appKitModal.request doesn't wait for mining, we must poll _client.
+        bool confirmed = false;
+        int attempts = 0;
+        while (!confirmed && attempts < 30) {
+          // Wait up to ~60-90s
+          await Future.delayed(const Duration(seconds: 2));
+          final receipt = await _client.getTransactionReceipt(
+            approveHash.toString(),
+          );
+          if (receipt != null && receipt.status == true) {
+            // status=1 usually means success
+            confirmed = true;
+          }
+          attempts++;
+        }
+
+        if (!confirmed) {
+          return const Failure(
+            UnknownError('Approval transaction timed out or failed'),
+          );
+        }
+      }
+
+      // 4. Invest
+      onStatusChanged?.call('Confirming Investment... Please sign in wallet.');
+
+      // ABI for invest function
+      const investAbi =
+          '[{"inputs":[{"internalType":"uint256","name":"amount","type":"uint256"},{"internalType":"string","name":"legalDocHashSigned","type":"string"}],"name":"invest","outputs":[],"stateMutability":"nonpayable","type":"function"}]';
+
+      final investContract = DeployedContract(
+        ContractAbi.fromJson(investAbi, 'PropertyToken'),
+        propertyAddress,
+      );
+
+      final investFunc = investContract.function('invest');
+
+      final investData = investFunc.encodeCall([
+        amountBigInt,
+        legalDocHash ?? "Signed",
+      ]);
+
+      final investDataHex =
+          '0x${investData.map((b) => b.toRadixString(16).padLeft(2, '0')).join()}';
+
+      final investTx = {
+        'from': senderAddressStr,
         'to': propertyContractAddress,
-        'data': '0x',
+        'data': investDataHex,
       };
 
       final result = await _appKitModal.request(
@@ -178,11 +303,11 @@ class BlockchainRepository {
         chainId: 'eip155:$chainId',
         request: SessionRequestParams(
           method: 'eth_sendTransaction',
-          params: [tx],
+          params: [investTx],
         ),
       );
 
-      onStatusChanged?.call('Transaction submitted!');
+      onStatusChanged?.call('Investment Transaction Submitted!');
       return Success(result.toString());
     } catch (e) {
       return Failure(UnknownError(e));
@@ -256,7 +381,8 @@ class BlockchainRepository {
 
       // 2. Encode Function Call
       final transferFunction = contract.function('transfer');
-      final amountInUnits = BigInt.from(amount * 1000000); // 6 Decimals
+      // Updated to 6 Decimals as per new Standard
+      final amountInUnits = BigInt.from(amount * 1000000);
       final data = transferFunction.encodeCall([
         EthereumAddress.fromHex(toAddress),
         amountInUnits,
@@ -294,10 +420,41 @@ class BlockchainRepository {
   }
 
   Future<double> getTokenBalance(String tokenAddress) async {
-    if (tokenAddress == '0x1234567890123456789012345678901234567890') {
-      if (_appKitModal.isConnected) return 500.0;
+    try {
+      if (!_appKitModal.isConnected) return 0.0;
+
+      final addressStr = _appKitModal
+          .session
+          ?.namespaces?['eip155']
+          ?.accounts
+          .first
+          .split(':')
+          .last;
+      if (addressStr == null) return 0.0;
+      final ownerAddress = EthereumAddress.fromHex(addressStr);
+
+      const abi =
+          '[{"constant":true,"inputs":[{"name":"_owner","type":"address"}],"name":"balanceOf","outputs":[{"name":"balance","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"}]';
+      final contract = DeployedContract(
+        ContractAbi.fromJson(abi, 'ERC20'),
+        EthereumAddress.fromHex(tokenAddress),
+      );
+
+      final balanceFunc = contract.function('balanceOf');
+      final result = await _client.call(
+        contract: contract,
+        function: balanceFunc,
+        params: [ownerAddress],
+      );
+
+      final balance = result.first as BigInt;
+      // Assuming 6 decimals for USDC. If generic, we should fetch decimals() first.
+      // For now, hardcoding 6 decimals as mostly we use USDC.
+      return balance.toDouble() / 1000000.0;
+    } catch (e) {
+      debugPrint('Error fetching token balance: $e');
+      return 0.0;
     }
-    return 0.0;
   }
 
   Future<List<String>> getDeployedProperties() async {
@@ -327,7 +484,7 @@ class BlockchainRepository {
   Future<Map<String, dynamic>> getPropertyDetails(String address) async {
     try {
       const abi =
-          '[{"inputs":[],"name":"name","outputs":[{"internalType":"string","name":"","type":"string"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"pricePerToken","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"legalDocHash","outputs":[{"internalType":"string","name":"","type":"string"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"tierIndex","outputs":[{"internalType":"uint8","name":"","type":"uint8"}],"stateMutability":"view","type":"function"}]';
+          '[{"inputs":[],"name":"name","outputs":[{"internalType":"string","name":"","type":"string"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"pricePerToken","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"legalDocHash","outputs":[{"internalType":"string","name":"","type":"string"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"tier","outputs":[{"internalType":"uint8","name":"","type":"uint8"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"currentStatus","outputs":[{"internalType":"uint8","name":"","type":"uint8"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"totalRaised","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"targetRaiseAmount","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"}]';
       final contract = DeployedContract(
         ContractAbi.fromJson(abi, 'PropertyToken'),
         EthereumAddress.fromHex(address),
@@ -336,7 +493,10 @@ class BlockchainRepository {
       final nameFunc = contract.function('name');
       final priceFunc = contract.function('pricePerToken');
       final docFunc = contract.function('legalDocHash');
-      final tierFunc = contract.function('tierIndex');
+      final tierFunc = contract.function('tier');
+      final statusFunc = contract.function('currentStatus');
+      final raisedFunc = contract.function('totalRaised');
+      final targetFunc = contract.function('targetRaiseAmount');
 
       final nameResult = await _client.call(
         contract: contract,
@@ -358,6 +518,21 @@ class BlockchainRepository {
         function: tierFunc,
         params: [],
       );
+      final statusResult = await _client.call(
+        contract: contract,
+        function: statusFunc,
+        params: [],
+      );
+      final raisedResult = await _client.call(
+        contract: contract,
+        function: raisedFunc,
+        params: [],
+      );
+      final targetResult = await _client.call(
+        contract: contract,
+        function: targetFunc,
+        params: [],
+      );
 
       return {
         'name': nameResult.first as String,
@@ -366,6 +541,9 @@ class BlockchainRepository {
             1000000.0, // Assuming 6 decimals like USDC
         'legalDocHash': docResult.first as String,
         'tierIndex': (tierResult.first as BigInt).toInt(),
+        'status': (statusResult.first as BigInt).toInt(),
+        'totalRaised': (raisedResult.first as BigInt).toDouble() / 1000000.0,
+        'targetRaise': (targetResult.first as BigInt).toDouble() / 1000000.0,
       };
     } catch (e) {
       debugPrint('Error fetching property details for $address: $e');

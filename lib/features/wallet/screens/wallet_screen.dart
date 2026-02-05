@@ -317,11 +317,33 @@ class WalletScreen extends ConsumerWidget {
                 Row(
                   children: [
                     Expanded(
-                      child: _buildSubBalance(
-                        '\$20,000.00',
-                        'INVESTABLE',
-                        Colors.black.withValues(alpha: 0.2),
-                        AppColors.primary,
+                      child: Consumer(
+                        builder: (context, ref, child) {
+                          final usdcAsync = ref.watch(usdcBalanceProvider);
+                          return usdcAsync.when(
+                            data: (val) => _buildSubBalance(
+                              '\$$val',
+                              'INVESTABLE',
+                              Colors.black.withValues(alpha: 0.2),
+                              AppColors.primary,
+                            ),
+                            loading: () => const Center(
+                              child: SizedBox(
+                                height: 20,
+                                width: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
+                              ),
+                            ),
+                            error: (_, __) => _buildSubBalance(
+                              '\$0.00',
+                              'INVESTABLE',
+                              Colors.black.withValues(alpha: 0.2),
+                              AppColors.primary,
+                            ),
+                          );
+                        },
                       ),
                     ),
                     const SizedBox(width: 12),
