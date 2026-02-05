@@ -17,6 +17,10 @@ class Property {
   final double totalArea;
   final String buildingNumber;
   final String projectId;
+  final String description;
+  final List<String> amenities;
+  final List<String> gallery;
+  final String locationCoordinates;
 
   Property({
     required this.id,
@@ -37,6 +41,10 @@ class Property {
     this.totalArea = 0.0,
     this.buildingNumber = '',
     this.projectId = '',
+    this.description = '',
+    this.amenities = const [],
+    this.gallery = const [],
+    this.locationCoordinates = '',
   });
 
   Map<String, dynamic> toMap() {
@@ -58,6 +66,10 @@ class Property {
       'totalArea': totalArea,
       'buildingNumber': buildingNumber,
       'projectId': projectId,
+      'description': description,
+      'amenities': amenities,
+      'gallery': gallery,
+      'locationCoordinates': locationCoordinates,
     };
   }
 
@@ -98,6 +110,10 @@ class Property {
       totalArea: safeDouble(map['totalArea']),
       buildingNumber: map['buildingNumber'] ?? '',
       projectId: map['projectId'] ?? '',
+      description: map['description'] ?? '',
+      amenities: List<String>.from(map['amenities'] ?? []),
+      gallery: List<String>.from(map['gallery'] ?? []),
+      locationCoordinates: map['locationCoordinates'] ?? '',
     );
   }
 }

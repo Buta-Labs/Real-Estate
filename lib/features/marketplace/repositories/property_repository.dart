@@ -31,6 +31,25 @@ class PropertyRepository {
     });
   }
 
+  Stream<List<Property>> getPropertiesByProjectId(String projectId) {
+    return _firestore
+        .collection('properties')
+        .where('projectId', isEqualTo: projectId)
+        .snapshots()
+        .map((snapshot) {
+          return snapshot.docs.map((doc) {
+            final data = doc.data();
+            if (data['title'] == 'The Orion Penthouse' &&
+                (data['contractAddress'] == null ||
+                    data['contractAddress'] == '')) {
+              data['contractAddress'] =
+                  '0x1234567890123456789012345678901234567890';
+            }
+            return Property.fromMap(doc.id, data);
+          }).toList();
+        });
+  }
+
   Future<void> seedProperties() async {
     final collection = _firestore.collection('properties');
     final snapshot = await collection.get();
@@ -42,7 +61,7 @@ class PropertyRepository {
       Property(
         id: '',
         title: 'The Orion Penthouse',
-        location: 'Miami, FL',
+        location: 'Dubai, UAE',
         price: 54.20,
         yieldRate: 8.5,
         available: 400,
@@ -50,6 +69,21 @@ class PropertyRepository {
             'https://lh3.googleusercontent.com/aida-public/AB6AXuBxsR1Uvzzr5Rf008mbOADxpT_xz5mzvQ7Zkaur3EzLxob79FZM2ni_qrdwpycXrJTx07CJigcx3bYQL8YEYuhk6pRcitxavfGKrhgb5yzk6vSHssX9kFqgvm9vcqr9kPCvI4wFJsNTKz6WziTNWU6GoJklFRzq1lZVdzV2mdz3oVD-wDuc6_gWrPK6pSV5YBclX_UA3zvR1DGPhQq902g-boM1BD9RS4sCOAw2Hgqwy9XwheOKGN3TJypIKOrlEVK91rFm51A48A',
         tag: 'PENTHOUSE',
         contractAddress: '0x1234567890123456789012345678901234567890',
+        description:
+            'Experience the pinnacle of luxury in this exclusive penthouse located in the heart of Downtown Dubai. Featuring floor-to-ceiling windows with panoramic views of the Burj Khalifa, this asset represents a prime opportunity for high-yield rental income in a thriving market.',
+        amenities: [
+          'Infinity Pool',
+          'Private Gym',
+          'Valet Parking',
+          '24/7 Security',
+        ],
+        gallery: [
+          'https://lh3.googleusercontent.com/aida-public/AB6AXuBxsR1Uvzzr5Rf008mbOADxpT_xz5mzvQ7Zkaur3EzLxob79FZM2ni_qrdwpycXrJTx07CJigcx3bYQL8YEYuhk6pRcitxavfGKrhgb5yzk6vSHssX9kFqgvm9vcqr9kPCvI4wFJsNTKz6WziTNWU6GoJklFRzq1lZVdzV2mdz3oVD-wDuc6_gWrPK6pSV5YBclX_UA3zvR1DGPhQq902g-boM1BD9RS4sCOAw2Hgqwy9XwheOKGN3TJypIKOrlEVK91rFm51A48A',
+          'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&q=80',
+          'https://images.unsplash.com/photo-1613490493576-7fde63acd811?auto=format&fit=crop&q=80',
+        ],
+        totalArea: 450.0,
+        locationCoordinates: '25.0772, 55.1328',
       ),
       Property(
         id: '',
@@ -62,6 +96,15 @@ class PropertyRepository {
             'https://lh3.googleusercontent.com/aida-public/AB6AXuAv4iBMVoZomuWhRZPwSbL2BYoqOtLi26lZNdIfLhv9pysgWhPPSHjorfYtZ6zp1ya5Zthc8Xx27T9AHRy4vUyABjmHZaXuzZhRkHFlQc5pYAzpPorzjTkebAmc_jYcFrUaaGwyHcKjXAd2c_RQZM3kk96BYUhSNPvUk1N_JOI67cV0Lxa4XUHtC9q1n0eI0nFUNxffGRhJIWh_4clXwSJ96PX_znJJum6hr9v0cWxeOVvD8jt_OB360PKtPwmye2qpxxOOlUr18w',
         tag: 'VILLA',
         contractAddress: '0x2345678901234567890123456789012345678901',
+        description:
+            'A charming historic villa in Greenwich with modern interiors. Perfect for families looking for a quiet retreat within the city.',
+        amenities: ['Garden', 'Fireplace', 'Garage', 'Smart Home System'],
+        gallery: [
+          'https://lh3.googleusercontent.com/aida-public/AB6AXuAv4iBMVoZomuWhRZPwSbL2BYoqOtLi26lZNdIfLhv9pysgWhPPSHjorfYtZ6zp1ya5Zthc8Xx27T9AHRy4vUyABjmHZaXuzZhRkHFlQc5pYAzpPorzjTkebAmc_jYcFrUaaGwyHcKjXAd2c_RQZM3kk96BYUhSNPvUk1N_JOI67cV0Lxa4XUHtC9q1n0eI0nFUNxffGRhJIWh_4clXwSJ96PX_znJJum6hr9v0cWxeOVvD8jt_OB360PKtPwmye2qpxxOOlUr18w',
+          'https://images.unsplash.com/photo-1580587767378-782771430f4e?auto=format&fit=crop&q=80',
+        ],
+        totalArea: 280.0,
+        locationCoordinates: '51.4826, -0.0077',
       ),
       Property(
         id: '',
@@ -74,6 +117,15 @@ class PropertyRepository {
             'https://lh3.googleusercontent.com/aida-public/AB6AXuAw5WCl_qoZKrIDm92tKryyR6Ish_XpDvT1UeCMUo8rPYX5zITPBg75Frl3-4ujgUYxZSL28EHjjKEz2RxE4RoOp8xo1hJeUi4_1TQsKxLaQl5GiTSm5Pwvnm7UIY_cviAOy2wEM4cuMEq76LFKws1FRPc0IW8YtsfwIEJgEAsgHduAiDEUw70YIpsims-s4sWfZATg-X-bThElMLFnTsHicRpnKhZ32dhkwGefcFapB_tezjcd2cKbDfXj8Fh1wqtGNJusiNtl6Q',
         tag: 'RESORT',
         contractAddress: '0x3456789012345678901234567890123456789012',
+        description:
+            'Luxury resort suite overlooking Marina Bay. High occupancy rates and premium management services ensure steady returns.',
+        amenities: ['Spa', 'Concierge', 'Rooftop Bar', 'Business Center'],
+        gallery: [
+          'https://lh3.googleusercontent.com/aida-public/AB6AXuAw5WCl_qoZKrIDm92tKryyR6Ish_XpDvT1UeCMUo8rPYX5zITPBg75Frl3-4ujgUYxZSL28EHjjKEz2RxE4RoOp8xo1hJeUi4_1TQsKxLaQl5GiTSm5Pwvnm7UIY_cviAOy2wEM4cuMEq76LFKws1FRPc0IW8YtsfwIEJgEAsgHduAiDEUw70YIpsims-s4sWfZATg-X-bThElMLFnTsHicRpnKhZ32dhkwGefcFapB_tezjcd2cKbDfXj8Fh1wqtGNJusiNtl6Q',
+          'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&q=80',
+        ],
+        totalArea: 120.0,
+        locationCoordinates: '1.2823, 103.8585',
       ),
     ];
 

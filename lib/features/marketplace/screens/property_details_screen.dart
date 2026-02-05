@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:go_router/go_router.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:orre_mmc_app/theme/app_colors.dart';
+import 'package:orre_mmc_app/shared/screens/full_screen_gallery_screen.dart';
 
 import 'package:orre_mmc_app/features/marketplace/models/property_model.dart';
 
@@ -16,6 +19,12 @@ class PropertyDetailsScreen extends StatefulWidget {
 class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
   int _selectedTabIndex = 0;
   bool _showScarcity = false;
+  double _investmentAmount = 2500;
+
+  double get _monthlyIncome =>
+      (_investmentAmount * (widget.property.yieldRate / 100)) / 12;
+  double get _fiveYearReturn =>
+      (_investmentAmount * (widget.property.yieldRate / 100)) * 5;
 
   @override
   void initState() {
@@ -54,6 +63,8 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                       _buildSegmentedControl(),
                       const SizedBox(height: 24),
                       _buildRoiSimulator(),
+                      const SizedBox(height: 24),
+                      _buildGallerySection(),
                       const SizedBox(height: 24),
                       _buildAboutSection(),
                       const SizedBox(height: 24),
@@ -278,7 +289,9 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                '${widget.property.available > 0 ? "Open for Investment" : "Sold Out"}',
+                widget.property.available > 0
+                    ? "Open for Investment"
+                    : "Sold Out",
                 style: const TextStyle(
                   color: Colors.white,
                   fontSize: 14,
@@ -450,12 +463,12 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
             ],
           ),
           const SizedBox(height: 24),
-          const Row(
+          Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text('Investment Amount', style: TextStyle(color: Colors.grey)),
               Text(
-                '\$2,500',
+                '\$${_investmentAmount.toStringAsFixed(0)}',
                 style: TextStyle(
                   color: Colors.white,
                   fontWeight: FontWeight.bold,
@@ -464,12 +477,17 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
             ],
           ),
           Slider(
-            value: 2500,
+            value: _investmentAmount,
             min: 50,
             max: 10000,
+            divisions: 199,
             activeColor: AppColors.primary,
             inactiveColor: const Color(0xFF324467),
-            onChanged: (value) {},
+            onChanged: (value) {
+              setState(() {
+                _investmentAmount = value;
+              });
+            },
           ),
           const Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -491,17 +509,17 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                       color: Colors.white.withValues(alpha: 0.05),
                     ),
                   ),
-                  child: const Column(
+                  child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
+                      const Text(
                         'Monthly Income',
                         style: TextStyle(color: Colors.grey, fontSize: 10),
                       ),
-                      SizedBox(height: 4),
+                      const SizedBox(height: 4),
                       Text(
-                        '+\$26.04',
-                        style: TextStyle(
+                        '+\$${_monthlyIncome.toStringAsFixed(2)}',
+                        style: const TextStyle(
                           color: Colors.white,
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
@@ -522,17 +540,17 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                       color: Colors.white.withValues(alpha: 0.05),
                     ),
                   ),
-                  child: const Column(
+                  child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
+                      const Text(
                         '5-Year Return',
                         style: TextStyle(color: Colors.grey, fontSize: 10),
                       ),
-                      SizedBox(height: 4),
+                      const SizedBox(height: 4),
                       Text(
-                        '+\$3,100',
-                        style: TextStyle(
+                        '+\$${_fiveYearReturn.toStringAsFixed(0)}',
+                        style: const TextStyle(
                           color: AppColors.primary,
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
@@ -569,32 +587,63 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
             ),
           ),
           const SizedBox(height: 12),
-          const Text(
-            'Experience the pinnacle of luxury in this exclusive penthouse located in the heart of Downtown Dubai. Featuring floor-to-ceiling windows with panoramic views of the Burj Khalifa, this asset represents a prime opportunity for high-yield rental income in a thriving market.',
-            style: TextStyle(color: Colors.grey, height: 1.5),
+          Text(
+            widget.property.description.isNotEmpty
+                ? widget.property.description
+                : 'Experience the pinnacle of luxury in this exclusive asset. Featuring premium finishes and located in a prime area, this property represents a unique investment opportunity.',
+            style: const TextStyle(color: Colors.grey, height: 1.5),
           ),
           const SizedBox(height: 16),
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
-              children:
-                  [
-                        _buildAmenity(Icons.pool, 'Infinity Pool'),
-                        _buildAmenity(Icons.fitness_center, 'Private Gym'),
-                        _buildAmenity(Icons.local_parking, 'Valet Parking'),
-                        _buildAmenity(Icons.security, '24/7 Security'),
-                      ]
-                      .map(
-                        (w) => Padding(
-                          padding: const EdgeInsets.only(right: 8.0),
-                          child: w,
-                        ),
-                      )
-                      .toList(),
+          if (widget.property.amenities.isNotEmpty) ...[
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: widget.property.amenities
+                    .map(
+                      (amenity) => Padding(
+                        padding: const EdgeInsets.only(right: 8.0),
+                        child: _buildAmenity(_getAmenityIcon(amenity), amenity),
+                      ),
+                    )
+                    .toList(),
+              ),
             ),
+            const SizedBox(height: 16),
+          ],
+          Row(
+            children: [
+              _buildFeatureItem(
+                Icons.square_foot,
+                '${widget.property.totalArea} sqm',
+              ),
+              const SizedBox(width: 16),
+              _buildFeatureItem(Icons.bed, '${widget.property.rooms} Rooms'),
+            ],
           ),
         ],
       ),
+    );
+  }
+
+  IconData _getAmenityIcon(String amenity) {
+    final lower = amenity.toLowerCase();
+    if (lower.contains('pool')) return Icons.pool;
+    if (lower.contains('gym')) return Icons.fitness_center;
+    if (lower.contains('parking')) return Icons.local_parking;
+    if (lower.contains('security')) return Icons.security;
+    if (lower.contains('garden')) return Icons.deck;
+    if (lower.contains('spa')) return Icons.spa;
+    if (lower.contains('smart')) return Icons.smart_button;
+    return Icons.check_circle_outline;
+  }
+
+  Widget _buildFeatureItem(IconData icon, String label) {
+    return Row(
+      children: [
+        Icon(icon, color: Colors.grey, size: 16),
+        const SizedBox(width: 4),
+        Text(label, style: const TextStyle(color: Colors.grey)),
+      ],
     );
   }
 
@@ -619,34 +668,138 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
     );
   }
 
+  Future<void> _openMap() async {
+    final query = widget.property.locationCoordinates.isNotEmpty
+        ? widget.property.locationCoordinates
+        : widget.property.location;
+
+    if (query.isEmpty) return;
+
+    final url =
+        'https://www.google.com/maps/search/?api=1&query=${Uri.encodeComponent(query)}';
+
+    try {
+      final uri = Uri.parse(url);
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      }
+    } catch (e) {
+      debugPrint('Could not open map: $e');
+    }
+  }
+
+  Widget _buildGallerySection() {
+    if (widget.property.gallery.isEmpty) return const SizedBox.shrink();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Gallery',
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const SizedBox(height: 12),
+        SizedBox(
+          height: 140,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            itemCount: widget.property.gallery.length,
+            separatorBuilder: (_, _) => const SizedBox(width: 12),
+            itemBuilder: (context, index) {
+              return GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => FullScreenGalleryScreen(
+                        images: widget.property.gallery,
+                        initialIndex: index,
+                      ),
+                    ),
+                  );
+                },
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: Image.network(
+                    widget.property.gallery[index],
+                    width: 200,
+                    height: 140,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _buildLocationMap() {
-    return Container(
-      height: 200,
-      decoration: BoxDecoration(
-        color: const Color(0xFF1C2333),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
-        image: const DecorationImage(
-          image: NetworkImage(
-            'https://lh3.googleusercontent.com/aida-public/AB6AXuCHWLtJ2N6hOY7O-BlmPITGOmQqINXtWTMLRtymfjzRKYi7Wv0eSTISMXALPPHSMC5Di10-y2-nLegoSP9ZmHemdsE4FWUILVaEzkxzXExncjSaeNjTZMa4SDylGxgb9hYLpLhVqFglx6H4PTfI6gOVgHWiZha_1O8oEWP30jljiMSpx4wH_6-7RPYWCG8MNeK4CX4M7Y4nQIbuvycQNzxj7u7VQUekQgJl4Y43BxzAS2ROX2FhlHjtk-lm-V9U2EsfufSDOzP2SQ',
-          ),
-          fit: BoxFit.cover,
-          opacity: 0.6,
-        ),
-      ),
-      child: Center(
-        child: ElevatedButton.icon(
-          onPressed: () {},
-          icon: const Icon(Icons.map, size: 16),
-          label: const Text('View on Map'),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.white.withValues(alpha: 0.1),
-            foregroundColor: Colors.white,
-            elevation: 0,
-            side: BorderSide(color: Colors.white.withValues(alpha: 0.2)),
+    final locationText = widget.property.location;
+    final hasCoords = widget.property.locationCoordinates.isNotEmpty;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Location',
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
           ),
         ),
-      ),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            const Icon(Icons.location_on, size: 14, color: Colors.grey),
+            const SizedBox(width: 4),
+            Expanded(
+              child: Text(
+                locationText,
+                style: const TextStyle(color: Colors.grey, fontSize: 14),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        Container(
+          height: 200,
+          decoration: BoxDecoration(
+            color: const Color(0xFF1C2333),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+            image: DecorationImage(
+              image: NetworkImage(
+                hasCoords &&
+                        widget.property.locationCoordinates.contains('25.0772')
+                    ? 'https://lh3.googleusercontent.com/aida-public/AB6AXuCHWLtJ2N6hOY7O-BlmPITGOmQqINXtWTMLRtymfjzRKYi7Wv0eSTISMXALPPHSMC5Di10-y2-nLegoSP9ZmHemdsE4FWUILVaEzkxzXExncjSaeNjTZMa4SDylGxgb9hYLpLhVqFglx6H4PTfI6gOVgHWiZha_1O8oEWP30jljiMSpx4wH_6-7RPYWCG8MNeK4CX4M7Y4nQIbuvycQNzxj7u7VQUekQgJl4Y43BxzAS2ROX2FhlHjtk-lm-V9U2EsfufSDOzP2SQ'
+                    : 'https://images.unsplash.com/photo-1526778548025-fa2f459cd5c1?auto=format&fit=crop&q=80', // Generic map/travel image
+              ),
+              fit: BoxFit.cover,
+              opacity: 0.4,
+            ),
+          ),
+          child: Center(
+            child: ElevatedButton.icon(
+              onPressed: _openMap,
+              icon: const Icon(Icons.map, size: 16),
+              label: const Text('View on Map'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.white.withValues(alpha: 0.1),
+                foregroundColor: Colors.white,
+                elevation: 0,
+                side: BorderSide(color: Colors.white.withValues(alpha: 0.2)),
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -656,18 +809,24 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
         Row(
           children: [
             Expanded(
-              child: _buildSecondaryButton(
-                icon: Icons.warning_amber,
-                label: 'Risk Audit',
-                iconColor: Colors.orange,
+              child: GestureDetector(
+                onTap: () => context.push('/risk-assessment'),
+                child: _buildSecondaryButton(
+                  icon: Icons.warning_amber,
+                  label: 'Risk Audit',
+                  iconColor: Colors.orange,
+                ),
               ),
             ),
             const SizedBox(width: 12),
             Expanded(
-              child: _buildSecondaryButton(
-                icon: Icons.history_edu,
-                label: 'Appraisals',
-                iconColor: AppColors.primary,
+              child: GestureDetector(
+                onTap: () => context.push('/appraisal-history'),
+                child: _buildSecondaryButton(
+                  icon: Icons.history_edu,
+                  label: 'Appraisals',
+                  iconColor: AppColors.primary,
+                ),
               ),
             ),
           ],
@@ -686,8 +845,8 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
           iconColor: Colors.green,
         ),
         const SizedBox(height: 12),
-        TextButton(
-          onPressed: () {},
+        GestureDetector(
+          onTap: () => context.push('/exit-strategy'),
           child: Text(
             'VIEW EXIT STRATEGY OPTIONS',
             style: TextStyle(

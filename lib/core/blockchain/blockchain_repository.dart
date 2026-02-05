@@ -1,5 +1,4 @@
 import 'package:reown_appkit/reown_appkit.dart';
-import 'package:web3dart/web3dart.dart';
 import 'package:http/http.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/material.dart';

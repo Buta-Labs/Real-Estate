@@ -28,10 +28,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
 
   // Contract generation state
   bool _tier2Acknowledged = false;
-  DateTime? _tier2AcknowledgmentTime;
   Uint8List? _signatureImage;
-  String? _contractPdfHash;
-  bool _isGeneratingContract = false;
 
   // Hardcoded for MVP - Tier 2 property for demonstration
   static const int _demoTierIndex = 2;
@@ -146,7 +143,6 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                   ? () {
                       setState(() {
                         _tier2Acknowledged = true;
-                        _tier2AcknowledgmentTime = DateTime.now();
                       });
                       context.pop();
 
@@ -166,7 +162,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
                 foregroundColor: AppColors.backgroundDark,
-                disabledBackgroundColor: Colors.grey.withOpacity(0.3),
+                disabledBackgroundColor: Colors.grey.withValues(alpha: 0.3),
               ),
               child: const Text('Continue'),
             ),
@@ -263,10 +259,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
         transactionHash: 'PENDING', // Will be updated after blockchain tx
       );
 
-      setState(() {
-        _contractPdfHash = contractResult.pdfHash;
-      });
-
+      if (!mounted) return;
       ToastService().showSuccess(context, 'Contract generated successfully!');
       ToastService().showInfo(
         context,
@@ -277,6 +270,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
       final repository = ref.read(blockchainRepositoryProvider);
       final balance = await repository.getNativeBalance();
       if (balance == "0.00") {
+        if (!mounted) return;
         final result = await repository.connectWallet(context);
         if (result is Failure) {
           _showError('Please connect your wallet first.');
@@ -296,11 +290,13 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
       );
 
       if (result is Success) {
-        ToastService().showSuccess(
-          context,
-          'Contract uploaded: ${contractResult.storageUrl}',
-        );
-        if (mounted) context.push('/success');
+        if (mounted) {
+          ToastService().showSuccess(
+            context,
+            'Contract uploaded: ${contractResult.storageUrl}',
+          );
+          context.push('/success');
+        }
       } else if (result is Failure) {
         _showError(
           'Transaction failed: ${(result as Failure).failure.message}',

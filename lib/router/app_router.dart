@@ -32,6 +32,8 @@ import 'package:orre_mmc_app/features/profile/screens/rewards_screen.dart';
 import 'package:orre_mmc_app/features/profile/screens/sitemap_screen.dart';
 import 'package:orre_mmc_app/features/referrals/screens/leaderboard_screen.dart';
 import 'package:orre_mmc_app/features/marketplace/screens/property_details_screen.dart';
+import 'package:orre_mmc_app/features/marketplace/models/project_model.dart';
+import 'package:orre_mmc_app/features/marketplace/screens/project_details_screen.dart';
 import 'package:orre_mmc_app/features/marketplace/screens/checkout_screen.dart';
 import 'package:orre_mmc_app/features/marketplace/screens/property_updates_screen.dart';
 import 'package:orre_mmc_app/features/marketplace/screens/property_tour_screen.dart';
@@ -254,6 +256,13 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) {
           final property = state.extra as Property;
           return PropertyDetailsScreen(property: property);
+        },
+      ),
+      GoRoute(
+        path: '/project-details/:id',
+        builder: (context, state) {
+          final project = state.extra as Project;
+          return ProjectDetailsScreen(project: project);
         },
       ),
       GoRoute(

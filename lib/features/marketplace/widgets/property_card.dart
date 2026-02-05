@@ -247,11 +247,15 @@ class PropertyCard extends StatelessWidget {
                                   color: Colors.grey[400],
                                 ),
                                 const SizedBox(width: 4),
-                                Text(
-                                  location,
-                                  style: GoogleFonts.manrope(
-                                    fontSize: 12,
-                                    color: Colors.grey[400],
+                                Expanded(
+                                  child: Text(
+                                    location,
+                                    style: GoogleFonts.manrope(
+                                      fontSize: 12,
+                                      color: Colors.grey[400],
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
+                                    maxLines: 1,
                                   ),
                                 ),
                               ],

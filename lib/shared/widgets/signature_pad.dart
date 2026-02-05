@@ -9,10 +9,10 @@ class SignaturePad extends StatefulWidget {
   final VoidCallback? onClear;
 
   const SignaturePad({
-    Key? key,
+    super.key,
     required this.onSignatureCaptured,
     this.onClear,
-  }) : super(key: key);
+  });
 
   @override
   State<SignaturePad> createState() => _SignaturePadState();
@@ -82,9 +82,12 @@ class _SignaturePadState extends State<SignaturePad> {
         Container(
           height: 200,
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.05),
+            color: Colors.white.withValues(alpha: 0.05),
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.white.withOpacity(0.1), width: 2),
+            border: Border.all(
+              color: Colors.white.withValues(alpha: 0.1),
+              width: 2,
+            ),
           ),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(10),
@@ -111,7 +114,7 @@ class _SignaturePadState extends State<SignaturePad> {
                 label: const Text('Clear'),
                 style: OutlinedButton.styleFrom(
                   foregroundColor: Colors.white70,
-                  side: BorderSide(color: Colors.white.withOpacity(0.2)),
+                  side: BorderSide(color: Colors.white.withValues(alpha: 0.2)),
                   padding: const EdgeInsets.symmetric(vertical: 14),
                 ),
               ),
@@ -132,7 +135,9 @@ class _SignaturePadState extends State<SignaturePad> {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF0BDA5E),
                       foregroundColor: Colors.black,
-                      disabledBackgroundColor: Colors.grey.withOpacity(0.3),
+                      disabledBackgroundColor: Colors.grey.withValues(
+                        alpha: 0.3,
+                      ),
                       padding: const EdgeInsets.symmetric(vertical: 14),
                     ),
                   );
@@ -149,7 +154,7 @@ class _SignaturePadState extends State<SignaturePad> {
           'Sign above to confirm your agreement',
           style: TextStyle(
             fontSize: 12,
-            color: Colors.white.withOpacity(0.6),
+            color: Colors.white.withValues(alpha: 0.6),
             fontStyle: FontStyle.italic,
           ),
           textAlign: TextAlign.center,

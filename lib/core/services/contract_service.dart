@@ -1,11 +1,8 @@
-import 'dart:io';
 import 'dart:typed_data';
 import 'dart:ui' as ui;
 import 'package:syncfusion_flutter_pdf/pdf.dart';
 import 'package:crypto/crypto.dart';
-import 'dart:convert';
 import 'package:firebase_storage/firebase_storage.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 
 /// Service for generating legally binding investment contracts
 /// Assembles a single PDF with conditional sections based on user/property data
@@ -140,7 +137,7 @@ NOW, THEREFORE, in consideration of the mutual covenants and agreements herein c
 
 1.4 "Investment Amount" means USD \$${investmentAmount.toStringAsFixed(2)}
 
-1.5 "Transaction Hash" means the blockchain transaction identifier: ${transactionHash}
+1.5 "Transaction Hash" means the blockchain transaction identifier: $transactionHash
 
 2. INVESTMENT TERMS
 

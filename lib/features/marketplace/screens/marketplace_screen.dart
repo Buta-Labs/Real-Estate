@@ -7,6 +7,8 @@ import 'package:orre_mmc_app/theme/app_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:orre_mmc_app/features/marketplace/controllers/marketplace_controller.dart';
 import 'package:orre_mmc_app/features/marketplace/repositories/property_repository.dart';
+import 'package:orre_mmc_app/features/marketplace/repositories/project_repository.dart';
+import 'package:orre_mmc_app/features/marketplace/widgets/project_card.dart';
 
 class MarketplaceScreen extends ConsumerStatefulWidget {
   const MarketplaceScreen({super.key});
@@ -17,6 +19,7 @@ class MarketplaceScreen extends ConsumerStatefulWidget {
 
 class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
   String _activeFilter = 'All';
+  int _selectedTabIndex = 0; // 0: Properties, 1: Projects
 
   @override
   Widget build(BuildContext context) {
@@ -131,6 +134,57 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
 
                         const SizedBox(height: 16),
 
+                        // Tab Switcher
+                        Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF1C2333),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: Colors.white.withValues(alpha: 0.05),
+                            ),
+                          ),
+                          child: Row(
+                            children: ['Properties', 'Projects'].map((tab) {
+                              final index = [
+                                'Properties',
+                                'Projects',
+                              ].indexOf(tab);
+                              final isSelected = index == _selectedTabIndex;
+                              return Expanded(
+                                child: GestureDetector(
+                                  onTap: () =>
+                                      setState(() => _selectedTabIndex = index),
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 10,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: isSelected
+                                          ? AppColors.primary
+                                          : Colors.transparent,
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: Text(
+                                      tab,
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(
+                                        color: isSelected
+                                            ? Colors.white
+                                            : Colors.grey,
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              );
+                            }).toList(),
+                          ),
+                        ),
+
+                        const SizedBox(height: 16),
+
                         // Stats Row
                         Row(
                           children: [
@@ -196,80 +250,15 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
                   ),
                 ),
 
-                // Property List
+                // Property/Project List
                 SliverPadding(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 16,
                     vertical: 8,
                   ),
-                  sliver: ref
-                      .watch(propertyListProvider)
-                      .when(
-                        data: (properties) {
-                          if (properties.isEmpty) {
-                            return SliverToBoxAdapter(
-                              child: Center(
-                                child: Column(
-                                  children: [
-                                    const Text(
-                                      'No properties found',
-                                      style: TextStyle(color: Colors.white),
-                                    ),
-                                    const SizedBox(height: 16),
-                                    ElevatedButton(
-                                      onPressed: () async {
-                                        await ref
-                                            .read(propertyRepositoryProvider)
-                                            .seedProperties();
-                                      },
-                                      child: const Text('Seed Mock Data'),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            );
-                          }
-                          return SliverList(
-                            delegate: SliverChildBuilderDelegate((
-                              context,
-                              index,
-                            ) {
-                              if (index == properties.length) {
-                                return const SizedBox(
-                                  height: 100,
-                                ); // Bottom spacer
-                              }
-                              final property = properties[index];
-                              return PropertyCard(
-                                title: property.title,
-                                location: property.location,
-                                price: '\$${property.price.toStringAsFixed(2)}',
-                                yield: '${property.yieldRate}%',
-                                available: property.available.toString(),
-                                image: property.imageUrl,
-                                tag: property.tag,
-                                condition: property.condition,
-                                tierIndex: property.tierIndex,
-                                onTap: () => context.push(
-                                  '/property-details',
-                                  extra: property,
-                                ),
-                              );
-                            }, childCount: properties.length + 1),
-                          );
-                        },
-                        loading: () => const SliverToBoxAdapter(
-                          child: Center(child: CircularProgressIndicator()),
-                        ),
-                        error: (error, stack) => SliverToBoxAdapter(
-                          child: Center(
-                            child: Text(
-                              'Error: $error',
-                              style: const TextStyle(color: Colors.red),
-                            ),
-                          ),
-                        ),
-                      ),
+                  sliver: _selectedTabIndex == 0
+                      ? _buildPropertyList(ref)
+                      : _buildProjectList(ref),
                 ),
               ],
             ),
@@ -303,6 +292,108 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
         ),
       ),
     );
+  }
+
+  Widget _buildPropertyList(WidgetRef ref) {
+    return ref
+        .watch(propertyListProvider)
+        .when(
+          data: (properties) {
+            if (properties.isEmpty) {
+              return SliverToBoxAdapter(
+                child: Center(
+                  child: Column(
+                    children: [
+                      const Text(
+                        'No properties found',
+                        style: TextStyle(color: Colors.white),
+                      ),
+                      const SizedBox(height: 16),
+                      ElevatedButton(
+                        onPressed: () async {
+                          await ref
+                              .read(propertyRepositoryProvider)
+                              .seedProperties();
+                        },
+                        child: const Text('Seed Mock Data'),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }
+            return SliverList(
+              delegate: SliverChildBuilderDelegate((context, index) {
+                if (index == properties.length) {
+                  return const SizedBox(height: 100);
+                }
+                final property = properties[index];
+                return PropertyCard(
+                  title: property.title,
+                  location: property.location,
+                  price: '\$${property.price.toStringAsFixed(2)}',
+                  yield: '${property.yieldRate}%',
+                  available: property.available.toString(),
+                  image: property.imageUrl,
+                  tag: property.tag,
+                  condition: property.condition,
+                  tierIndex: property.tierIndex,
+                  onTap: () =>
+                      context.push('/property-details', extra: property),
+                );
+              }, childCount: properties.length + 1),
+            );
+          },
+          loading: () => const SliverToBoxAdapter(
+            child: Center(child: CircularProgressIndicator()),
+          ),
+          error: (error, stack) => SliverToBoxAdapter(
+            child: Center(
+              child: Text(
+                'Error: $error',
+                style: const TextStyle(color: Colors.red),
+              ),
+            ),
+          ),
+        );
+  }
+
+  Widget _buildProjectList(WidgetRef ref) {
+    return ref
+        .watch(projectListProvider)
+        .when(
+          data: (projects) {
+            if (projects.isEmpty) {
+              return const SliverToBoxAdapter(
+                child: Center(
+                  child: Text(
+                    'No projects found',
+                    style: TextStyle(color: Colors.white),
+                  ),
+                ),
+              );
+            }
+            return SliverList(
+              delegate: SliverChildBuilderDelegate((context, index) {
+                if (index == projects.length) {
+                  return const SizedBox(height: 100);
+                }
+                return ProjectCard(project: projects[index]);
+              }, childCount: projects.length + 1),
+            );
+          },
+          loading: () => const SliverToBoxAdapter(
+            child: Center(child: CircularProgressIndicator()),
+          ),
+          error: (error, stack) => SliverToBoxAdapter(
+            child: Center(
+              child: Text(
+                'Error: $error',
+                style: const TextStyle(color: Colors.red),
+              ),
+            ),
+          ),
+        );
   }
 
   Widget _buildStatCard(String value, String label, {bool isPrimary = false}) {

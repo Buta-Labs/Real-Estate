@@ -344,7 +344,7 @@ class _SecurityCard extends StatelessWidget {
                 ],
               ),
             ),
-            if (trailing != null) trailing!,
+            ?trailing,
             if (showChevron && trailing == null)
               const Icon(Icons.chevron_right, color: Colors.white24, size: 20),
           ],

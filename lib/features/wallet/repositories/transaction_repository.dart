@@ -44,8 +44,9 @@ class TransactionRepository {
       // Add contract metadata if provided
       if (contractUrl != null) transactionData['contractUrl'] = contractUrl;
       if (contractHash != null) transactionData['contractHash'] = contractHash;
-      if (tier2Acknowledged != null)
+      if (tier2Acknowledged != null) {
         transactionData['tier2Acknowledged'] = tier2Acknowledged;
+      }
       if (tier2AcknowledgmentTime != null) {
         transactionData['tier2AcknowledgmentTime'] = Timestamp.fromDate(
           tier2AcknowledgmentTime,
