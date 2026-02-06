@@ -20,7 +20,16 @@ final portfolioAssetsProvider = FutureProvider.autoDispose<List<PortfolioItem>>(
           property.contractAddress,
         );
         if (balance > 0) {
-          ownedItems.add(PortfolioItem(property: property, balance: balance));
+          final claimable = await blockchainRepo.getClaimableRent(
+            property.contractAddress,
+          );
+          ownedItems.add(
+            PortfolioItem(
+              property: property,
+              balance: balance,
+              claimableRent: claimable,
+            ),
+          );
         }
       }
     }

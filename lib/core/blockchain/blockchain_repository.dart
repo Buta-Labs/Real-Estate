@@ -14,7 +14,7 @@ class BlockchainRepository {
       "https://sepolia.base.org"; // Base Sepolia Testnet
   static const int chainId = 84532;
   static const String zavodFactoryAddress =
-      '0x9dF54ff90dB32e381CE1Bd980266674818318f09';
+      '0x3793d34F8fB97665c530414307A035D9441a524e';
 
   late final Web3Client _client;
   late final ReownAppKitModal _appKitModal;
@@ -547,6 +547,95 @@ class BlockchainRepository {
     } catch (e) {
       debugPrint('Error fetching property details for $address: $e');
       return {};
+    }
+  }
+
+  Future<double> getClaimableRent(String propertyAddress) async {
+    try {
+      if (!_appKitModal.isConnected) return 0.0;
+      final senderAddressStr = _appKitModal
+          .session
+          ?.namespaces?['eip155']
+          ?.accounts
+          .first
+          .split(':')
+          .last;
+      if (senderAddressStr == null) return 0.0;
+      final senderAddress = EthereumAddress.fromHex(senderAddressStr);
+
+      const abi =
+          '[{"inputs":[{"internalType":"address","name":"user","type":"address"}],"name":"getClaimableRent","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"}]';
+      final contract = DeployedContract(
+        ContractAbi.fromJson(abi, 'PropertyToken'),
+        EthereumAddress.fromHex(propertyAddress),
+      );
+
+      final func = contract.function('getClaimableRent');
+      final result = await _client.call(
+        contract: contract,
+        function: func,
+        params: [senderAddress],
+      );
+
+      final amount = result.first as BigInt;
+      // Result is in USDC decimals (6)
+      return amount.toDouble() / 1000000.0;
+    } catch (e) {
+      debugPrint('Error fetching claimable rent: $e');
+      return 0.0;
+    }
+  }
+
+  Future<BlockchainResult<String>> claimRent(
+    String propertyAddress, {
+    Function(String)? onStatusChanged,
+  }) async {
+    try {
+      if (!_appKitModal.isConnected) return const Failure(WalletNotConnected());
+
+      final senderAddress = _appKitModal
+          .session
+          ?.namespaces?['eip155']
+          ?.accounts
+          .first
+          .split(':')
+          .last;
+      if (senderAddress == null) {
+        return const Failure(UnknownError('No account found'));
+      }
+
+      onStatusChanged?.call('Please sign to claim rent...');
+
+      const abi =
+          '[{"inputs":[],"name":"claimRent","outputs":[],"stateMutability":"nonpayable","type":"function"}]';
+      final contract = DeployedContract(
+        ContractAbi.fromJson(abi, 'PropertyToken'),
+        EthereumAddress.fromHex(propertyAddress),
+      );
+      final claimFunc = contract.function('claimRent');
+      final data = claimFunc.encodeCall([]);
+      final dataHex =
+          '0x${data.map((b) => b.toRadixString(16).padLeft(2, '0')).join()}';
+
+      final tx = {
+        'from': senderAddress,
+        'to': propertyAddress,
+        'data': dataHex,
+      };
+
+      final result = await _appKitModal.request(
+        topic: _appKitModal.session!.topic!,
+        chainId: 'eip155:$chainId',
+        request: SessionRequestParams(
+          method: 'eth_sendTransaction',
+          params: [tx],
+        ),
+      );
+
+      onStatusChanged?.call('Claim Transaction Submitted!');
+      return Success(result.toString());
+    } catch (e) {
+      return Failure(UnknownError(e));
     }
   }
 }

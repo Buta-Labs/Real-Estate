@@ -6,6 +6,8 @@ import 'package:orre_mmc_app/shared/widgets/glass_container.dart';
 import 'package:orre_mmc_app/theme/app_colors.dart';
 import 'package:orre_mmc_app/features/portfolio/providers/portfolio_provider.dart';
 import 'package:orre_mmc_app/features/portfolio/models/portfolio_item.dart';
+import 'package:orre_mmc_app/core/blockchain/blockchain_repository.dart';
+import 'package:orre_mmc_app/core/blockchain/blockchain_result.dart';
 
 class PortfolioScreen extends ConsumerWidget {
   const PortfolioScreen({super.key});
@@ -142,6 +144,13 @@ class PortfolioScreen extends ConsumerWidget {
                   delegate: SliverChildListDelegate([
                     // Portfolio Header Card
                     _buildPortfolioHeader(portfolioAsync),
+
+                    const SizedBox(height: 16),
+
+                    // Claimable Earnings Section
+                    _buildClaimableEarnings(portfolioAsync, ref),
+
+                    const SizedBox(height: 16),
 
                     const SizedBox(height: 16),
 
@@ -514,6 +523,141 @@ class PortfolioScreen extends ConsumerWidget {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildClaimableEarnings(
+    AsyncValue<List<PortfolioItem>> portfolioAsync,
+    WidgetRef ref,
+  ) {
+    return portfolioAsync.when(
+      data: (items) {
+        final totalClaimable = items.fold(
+          0.0,
+          (sum, item) => sum + item.claimableRent,
+        );
+
+        // If nothing to claim, don't show the section
+        if (totalClaimable <= 0) return const SizedBox.shrink();
+
+        return GlassContainer(
+          padding: const EdgeInsets.all(16),
+          borderRadius: BorderRadius.circular(16),
+          color: AppColors.accentBlue.withValues(alpha: 0.1),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  const Icon(Icons.savings, color: AppColors.primary),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Claimable Earnings',
+                    style: GoogleFonts.manrope(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const Spacer(),
+                  Text(
+                    '\$${totalClaimable.toStringAsFixed(2)}',
+                    style: GoogleFonts.manrope(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.primary,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              const Divider(color: Colors.white10),
+              ...items.where((i) => i.claimableRent > 0).map((item) {
+                return Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          item.property.title,
+                          style: GoogleFonts.manrope(
+                            color: Colors.grey[300],
+                            fontSize: 14,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      TextButton.icon(
+                        onPressed: () async {
+                          final repo = ref.read(blockchainRepositoryProvider);
+                          ScaffoldMessenger.of(ref.context).showSnackBar(
+                            const SnackBar(
+                              content: Text(
+                                'Initiating Claim... Check Wallet.',
+                              ),
+                            ),
+                          );
+                          final result = await repo.claimRent(
+                            item.property.contractAddress,
+                            onStatusChanged: (status) {
+                              // Optional: Toast or logs
+                              debugPrint(status);
+                            },
+                          );
+
+                          if (ref.context.mounted) {
+                            // check mounted
+                            if (result is Success) {
+                              ScaffoldMessenger.of(ref.context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Claim Success! Refreshing...'),
+                                  backgroundColor: Colors.green,
+                                ),
+                              );
+                              // Refresh the provider to update UI
+                              ref.invalidate(portfolioAssetsProvider);
+                            } else {
+                              ScaffoldMessenger.of(ref.context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Claim Failed'),
+                                  backgroundColor: Colors.red,
+                                ),
+                              );
+                            }
+                          }
+                        },
+                        icon: const Icon(
+                          Icons.download_rounded,
+                          size: 16,
+                          color: AppColors.primary,
+                        ),
+                        label: Text(
+                          'Claim \$${item.claimableRent.toStringAsFixed(2)}',
+                          style: GoogleFonts.manrope(
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.primary,
+                          ),
+                        ),
+                        style: TextButton.styleFrom(
+                          backgroundColor: AppColors.primary.withValues(
+                            alpha: 0.1,
+                          ),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 8,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }),
+            ],
+          ),
+        );
+      },
+      loading: () => const SizedBox.shrink(),
+      error: (_, __) => const SizedBox.shrink(),
     );
   }
 }

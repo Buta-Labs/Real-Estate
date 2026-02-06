@@ -23,6 +23,22 @@
           }
         },
         {
+          "client_id": "99513276497-nl4v00qp5g20lnnigv3je1aspaurmj05.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.orre.app",
+            "certificate_hash": "8b78924ecbbe2015ac63eed000bd4ee1462ae8d5"
+          }
+        },
+        {
+          "client_id": "99513276497-qohqe184msr7kqvdhbm98jta1gcm91lv.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.orre.app",
+            "certificate_hash": "f220f1e1a94be9ef4c06d5774c4dbb45938cb70e"
+          }
+        },
+        {
           "client_id": "99513276497-37jaa0jlojlh9bbuv12146o675l6k4cf.apps.googleusercontent.com",
           "client_type": 3
         }
@@ -40,10 +56,11 @@
               "client_type": 3
             },
             {
-              "client_id": "99513276497-gttf5ao788ldr7t846v4dkekbpjn1s0o.apps.googleusercontent.com",
+              "client_id": "99513276497-8v554k13a6odn0n1tplvkau6433a1jhh.apps.googleusercontent.com",
               "client_type": 2,
               "ios_info": {
-                "bundle_id": "com.orre.app"
+                "bundle_id": "com.orre.app",
+                "app_store_id": "6482423453"
               }
             }
           ]
