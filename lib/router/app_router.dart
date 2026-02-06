@@ -43,6 +43,8 @@ import 'package:orre_mmc_app/features/marketplace/screens/heat_map_screen.dart';
 import 'package:orre_mmc_app/features/marketplace/screens/risk_assessment_screen.dart';
 import 'package:orre_mmc_app/features/marketplace/screens/appraisal_history_screen.dart';
 import 'package:orre_mmc_app/features/marketplace/screens/exit_strategy_screen.dart';
+import 'package:orre_mmc_app/features/marketplace/screens/offering_memorandum_screen.dart';
+import 'package:orre_mmc_app/features/marketplace/screens/map_view_screen.dart';
 import 'package:orre_mmc_app/features/wallet/screens/bank_transfer_screen.dart';
 import 'package:orre_mmc_app/features/wallet/screens/convert_screen.dart';
 import 'package:orre_mmc_app/features/wallet/screens/select_asset_screen.dart';
@@ -327,11 +329,17 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '/appraisal-history',
-        builder: (context, state) => const AppraisalHistoryScreen(),
+        builder: (context, state) {
+          final property = state.extra as Property;
+          return AppraisalHistoryScreen(property: property);
+        },
       ),
       GoRoute(
         path: '/exit-strategy',
-        builder: (context, state) => const ExitStrategyScreen(),
+        builder: (context, state) {
+          final property = state.extra as Property;
+          return ExitStrategyScreen(property: property);
+        },
       ),
       GoRoute(
         path: '/bank-transfer',
@@ -352,6 +360,17 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/success',
         builder: (context, state) => const SuccessScreen(),
+      ),
+      GoRoute(
+        path: '/map-view',
+        builder: (context, state) => const MapViewScreen(),
+      ),
+      GoRoute(
+        path: '/offering-memorandum',
+        builder: (context, state) {
+          final tierIndex = state.extra as int;
+          return OfferingMemorandumScreen(tierIndex: tierIndex);
+        },
       ),
       GoRoute(
         path: '/mfa-enrollment',

@@ -15,6 +15,7 @@ class Project {
   final String areaRange;
   final List<String> gallery;
   final List<String> amenities;
+  final String videoUrl;
 
   Project({
     required this.id,
@@ -31,6 +32,7 @@ class Project {
     required this.areaRange,
     required this.gallery,
     required this.amenities,
+    this.videoUrl = '',
   });
 
   factory Project.fromMap(String id, Map<String, dynamic> map) {
@@ -53,6 +55,7 @@ class Project {
       areaRange: map['areaRange'] ?? '',
       gallery: List<String>.from(map['gallery'] ?? []),
       amenities: List<String>.from(map['amenities'] ?? []),
+      videoUrl: map['videoUrl'] ?? '',
     );
   }
 
@@ -75,6 +78,7 @@ class Project {
       'areaRange': areaRange,
       'gallery': gallery,
       'amenities': amenities,
+      'videoUrl': videoUrl,
     };
   }
 }

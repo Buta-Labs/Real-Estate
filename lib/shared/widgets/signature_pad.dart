@@ -19,11 +19,7 @@ class SignaturePad extends StatefulWidget {
 }
 
 class _SignaturePadState extends State<SignaturePad> {
-  final HandSignatureControl controller = HandSignatureControl(
-    threshold: 3.0,
-    smoothRatio: 0.65,
-    velocityRange: 2.0,
-  );
+  final HandSignatureControl controller = HandSignatureControl();
 
   ValueNotifier<String?> svg = ValueNotifier<String?>(null);
   ValueNotifier<bool> hasSignature = ValueNotifier<bool>(false);

@@ -1,35 +1,71 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Allow users to read and write their own profile
-    // Modified to allow ADMIN (any auth user for now) to read all users for Dashboard stats
+    // Users collection - allow users to create and manage their own profiles
     match /users/{userId} {
+      // Anyone authenticated can read user profiles (for admin dashboard stats)
       allow read: if request.auth != null;
-      allow write: if request.auth != null && request.auth.uid == userId;
       
-      // Allow users to manage their own login history
+      // Users can create their own document during signup
+      allow create: if request.auth != null && request.auth.uid == userId;
+      
+      // Users can update their own profile fields (except KYC verification)
+      allow update: if request.auth != null 
+        && request.auth.uid == userId
+        && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['kycVerified', 'kycVerifiedAt', 'kycVerifiedBy', 'verificationStatus']));
+      
+      // Allow admins to update KYC fields (we'll use custom claims in production)
+      // For now, allow if user email matches admin pattern
+      allow update: if request.auth != null 
+        && request.auth.token.email.matches('.*@orrepanel.com$');
+      
+      // Delete own account
+      allow delete: if request.auth != null && request.auth.uid == userId;
+      
+      // Login history subcollection
       match /login_history/{historyId} {
         allow read, write: if request.auth != null && request.auth.uid == userId;
       }
       
-      // Allow users to manage their transactions
+      // User transactions
       match /transactions/{transactionId} {
         allow read, write: if request.auth != null && request.auth.uid == userId;
       }
     }
     
-    // Allow public read for projects and properties, write for authenticated users
+    // Projects - public read, authenticated write
     match /projects/{projectId} {
       allow read: if true;
       allow write: if request.auth != null;
     }
     
+    // Properties - public read, authenticated write
     match /properties/{propertyId} {
+      allow read: if true;
+      allow write: if request.auth != null;
+      
+      // Valuations subcollection (for appraisal history)
+      match /valuations/{valuationId} {
+        allow read: if request.auth != null;
+        // Only admins can write valuations
+        allow write: if request.auth != null 
+          && request.auth.token.email.matches('.*@orrepanel.com$');
+      }
+    }
+
+    // Admin configuration
+    match /admins/{adminId} {
+      allow read: if request.auth != null;
+      allow write: if false; // Only via Firebase Console or Admin SDK
+    }
+
+    // Property documents metadata
+    match /propertyDocuments/{docId} {
       allow read: if true;
       allow write: if request.auth != null;
     }
 
-    // Default deny
+    // Default deny all other collections
     match /{document=**} {
       allow read, write: if false;
     }

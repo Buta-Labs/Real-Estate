@@ -638,4 +638,86 @@ class BlockchainRepository {
       return Failure(UnknownError(e));
     }
   }
+
+  /// Get total dividends distributed for a property
+  Future<double> getTotalDividendsDistributed(String propertyAddress) async {
+    try {
+      const abi =
+          '[{"inputs":[],"name":"totalDividendsDistributed","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"}]';
+
+      final contract = DeployedContract(
+        ContractAbi.fromJson(abi, 'PropertyToken'),
+        EthereumAddress.fromHex(propertyAddress),
+      );
+
+      final function = contract.function('totalDividendsDistributed');
+      final result = await _client.call(
+        contract: contract,
+        function: function,
+        params: [],
+      );
+
+      // Result is in wei with 6 decimals (USDC)
+      final totalWei = result.first as BigInt;
+      return totalWei.toDouble() / 1000000; // Convert from 6 decimals
+    } catch (e) {
+      debugPrint('Error getting total dividends: $e');
+      return 0.0;
+    }
+  }
+
+  /// Get user's token balance for a property
+  Future<double> getUserTokenBalance(
+    String propertyAddress,
+    String userAddress,
+  ) async {
+    try {
+      const abi =
+          '[{"inputs":[{"internalType":"address","name":"account","type":"address"}],"name":"balanceOf","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"}]';
+
+      final contract = DeployedContract(
+        ContractAbi.fromJson(abi, 'PropertyToken'),
+        EthereumAddress.fromHex(propertyAddress),
+      );
+
+      final function = contract.function('balanceOf');
+      final result = await _client.call(
+        contract: contract,
+        function: function,
+        params: [EthereumAddress.fromHex(userAddress)],
+      );
+
+      final balance = result.first as BigInt;
+      return balance.toDouble();
+    } catch (e) {
+      debugPrint('Error getting token balance: $e');
+      return 0.0;
+    }
+  }
+
+  /// Get total supply of property tokens
+  Future<double> getTotalSupply(String propertyAddress) async {
+    try {
+      const abi =
+          '[{"inputs":[],"name":"totalSupply","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"}]';
+
+      final contract = DeployedContract(
+        ContractAbi.fromJson(abi, 'PropertyToken'),
+        EthereumAddress.fromHex(propertyAddress),
+      );
+
+      final function = contract.function('totalSupply');
+      final result = await _client.call(
+        contract: contract,
+        function: function,
+        params: [],
+      );
+
+      final supply = result.first as BigInt;
+      return supply.toDouble();
+    } catch (e) {
+      debugPrint('Error getting total supply: $e');
+      return 0.0;
+    }
+  }
 }

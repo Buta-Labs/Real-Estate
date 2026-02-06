@@ -1,4 +1,37 @@
 {
-    "indexes": [],
+    "indexes": [
+        {
+            "collectionGroup": "propertyDocuments",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "propertyId",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "uploadedAt",
+                    "order": "DESCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "propertyDocuments",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "propertyId",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "documentType",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "uploadedAt",
+                    "order": "DESCENDING"
+                }
+            ]
+        }
+    ],
     "fieldOverrides": []
 }

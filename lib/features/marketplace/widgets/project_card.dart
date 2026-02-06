@@ -16,55 +16,56 @@ class ProjectCard extends StatelessWidget {
       child: Container(
         margin: const EdgeInsets.only(bottom: 16),
         decoration: BoxDecoration(
-          color: const Color(0xFF1C2333),
+          color: AppColors.card,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.1),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Image Section
-            ClipRRect(
-              borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(16),
-              ),
-              child: Stack(
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Image Section
+              Stack(
                 children: [
-                  Image.network(
-                    project.heroImage.isNotEmpty
-                        ? project.heroImage
-                        : 'https://via.placeholder.com/400x200',
-                    height: 200,
+                  Container(
+                    height: 180,
                     width: double.infinity,
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => Container(
-                      height: 200,
-                      color: Colors.grey[900],
-                      child: const Center(
-                        child: Icon(
-                          Icons.business,
-                          size: 48,
-                          color: Colors.grey,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(12),
+                      image: DecorationImage(
+                        image: NetworkImage(
+                          project.heroImage.isNotEmpty
+                              ? project.heroImage
+                              : 'https://via.placeholder.com/400x200',
                         ),
+                        fit: BoxFit.cover,
                       ),
                     ),
                   ),
                   Positioned(
-                    top: 12,
-                    right: 12,
+                    top: 8,
+                    right: 8,
                     child: Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 8,
                         vertical: 4,
                       ),
                       decoration: BoxDecoration(
-                        color: Colors.black.withValues(alpha: 0.6),
-                        borderRadius: BorderRadius.circular(4),
+                        color: AppColors.primary,
+                        borderRadius: BorderRadius.circular(6),
                       ),
                       child: Text(
                         project.status.toUpperCase(),
                         style: const TextStyle(
-                          color: AppColors.primary,
+                          color: Colors.black,
                           fontSize: 10,
                           fontWeight: FontWeight.bold,
                         ),
@@ -73,12 +74,10 @@ class ProjectCard extends StatelessWidget {
                   ),
                 ],
               ),
-            ),
+              const SizedBox(height: 12),
 
-            // Content Section
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
+              // Content Section
+              Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
@@ -99,13 +98,14 @@ class ProjectCard extends StatelessWidget {
                       Container(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 8,
-                          vertical: 2,
+                          vertical: 4,
                         ),
                         decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.05),
+                          borderRadius: BorderRadius.circular(6),
                           border: Border.all(
-                            color: Colors.white.withValues(alpha: 0.2),
+                            color: Colors.white.withValues(alpha: 0.1),
                           ),
-                          borderRadius: BorderRadius.circular(4),
                         ),
                         child: Text(
                           project.type,
@@ -120,7 +120,7 @@ class ProjectCard extends StatelessWidget {
                   const SizedBox(height: 8),
                   Text(
                     project.description,
-                    style: TextStyle(color: Colors.grey[400], fontSize: 12),
+                    style: TextStyle(color: Colors.grey[400], fontSize: 13),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -130,19 +130,22 @@ class ProjectCard extends StatelessWidget {
                   Row(
                     children: [
                       _buildStat(
-                        Icons.maps_home_work,
+                        Icons.maps_home_work_outlined,
                         '${project.totalUnits} Units',
                       ),
                       const SizedBox(width: 16),
-                      _buildStat(Icons.layers, '${project.floors} Floors'),
+                      _buildStat(
+                        Icons.layers_outlined,
+                        '${project.floors} Floors',
+                      ),
                       const SizedBox(width: 16),
                       _buildStat(Icons.square_foot, project.areaRange),
                     ],
                   ),
                 ],
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

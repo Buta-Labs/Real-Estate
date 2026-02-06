@@ -2,40 +2,108 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
+import 'package:intl/intl.dart';
 import 'package:orre_mmc_app/theme/app_colors.dart';
 import 'package:orre_mmc_app/shared/screens/full_screen_gallery_screen.dart';
 
 import 'package:orre_mmc_app/features/marketplace/models/property_model.dart';
+import 'package:orre_mmc_app/features/marketplace/widgets/documents_tab.dart';
+import 'package:orre_mmc_app/features/marketplace/widgets/financials_tab.dart';
+import 'package:orre_mmc_app/features/marketplace/repositories/investment_repository.dart';
+import 'package:orre_mmc_app/core/blockchain/blockchain_providers.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class PropertyDetailsScreen extends StatefulWidget {
+class PropertyDetailsScreen extends ConsumerStatefulWidget {
   final Property property;
 
   const PropertyDetailsScreen({super.key, required this.property});
 
   @override
-  State<PropertyDetailsScreen> createState() => _PropertyDetailsScreenState();
+  ConsumerState<PropertyDetailsScreen> createState() =>
+      _PropertyDetailsScreenState();
 }
 
-class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
+class _PropertyDetailsScreenState extends ConsumerState<PropertyDetailsScreen> {
   int _selectedTabIndex = 0;
   bool _showScarcity = false;
   double _investmentAmount = 2500;
+  double? _liveTotalRaised;
+  double? _liveTargetRaise;
 
   double get _monthlyIncome =>
       (_investmentAmount * (widget.property.yieldRate / 100)) / 12;
   double get _fiveYearReturn =>
       (_investmentAmount * (widget.property.yieldRate / 100)) * 5;
 
+  double get _percentSold {
+    double percent = 0.0;
+    if (_liveTargetRaise != null &&
+        _liveTotalRaised != null &&
+        _liveTargetRaise! > 0) {
+      percent = (_liveTotalRaised! / _liveTargetRaise!) * 100;
+    } else if (widget.property.totalTokens > 0) {
+      percent =
+          ((widget.property.totalTokens - widget.property.available) /
+              widget.property.totalTokens) *
+          100;
+    }
+    // Final safety guards
+    if (percent.isInfinite || percent.isNaN || percent < 0) return 0.0;
+    return percent.clamp(0.0, 100.0);
+  }
+
   @override
   void initState() {
     super.initState();
-    // Simulate finding a hot property if it's high demand
-    if (widget.property.tag == 'Trending') {
-      Future.delayed(const Duration(seconds: 2), () {
-        if (mounted) {
-          setState(() {
-            _showScarcity = true;
-          });
+    _loadLiveBlockchainData();
+
+    // Set initial investment based on tier minimum
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final invRepo = ref.read(investmentRepositoryProvider);
+      setState(() {
+        _investmentAmount = invRepo.getMinimumInvestment(
+          widget.property.tierIndex,
+        );
+      });
+    });
+  }
+
+  Future<void> _loadLiveBlockchainData() async {
+    if (widget.property.contractAddress.isEmpty) return;
+
+    final blockchain = ref.read(blockchainRepositoryProvider);
+    final details = await blockchain.getPropertyDetails(
+      widget.property.contractAddress,
+    );
+
+    if (kDebugMode) {
+      debugPrint('Blockchain Data for ${widget.property.title}: $details');
+    }
+
+    if (details.isNotEmpty && mounted) {
+      setState(() {
+        _liveTotalRaised = details['totalRaised'] as double?;
+        _liveTargetRaise = details['targetRaise'] as double?;
+
+        // Scarcity alert: only if < 5% remaining
+        if (_liveTargetRaise != null &&
+            _liveTotalRaised != null &&
+            _liveTargetRaise! > 0) {
+          final remainingPercent =
+              ((_liveTargetRaise! - _liveTotalRaised!) / _liveTargetRaise!) *
+              100;
+
+          if (remainingPercent < 5 && remainingPercent > 0) {
+            Future.delayed(const Duration(seconds: 2), () {
+              if (mounted) {
+                setState(() {
+                  _showScarcity = true;
+                });
+              }
+            });
+          }
         }
       });
     }
@@ -62,15 +130,24 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                       const SizedBox(height: 24),
                       _buildSegmentedControl(),
                       const SizedBox(height: 24),
-                      _buildRoiSimulator(),
-                      const SizedBox(height: 24),
-                      _buildGallerySection(),
-                      const SizedBox(height: 24),
-                      _buildAboutSection(),
-                      const SizedBox(height: 24),
-                      _buildLocationMap(),
-                      const SizedBox(height: 24),
-                      _buildActionButtons(context),
+                      // Conditional content based on selected tab
+                      if (_selectedTabIndex == 0) ...[
+                        _buildRoiSimulator(),
+                        const SizedBox(height: 24),
+                        _buildGallerySection(),
+                        const SizedBox(height: 24),
+                        _buildAboutSection(),
+                        const SizedBox(height: 24),
+                        _buildLocationMap(),
+                        const SizedBox(height: 24),
+                        _buildActionButtons(context),
+                      ] else if (_selectedTabIndex == 1) ...[
+                        // Financials tab - no fixed height for proper scrolling
+                        FinancialsTab(property: widget.property),
+                      ] else if (_selectedTabIndex == 2) ...[
+                        // Documents tab
+                        DocumentsTab(propertyId: widget.property.id),
+                      ],
                       const SizedBox(height: 120), // Bottom padding
                     ],
                   ),
@@ -133,7 +210,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                   ? widget.property.imageUrl
                   : 'https://via.placeholder.com/400',
               fit: BoxFit.cover,
-              errorBuilder: (_, __, ___) => Container(color: Colors.grey[900]),
+              errorBuilder: (_, _, _) => Container(color: Colors.grey[900]),
             ),
             Container(
               decoration: BoxDecoration(
@@ -250,8 +327,11 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
             children: [
               Expanded(
                 child: _buildStatItem(
-                  'Token Price',
-                  '\$${widget.property.price.toStringAsFixed(2)}',
+                  'Sale Price',
+                  NumberFormat.currency(
+                    symbol: '\$',
+                    decimalDigits: 0,
+                  ).format(widget.property.price),
                 ),
               ),
               Expanded(
@@ -323,9 +403,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
           ClipRRect(
             borderRadius: BorderRadius.circular(4),
             child: LinearProgressIndicator(
-              value: widget.property.available > 0
-                  ? 0.4
-                  : 1.0, // Mock progress based on availability
+              value: _percentSold / 100,
               backgroundColor: const Color(0xFF324467),
               valueColor: const AlwaysStoppedAnimation<Color>(
                 AppColors.primary,
@@ -334,14 +412,22 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
             ),
           ),
           const SizedBox(height: 8),
-          const Row(
+          Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
+              const Text(
                 'Investors',
                 style: TextStyle(color: Colors.grey, fontSize: 12),
               ),
               Text(
+                '${_percentSold.toStringAsFixed(0)}% Sold',
+                style: const TextStyle(
+                  color: AppColors.primary,
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const Text(
                 'Closing soon',
                 style: TextStyle(color: Colors.grey, fontSize: 12),
               ),
@@ -375,12 +461,16 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
             ),
           ),
           const SizedBox(height: 4),
-          Text(
-            value,
-            style: TextStyle(
-              color: valueColor,
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: Text(
+              value,
+              style: TextStyle(
+                color: valueColor,
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ),
         ],
@@ -478,9 +568,11 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
           ),
           Slider(
             value: _investmentAmount,
-            min: 50,
+            min: ref
+                .read(investmentRepositoryProvider)
+                .getMinimumInvestment(widget.property.tierIndex),
             max: 10000,
-            divisions: 199,
+            divisions: 39, // Adjust steps for better feel
             activeColor: AppColors.primary,
             inactiveColor: const Color(0xFF324467),
             onChanged: (value) {
@@ -489,13 +581,62 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
               });
             },
           ),
-          const Row(
+          Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('\$50', style: TextStyle(color: Colors.grey, fontSize: 10)),
+              Text(
+                '\$${ref.read(investmentRepositoryProvider).getMinimumInvestment(widget.property.tierIndex).toInt()}',
+                style: TextStyle(color: Colors.grey, fontSize: 10),
+              ),
               Text('\$10k', style: TextStyle(color: Colors.grey, fontSize: 10)),
             ],
           ),
+          if (widget.property.tierIndex == 2) ...[
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: AppColors.primary.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: AppColors.primary.withValues(alpha: 0.2),
+                ),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.hotel, color: AppColors.primary, size: 20),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'OWN STAY BENEFIT',
+                          style: TextStyle(
+                            color: AppColors.primary,
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 1,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          _investmentAmount >= 5000
+                              ? "You unlocked ${ref.read(investmentRepositoryProvider).calculateStayDays(_investmentAmount, widget.property.price)} Days/Year"
+                              : "Invest at least \$5,000 to unlock stay rights",
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
           const SizedBox(height: 24),
           Row(
             children: [
@@ -741,7 +882,25 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
 
   Widget _buildLocationMap() {
     final locationText = widget.property.location;
-    final hasCoords = widget.property.locationCoordinates.isNotEmpty;
+    final coords = widget.property.locationCoordinates;
+
+    // Default center (Baku, Azerbaijan) if no coordinates
+    LatLng center = const LatLng(40.4093, 49.8671);
+    bool hasValidCoords = false;
+
+    if (coords.isNotEmpty && coords.contains(',')) {
+      try {
+        final parts = coords.split(',');
+        if (parts.length == 2) {
+          final lat = double.parse(parts[0].trim());
+          final lng = double.parse(parts[1].trim());
+          center = LatLng(lat, lng);
+          hasValidCoords = true;
+        }
+      } catch (e) {
+        debugPrint('Error parsing coordinates: $e');
+      }
+    }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -774,28 +933,61 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
             color: const Color(0xFF1C2333),
             borderRadius: BorderRadius.circular(16),
             border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
-            image: DecorationImage(
-              image: NetworkImage(
-                hasCoords &&
-                        widget.property.locationCoordinates.contains('25.0772')
-                    ? 'https://lh3.googleusercontent.com/aida-public/AB6AXuCHWLtJ2N6hOY7O-BlmPITGOmQqINXtWTMLRtymfjzRKYi7Wv0eSTISMXALPPHSMC5Di10-y2-nLegoSP9ZmHemdsE4FWUILVaEzkxzXExncjSaeNjTZMa4SDylGxgb9hYLpLhVqFglx6H4PTfI6gOVgHWiZha_1O8oEWP30jljiMSpx4wH_6-7RPYWCG8MNeK4CX4M7Y4nQIbuvycQNzxj7u7VQUekQgJl4Y43BxzAS2ROX2FhlHjtk-lm-V9U2EsfufSDOzP2SQ'
-                    : 'https://images.unsplash.com/photo-1526778548025-fa2f459cd5c1?auto=format&fit=crop&q=80', // Generic map/travel image
-              ),
-              fit: BoxFit.cover,
-              opacity: 0.4,
-            ),
           ),
-          child: Center(
-            child: ElevatedButton.icon(
-              onPressed: _openMap,
-              icon: const Icon(Icons.map, size: 16),
-              label: const Text('View on Map'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.white.withValues(alpha: 0.1),
-                foregroundColor: Colors.white,
-                elevation: 0,
-                side: BorderSide(color: Colors.white.withValues(alpha: 0.2)),
-              ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(16),
+            child: Stack(
+              children: [
+                FlutterMap(
+                  options: MapOptions(
+                    initialCenter: center,
+                    initialZoom: 15.0,
+                    interactionOptions: const InteractionOptions(
+                      flags: InteractiveFlag
+                          .none, // Disable interaction in mini map
+                    ),
+                  ),
+                  children: [
+                    TileLayer(
+                      urlTemplate:
+                          'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                      userAgentPackageName: 'com.orre.app',
+                    ),
+                    if (hasValidCoords)
+                      MarkerLayer(
+                        markers: [
+                          Marker(
+                            point: center,
+                            width: 40,
+                            height: 40,
+                            child: const Icon(
+                              Icons.location_on,
+                              color: AppColors.primary,
+                              size: 40,
+                            ),
+                          ),
+                        ],
+                      ),
+                  ],
+                ),
+                // Overlay to dim the map slightly and make the button pop
+                Container(color: Colors.black.withValues(alpha: 0.2)),
+                Center(
+                  child: ElevatedButton.icon(
+                    onPressed: _openMap,
+                    icon: const Icon(Icons.map, size: 16),
+                    label: const Text('View on Map'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.black.withValues(alpha: 0.6),
+                      foregroundColor: Colors.white,
+                      elevation: 0,
+                      side: BorderSide(
+                        color: Colors.white.withValues(alpha: 0.2),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         ),
@@ -821,7 +1013,8 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
             const SizedBox(width: 12),
             Expanded(
               child: GestureDetector(
-                onTap: () => context.push('/appraisal-history'),
+                onTap: () =>
+                    context.push('/appraisal-history', extra: widget.property),
                 child: _buildSecondaryButton(
                   icon: Icons.history_edu,
                   label: 'Appraisals',
@@ -846,15 +1039,12 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
         ),
         const SizedBox(height: 12),
         GestureDetector(
-          onTap: () => context.push('/exit-strategy'),
-          child: Text(
-            'VIEW EXIT STRATEGY OPTIONS',
-            style: TextStyle(
-              color: Colors.grey[500],
-              fontSize: 12,
-              fontWeight: FontWeight.bold,
-              letterSpacing: 1,
-            ),
+          onTap: () => context.push('/exit-strategy', extra: widget.property),
+          child: _buildListButton(
+            Icons.exit_to_app,
+            'Exit Strategy',
+            'Your path to liquidity',
+            iconColor: Colors.orange,
           ),
         ),
       ],

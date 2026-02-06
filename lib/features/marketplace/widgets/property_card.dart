@@ -13,6 +13,9 @@ class PropertyCard extends StatelessWidget {
   final String? tag;
   final String condition;
   final int tierIndex;
+  final int rooms;
+  final double totalArea;
+  final double rawPrice;
   final VoidCallback onTap;
 
   const PropertyCard({
@@ -27,6 +30,9 @@ class PropertyCard extends StatelessWidget {
     this.tag,
     this.condition = '',
     this.tierIndex = 0,
+    this.rooms = 0,
+    this.totalArea = 0.0,
+    this.rawPrice = 0.0,
   });
 
   String _getTierLabel(int index) {
@@ -200,7 +206,7 @@ class PropertyCard extends StatelessWidget {
                                 const SizedBox(width: 4),
                                 Text(
                                   // Example: 5000 gives calculateStayRights(5000) days
-                                  '${calculateStayRights(5000).toStringAsFixed(0)} Days / \$5k',
+                                  '${calculateStayRights(5000, rawPrice)} Days / \$5k',
                                   style: const TextStyle(
                                     color: Colors.white,
                                     fontSize: 9,
@@ -237,13 +243,15 @@ class PropertyCard extends StatelessWidget {
                                 fontWeight: FontWeight.bold,
                                 color: Colors.white,
                               ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                             ),
                             const SizedBox(height: 4),
                             Row(
                               children: [
                                 Icon(
                                   Icons.location_on,
-                                  size: 16,
+                                  size: 14,
                                   color: Colors.grey[400],
                                 ),
                                 const SizedBox(width: 4),
@@ -256,6 +264,39 @@ class PropertyCard extends StatelessWidget {
                                     ),
                                     overflow: TextOverflow.ellipsis,
                                     maxLines: 1,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 8),
+                            // Details Row (Rooms & Area)
+                            Row(
+                              children: [
+                                Icon(
+                                  Icons.bed_outlined,
+                                  size: 14,
+                                  color: Colors.grey[500],
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  '$rooms rooms',
+                                  style: GoogleFonts.manrope(
+                                    fontSize: 12,
+                                    color: Colors.grey[400],
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Icon(
+                                  Icons.square_foot,
+                                  size: 14,
+                                  color: Colors.grey[500],
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  '${totalArea.toStringAsFixed(1)} m²',
+                                  style: GoogleFonts.manrope(
+                                    fontSize: 12,
+                                    color: Colors.grey[400],
                                   ),
                                 ),
                               ],
@@ -311,18 +352,22 @@ class PropertyCard extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Price per token',
+                            'Sale Price',
                             style: GoogleFonts.manrope(
                               fontSize: 10,
                               color: Colors.grey[400],
                             ),
                           ),
-                          Text(
-                            price,
-                            style: GoogleFonts.manrope(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
+                          FittedBox(
+                            fit: BoxFit.scaleDown,
+                            alignment: Alignment.centerLeft,
+                            child: Text(
+                              price,
+                              style: GoogleFonts.manrope(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
                             ),
                           ),
                           Text(

@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:orre_mmc_app/features/marketplace/models/property_model.dart';
 import 'package:orre_mmc_app/theme/app_colors.dart';
 
 class ExitStrategyScreen extends StatelessWidget {
-  const ExitStrategyScreen({super.key});
+  final Property property;
+
+  const ExitStrategyScreen({super.key, required this.property});
 
   @override
   Widget build(BuildContext context) {
@@ -36,7 +39,7 @@ class ExitStrategyScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildHero(),
+                  _buildHero(property.tierIndex),
                   const SizedBox(height: 32),
                   const Text(
                     'AVAILABLE ROUTES',
@@ -48,25 +51,7 @@ class ExitStrategyScreen extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  _buildOptionCard(
-                    'Instant',
-                    'currency_exchange',
-                    'Secondary Market (P2P)',
-                    'List your tokens on our internal marketplace to sell directly to other investors. Provides immediate liquidity based on current market demand.',
-                    'Processing: ~24-48h',
-                    'Orre Buyback',
-                    AppColors.primary,
-                  ),
-                  const SizedBox(height: 16),
-                  _buildOptionCard(
-                    'Term-based',
-                    'real_estate_agent',
-                    'Final Asset Sale',
-                    'At the end of the term (5-7 years), the physical property is sold. Tokens are redeemed for the final sale value plus all accrued appreciation.',
-                    'Est. Returns: 12-15% APY',
-                    'Investment Details',
-                    Colors.blue[400]!,
-                  ),
+                  ..._buildAvailableRoutes(property.tierIndex),
                   const SizedBox(height: 48),
                   const Row(
                     children: [
@@ -83,9 +68,9 @@ class ExitStrategyScreen extends StatelessWidget {
                     ],
                   ),
                   const SizedBox(height: 24),
-                  _buildTimeline(),
+                  _buildTimeline(property.tierIndex),
                   const SizedBox(height: 48),
-                  _buildFooterCard(),
+                  _buildFooterCard(context),
                   const SizedBox(height: 48),
                 ],
               ),
@@ -96,7 +81,26 @@ class ExitStrategyScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildHero() {
+  Widget _buildHero(int tierIndex) {
+    String subtitle;
+    switch (tierIndex) {
+      case 0: // Rental
+        subtitle =
+            'Rental tier investors can exit via P2P marketplace while maintaining monthly dividend income until sale.';
+        break;
+      case 1: // Growth
+        subtitle =
+            'Growth tier focuses on capital appreciation with a target exit in 5-7 years. No monthly income expected.';
+        break;
+      case 2: // Owner-Stay
+        subtitle =
+            'Owner-Stay investors can sell tokens P2P, but will lose usage rights. Property may be sold after 10+ years.';
+        break;
+      default:
+        subtitle =
+            'Orre MMC provides flexible exit paths tailored to your investment goals.';
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -111,7 +115,7 @@ class ExitStrategyScreen extends StatelessWidget {
         ),
         const SizedBox(height: 16),
         Text(
-          'Orre MMC provides flexible exit paths tailored to your investment goals. Choose between immediate cash-out or long-term appreciation.',
+          subtitle,
           style: TextStyle(
             color: Colors.green[100]!.withValues(alpha: 0.7),
             fontSize: 16,
@@ -120,6 +124,71 @@ class ExitStrategyScreen extends StatelessWidget {
         ),
       ],
     );
+  }
+
+  List<Widget> _buildAvailableRoutes(int tierIndex) {
+    List<Widget> routes = [];
+
+    // P2P is available for all tiers, but emphasized for Rental and Owner-Stay
+    routes.add(
+      _buildOptionCard(
+        tierIndex == 0 ? 'Instant' : 'Available',
+        'currency_exchange',
+        'Secondary Market (P2P)',
+        tierIndex == 2
+            ? 'Sell your tokens P2P, but you will lose your booking privileges and usage rights.'
+            : 'List your tokens on our internal marketplace to sell directly to other investors. Provides immediate liquidity based on current market demand.',
+        'Processing: ~24-48h',
+        'Orre Buyback',
+        AppColors.primary,
+      ),
+    );
+
+    routes.add(const SizedBox(height: 16));
+
+    // Final Asset Sale - emphasized for Growth, available for all
+    if (tierIndex == 1) {
+      // Growth tier - highlight this as primary exit
+      routes.add(
+        _buildOptionCard(
+          'Primary Exit',
+          'real_estate_agent',
+          'Final Asset Sale',
+          'Target sale in 5-7 years (approx. 2030). Tokens are redeemed for the final sale value plus all accrued appreciation.',
+          'Target: 2030',
+          'Investment Details',
+          Colors.blue[400]!,
+        ),
+      );
+    } else if (tierIndex == 2) {
+      // Owner-Stay tier - property may be sold after 10 years
+      routes.add(
+        _buildOptionCard(
+          'Long-term',
+          'real_estate_agent',
+          'Final Asset Sale',
+          'Property may be sold after 10 years. Usage rights end upon sale. You receive your pro-rata share of proceeds.',
+          'Timeline: 10+ years',
+          'Investment Details',
+          Colors.blue[400]!,
+        ),
+      );
+    } else {
+      // Rental tier - standard final sale
+      routes.add(
+        _buildOptionCard(
+          'Term-based',
+          'real_estate_agent',
+          'Final Asset Sale',
+          'At the end of the term (7-10 years), the physical property is sold. Tokens are redeemed for the final sale value.',
+          'Est. Returns: 12-15% APY',
+          'Investment Details',
+          Colors.blue[400]!,
+        ),
+      );
+    }
+
+    return routes;
   }
 
   Widget _buildOptionCard(
@@ -253,36 +322,114 @@ class ExitStrategyScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildTimeline() {
-    return Column(
-      children: [
-        _buildTimelineStep(
-          Icons.token,
-          'Token Acquisition',
-          'Day 1: Purchase fractional ownership',
-          isLast: false,
-        ),
-        _buildTimelineStep(
-          Icons.payments,
-          'Rental Yields',
-          'Ongoing: Monthly dividend distribution',
-          isLast: false,
-        ),
-        _buildTimelineStep(
-          Icons.swap_horiz,
-          'Secondary Liquidity',
-          'Anytime: List tokens for peer-to-peer sale',
-          isLast: false,
-        ),
-        _buildTimelineStep(
-          Icons.sell,
-          'Final Redemption',
-          'Maturity: Asset sale & profit realization',
-          isLast: true,
-          isOutline: true,
-        ),
-      ],
-    );
+  Widget _buildTimeline(int tierIndex) {
+    switch (tierIndex) {
+      case 0: // Rental Tier
+        return Column(
+          children: [
+            _buildTimelineStep(
+              Icons.token,
+              'Token Acquisition',
+              'Day 1: Purchase fractional ownership',
+              isLast: false,
+            ),
+            _buildTimelineStep(
+              Icons.payments,
+              'Earn Rent',
+              'Ongoing: Monthly dividend distribution',
+              isLast: false,
+            ),
+            _buildTimelineStep(
+              Icons.swap_horiz,
+              'Sell P2P',
+              'Anytime: List tokens for peer-to-peer sale',
+              isLast: true,
+              isOutline: true,
+            ),
+          ],
+        );
+
+      case 1: // Growth Tier
+        return Column(
+          children: [
+            _buildTimelineStep(
+              Icons.token,
+              'Token Acquisition',
+              'Day 1: Purchase fractional ownership',
+              isLast: false,
+            ),
+            _buildTimelineStep(
+              Icons.trending_up,
+              'Track Growth',
+              'Years 1-7: Value appreciation (no rent)',
+              isLast: false,
+            ),
+            _buildTimelineStep(
+              Icons.sell,
+              'Final Sale 2030',
+              'Target: Property sold & profit distributed',
+              isLast: true,
+              isOutline: true,
+            ),
+          ],
+        );
+
+      case 2: // Owner-Stay Tier
+        return Column(
+          children: [
+            _buildTimelineStep(
+              Icons.token,
+              'Token Acquisition',
+              'Day 1: Purchase fractional ownership',
+              isLast: false,
+            ),
+            _buildTimelineStep(
+              Icons.hotel,
+              'Unlock Stay',
+              'Ongoing: Usage rights based on ownership %',
+              isLast: false,
+            ),
+            _buildTimelineStep(
+              Icons.calendar_month,
+              'Book Dates',
+              'Annual: Reserve your stay days',
+              isLast: true,
+              isOutline: true,
+            ),
+          ],
+        );
+
+      default: // Fallback
+        return Column(
+          children: [
+            _buildTimelineStep(
+              Icons.token,
+              'Token Acquisition',
+              'Day 1: Purchase fractional ownership',
+              isLast: false,
+            ),
+            _buildTimelineStep(
+              Icons.payments,
+              'Rental Yields',
+              'Ongoing: Monthly dividend distribution',
+              isLast: false,
+            ),
+            _buildTimelineStep(
+              Icons.swap_horiz,
+              'Secondary Liquidity',
+              'Anytime: List tokens for peer-to-peer sale',
+              isLast: false,
+            ),
+            _buildTimelineStep(
+              Icons.sell,
+              'Final Redemption',
+              'Maturity: Asset sale & profit realization',
+              isLast: true,
+              isOutline: true,
+            ),
+          ],
+        );
+    }
   }
 
   Widget _buildTimelineStep(
@@ -358,57 +505,61 @@ class ExitStrategyScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildFooterCard() {
+  Widget _buildFooterCard(BuildContext context) {
     return Column(
       children: [
-        Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.05),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Row(
-                children: [
-                  Icon(Icons.gavel, color: Colors.grey),
-                  SizedBox(width: 12),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Offering Memorandum',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 14,
-                          color: Colors.white,
+        GestureDetector(
+          onTap: () =>
+              context.push('/offering-memorandum', extra: property.tierIndex),
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.05),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+            ),
+            child: const Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    Icon(Icons.gavel, color: Colors.grey),
+                    SizedBox(width: 12),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Offering Memorandum',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                            color: Colors.white,
+                          ),
                         ),
-                      ),
-                      Text(
-                        'Legal terms and risk factors',
-                        style: TextStyle(color: Colors.grey, fontSize: 12),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-              const Row(
-                children: [
-                  Text(
-                    'Learn More',
-                    style: TextStyle(
-                      color: AppColors.primary,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 13,
+                        Text(
+                          'Legal terms and risk factors',
+                          style: TextStyle(color: Colors.grey, fontSize: 12),
+                        ),
+                      ],
                     ),
-                  ),
-                  SizedBox(width: 4),
-                  Icon(Icons.open_in_new, color: AppColors.primary, size: 14),
-                ],
-              ),
-            ],
+                  ],
+                ),
+                Row(
+                  children: [
+                    Text(
+                      'Learn More',
+                      style: TextStyle(
+                        color: AppColors.primary,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 13,
+                      ),
+                    ),
+                    SizedBox(width: 4),
+                    Icon(Icons.open_in_new, color: AppColors.primary, size: 14),
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
         const SizedBox(height: 24),

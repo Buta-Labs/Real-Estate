@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
+import 'package:intl/intl.dart';
 import 'package:orre_mmc_app/features/marketplace/models/project_model.dart';
 import 'package:orre_mmc_app/features/marketplace/models/property_model.dart';
 import 'package:orre_mmc_app/features/marketplace/repositories/property_repository.dart';
 import 'package:orre_mmc_app/features/marketplace/widgets/property_card.dart';
+import 'package:orre_mmc_app/features/marketplace/widgets/project_video_player.dart';
 
 import 'package:orre_mmc_app/theme/app_colors.dart';
 import 'package:url_launcher/url_launcher.dart'; // Add url_launcher
@@ -59,8 +63,26 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       _buildStatsSection(),
+                      if (widget.project.videoUrl.isNotEmpty) ...[
+                        const SizedBox(height: 24),
+                        const Text(
+                          'Project Tour',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        ProjectVideoPlayer(
+                          videoUrl: widget.project.videoUrl,
+                          thumbnailUrl: widget.project.heroImage,
+                        ),
+                      ],
                       const SizedBox(height: 24),
                       _buildDescriptionSection(),
+                      const SizedBox(height: 24),
+                      _buildGallerySection(),
                       const SizedBox(height: 24),
                       _buildAmenitiesSection(),
                       const SizedBox(height: 24),
@@ -128,11 +150,13 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
                                     title: property.title,
                                     location: property.location,
                                     price:
-                                        '\$${property.price.toStringAsFixed(2)}',
+                                        '\$${NumberFormat.currency(symbol: '', decimalDigits: 0).format(property.price)}',
                                     yield: '${property.yieldRate}%',
                                     available: '${property.available}',
                                     image: property.imageUrl,
                                     tag: property.tag,
+                                    rooms: property.rooms,
+                                    totalArea: property.totalArea,
                                     onTap: () => context.push(
                                       '/property-details',
                                       extra: property,
@@ -279,9 +303,7 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
                         ),
                         const SizedBox(width: 4),
                         Text(
-                          widget
-                              .project
-                              .locationCoordinates, // Showing coords as location for now if no specific address field
+                          widget.project.location,
                           style: const TextStyle(
                             color: Colors.grey,
                             fontSize: 14,
@@ -498,7 +520,25 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
 
   Widget _buildLocationMapCard() {
     final locationText = widget.project.location;
-    final isDubai = widget.project.locationCoordinates.contains('25.0772');
+    final coords = widget.project.locationCoordinates;
+
+    // Default center (Baku, Azerbaijan) if no coordinates
+    LatLng center = const LatLng(40.4093, 49.8671);
+    bool hasValidCoords = false;
+
+    if (coords.isNotEmpty && coords.contains(',')) {
+      try {
+        final parts = coords.split(',');
+        if (parts.length == 2) {
+          final lat = double.parse(parts[0].trim());
+          final lng = double.parse(parts[1].trim());
+          center = LatLng(lat, lng);
+          hasValidCoords = true;
+        }
+      } catch (e) {
+        debugPrint('Error parsing coordinates: $e');
+      }
+    }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -533,27 +573,61 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
             color: const Color(0xFF1C2333),
             borderRadius: BorderRadius.circular(16),
             border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
-            image: DecorationImage(
-              image: NetworkImage(
-                isDubai
-                    ? 'https://lh3.googleusercontent.com/aida-public/AB6AXuCHWLtJ2N6hOY7O-BlmPITGOmQqINXtWTMLRtymfjzRKYi7Wv0eSTISMXALPPHSMC5Di10-y2-nLegoSP9ZmHemdsE4FWUILVaEzkxzXExncjSaeNjTZMa4SDylGxgb9hYLpLhVqFglx6H4PTfI6gOVgHWiZha_1O8oEWP30jljiMSpx4wH_6-7RPYWCG8MNeK4CX4M7Y4nQIbuvycQNzxj7u7VQUekQgJl4Y43BxzAS2ROX2FhlHjtk-lm-V9U2EsfufSDOzP2SQ'
-                    : 'https://images.unsplash.com/photo-1526778548025-fa2f459cd5c1?auto=format&fit=crop&q=80',
-              ),
-              fit: BoxFit.cover,
-              opacity: 0.4,
-            ),
           ),
-          child: Center(
-            child: ElevatedButton.icon(
-              onPressed: _openMap,
-              icon: const Icon(Icons.map, size: 16),
-              label: const Text('View on Map'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.white.withValues(alpha: 0.1),
-                foregroundColor: Colors.white,
-                elevation: 0,
-                side: BorderSide(color: Colors.white.withValues(alpha: 0.2)),
-              ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(16),
+            child: Stack(
+              children: [
+                FlutterMap(
+                  options: MapOptions(
+                    initialCenter: center,
+                    initialZoom: 15.0,
+                    interactionOptions: const InteractionOptions(
+                      flags: InteractiveFlag
+                          .none, // Disable interaction in mini map
+                    ),
+                  ),
+                  children: [
+                    TileLayer(
+                      urlTemplate:
+                          'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                      userAgentPackageName: 'com.orre.app',
+                    ),
+                    if (hasValidCoords)
+                      MarkerLayer(
+                        markers: [
+                          Marker(
+                            point: center,
+                            width: 40,
+                            height: 40,
+                            child: const Icon(
+                              Icons.location_on,
+                              color: AppColors.primary,
+                              size: 40,
+                            ),
+                          ),
+                        ],
+                      ),
+                  ],
+                ),
+                // Overlay to dim the map slightly and make the button pop
+                Container(color: Colors.black.withValues(alpha: 0.2)),
+                Center(
+                  child: ElevatedButton.icon(
+                    onPressed: _openMap,
+                    icon: const Icon(Icons.map, size: 16),
+                    label: const Text('View on Map'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.black.withValues(alpha: 0.6),
+                      foregroundColor: Colors.white,
+                      elevation: 0,
+                      side: BorderSide(
+                        color: Colors.white.withValues(alpha: 0.2),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         ),

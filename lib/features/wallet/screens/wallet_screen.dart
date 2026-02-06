@@ -336,7 +336,7 @@ class WalletScreen extends ConsumerWidget {
                                 ),
                               ),
                             ),
-                            error: (_, __) => _buildSubBalance(
+                            error: (_, _) => _buildSubBalance(
                               '\$0.00',
                               'INVESTABLE',
                               Colors.black.withValues(alpha: 0.2),

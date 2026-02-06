@@ -21,6 +21,12 @@ class Property {
   final List<String> amenities;
   final List<String> gallery;
   final String locationCoordinates;
+  final String videoUrl;
+  final int totalTokens;
+  final double? currentValuation;
+  final double? initialValuation;
+  final DateTime? lastAppraisalDate;
+  final String? occupancyStatus;
 
   Property({
     required this.id,
@@ -45,6 +51,12 @@ class Property {
     this.amenities = const [],
     this.gallery = const [],
     this.locationCoordinates = '',
+    this.videoUrl = '',
+    this.totalTokens = 1000,
+    this.currentValuation,
+    this.initialValuation,
+    this.lastAppraisalDate,
+    this.occupancyStatus,
   });
 
   Map<String, dynamic> toMap() {
@@ -70,6 +82,12 @@ class Property {
       'amenities': amenities,
       'gallery': gallery,
       'locationCoordinates': locationCoordinates,
+      'videoUrl': videoUrl,
+      'totalTokens': totalTokens,
+      'currentValuation': currentValuation,
+      'initialValuation': initialValuation,
+      'lastAppraisalDate': lastAppraisalDate?.toIso8601String(),
+      'occupancyStatus': occupancyStatus,
     };
   }
 
@@ -114,6 +132,18 @@ class Property {
       amenities: List<String>.from(map['amenities'] ?? []),
       gallery: List<String>.from(map['gallery'] ?? []),
       locationCoordinates: map['locationCoordinates'] ?? '',
+      videoUrl: map['videoUrl'] ?? '',
+      totalTokens: safeInt(map['totalTokens']),
+      currentValuation: map['currentValuation'] != null
+          ? safeDouble(map['currentValuation'])
+          : null,
+      initialValuation: map['initialValuation'] != null
+          ? safeDouble(map['initialValuation'])
+          : null,
+      lastAppraisalDate: map['lastAppraisalDate'] != null
+          ? DateTime.tryParse(map['lastAppraisalDate'] as String)
+          : null,
+      occupancyStatus: map['occupancyStatus'],
     );
   }
 }

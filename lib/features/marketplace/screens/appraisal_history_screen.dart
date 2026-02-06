@@ -1,68 +1,293 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:orre_mmc_app/theme/app_colors.dart';
+import 'package:orre_mmc_app/features/marketplace/models/property_model.dart';
+import 'package:orre_mmc_app/features/marketplace/models/valuation_model.dart';
+import 'package:orre_mmc_app/features/marketplace/repositories/valuation_repository.dart';
 
-class AppraisalHistoryScreen extends StatelessWidget {
-  const AppraisalHistoryScreen({super.key});
+class AppraisalHistoryScreen extends ConsumerStatefulWidget {
+  final Property property;
+
+  const AppraisalHistoryScreen({super.key, required this.property});
+
+  @override
+  ConsumerState<AppraisalHistoryScreen> createState() =>
+      _AppraisalHistoryScreenState();
+}
+
+class _AppraisalHistoryScreenState
+    extends ConsumerState<AppraisalHistoryScreen> {
+  final ValuationRepository _valuationRepo = ValuationRepository();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.backgroundDark,
-      body: CustomScrollView(
-        slivers: [
-          SliverAppBar(
-            backgroundColor: AppColors.backgroundDark.withValues(alpha: 0.8),
-            floating: true,
-            pinned: true,
-            centerTitle: true,
-            leading: IconButton(
-              icon: const Icon(Icons.arrow_back_ios_new, size: 20),
-              onPressed: () => context.pop(),
-            ),
-            title: Column(
-              children: [
-                Text(
-                  'The Grandview Estate',
-                  style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.6),
-                    fontSize: 12,
+      body: StreamBuilder<List<Valuation>>(
+        stream: _valuationRepo.getValuations(widget.property.id),
+        builder: (context, snapshot) {
+          final valuations = snapshot.data ?? [];
+          final latestValuation = valuations.isNotEmpty
+              ? valuations.first
+              : null;
+          final currentVal =
+              latestValuation?.valuationAmount ??
+              widget.property.currentValuation ??
+              widget.property.price;
+          final initialVal =
+              widget.property.initialValuation ?? widget.property.price;
+          final appreciationPercent = _valuationRepo.calculateAppreciation(
+            currentVal,
+            initialVal,
+          );
+          final tokenNAV = _valuationRepo.calculateTokenNAV(
+            currentVal,
+            widget.property.totalTokens,
+          );
+
+          return CustomScrollView(
+            slivers: [
+              SliverAppBar(
+                backgroundColor: AppColors.backgroundDark.withValues(
+                  alpha: 0.8,
+                ),
+                floating: true,
+                pinned: true,
+                centerTitle: true,
+                leading: IconButton(
+                  icon: const Icon(Icons.arrow_back_ios_new, size: 20),
+                  onPressed: () => context.pop(),
+                ),
+                title: Column(
+                  children: [
+                    Text(
+                      widget.property.title,
+                      style: TextStyle(
+                        color: Colors.white.withValues(alpha: 0.6),
+                        fontSize: 12,
+                      ),
+                    ),
+                    const Text(
+                      'Appraisal History',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+                actions: [
+                  IconButton(
+                    icon: const Icon(Icons.download, color: AppColors.primary),
+                    onPressed: () {},
+                  ),
+                ],
+              ),
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    children: [
+                      _buildQuickStats(
+                        currentVal,
+                        appreciationPercent,
+                        latestValuation,
+                      ),
+                      const SizedBox(height: 16),
+                      _buildTokenNAVCard(tokenNAV, widget.property.totalTokens),
+                      const SizedBox(height: 24),
+                      _buildAnalyticalChart(valuations),
+                      const SizedBox(height: 24),
+                      // Tier-specific insight widget
+                      _buildTierInsight(currentVal, initialVal),
+                      const SizedBox(height: 24),
+                      _buildTimeframeSelector(),
+                      const SizedBox(height: 24),
+                      _buildMilestoneTable(valuations),
+                      const SizedBox(height: 32),
+                      _buildDownloadCTA(latestValuation?.date),
+                      const SizedBox(height: 48),
+                    ],
                   ),
                 ),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  /// Tier-specific insight widget
+  Widget _buildTierInsight(double currentValuation, double initialValuation) {
+    switch (widget.property.tierIndex) {
+      case 1: // Growth Tier
+        return _buildGrowthProgressWidget(currentValuation, initialValuation);
+      case 0: // Rental Tier
+        return _buildYieldOnCostWidget();
+      case 2: // Owner-Stay Tier
+        return _buildImpliedNightlyRateWidget(
+          currentValuation,
+          initialValuation,
+        );
+      default:
+        return const SizedBox.shrink();
+    }
+  }
+
+  /// Growth Tier: Progress to Exit
+  Widget _buildGrowthProgressWidget(double current, double initial) {
+    const targetExit = 300000.0; // Example target
+    final progress = _valuationRepo.calculateExitProgress(
+      currentValuation: current,
+      initialValuation: initial,
+      targetValuation: targetExit,
+    );
+
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: const Color(0xFF1c1c1a),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.trending_up, color: AppColors.primary, size: 20),
+              const SizedBox(width: 8),
+              const Text(
+                'Progress to Exit Target',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '\$${(initial / 1000).toStringAsFixed(0)}K',
+                    style: const TextStyle(color: Colors.white54, fontSize: 12),
+                  ),
+                  const Text(
+                    'Initial',
+                    style: TextStyle(color: Colors.white54, fontSize: 10),
+                  ),
+                ],
+              ),
+              Column(
+                children: [
+                  Text(
+                    '\$${(current / 1000).toStringAsFixed(0)}K',
+                    style: const TextStyle(
+                      color: AppColors.primary,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const Text(
+                    'Current',
+                    style: TextStyle(color: Colors.white54, fontSize: 10),
+                  ),
+                ],
+              ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    '\$${(targetExit / 1000).toStringAsFixed(0)}K',
+                    style: const TextStyle(color: Colors.white54, fontSize: 12),
+                  ),
+                  const Text(
+                    'Target 2030',
+                    style: TextStyle(color: Colors.white54, fontSize: 10),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: LinearProgressIndicator(
+              value: progress / 100,
+              minHeight: 8,
+              backgroundColor: Colors.white.withValues(alpha: 0.1),
+              valueColor: const AlwaysStoppedAnimation<Color>(
+                AppColors.primary,
+              ),
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'We are ${progress.toStringAsFixed(1)}% of the way to our target exit price',
+            style: const TextStyle(color: Colors.white70, fontSize: 12),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Rental Tier: Yield on Cost
+  Widget _buildYieldOnCostWidget() {
+    final yieldOnCost = widget.property.yieldRate; // Already a percentage
+
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: const Color(0xFF1c1c1a),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.green.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Icon(Icons.payments, color: Colors.green, size: 28),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
                 const Text(
-                  'Appraisal History',
+                  'Yield on Cost',
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
+                const SizedBox(height: 4),
+                Text(
+                  'Your early investment yields ${yieldOnCost.toStringAsFixed(1)}% annually',
+                  style: const TextStyle(color: Colors.white70, fontSize: 12),
+                ),
               ],
             ),
-            actions: [
-              IconButton(
-                icon: const Icon(Icons.download, color: AppColors.primary),
-                onPressed: () {},
-              ),
-            ],
           ),
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                children: [
-                  _buildQuickStats(),
-                  const SizedBox(height: 24),
-                  _buildAnalyticalChart(),
-                  const SizedBox(height: 24),
-                  _buildTimeframeSelector(),
-                  const SizedBox(height: 24),
-                  _buildMilestoneTable(),
-                  const SizedBox(height: 32),
-                  _buildDownloadCTA(),
-                  const SizedBox(height: 48),
-                ],
-              ),
+          Text(
+            '${yieldOnCost.toStringAsFixed(1)}%',
+            style: const TextStyle(
+              color: Colors.green,
+              fontSize: 24,
+              fontWeight: FontWeight.w900,
             ),
           ),
         ],
@@ -70,7 +295,131 @@ class AppraisalHistoryScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildQuickStats() {
+  /// Owner-Stay Tier: Implied Nightly Rate
+  Widget _buildImpliedNightlyRateWidget(double current, double initial) {
+    final monthlyRent = 2000.0; // Example
+    final impliedRate = _valuationRepo.calculateImpliedNightlyRate(
+      monthlyRent: monthlyRent,
+      currentValuation: current,
+      initialValuation: initial,
+    );
+
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: const Color(0xFF1c1c1a),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.purple.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Icon(Icons.hotel, color: Colors.purple, size: 28),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Implied Nightly Rate',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                const Text(
+                  'Your usage rights are becoming more valuable',
+                  style: TextStyle(color: Colors.white70, fontSize: 12),
+                ),
+              ],
+            ),
+          ),
+          Text(
+            '\$${impliedRate.toStringAsFixed(0)}',
+            style: const TextStyle(
+              color: Colors.purple,
+              fontSize: 24,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Token NAV Card
+  Widget _buildTokenNAVCard(double tokenNAV, int totalTokens) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            AppColors.primary.withValues(alpha: 0.2),
+            AppColors.primary.withValues(alpha: 0.05),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Token NAV'.toUpperCase(),
+                style: TextStyle(
+                  color: Colors.white.withValues(alpha: 0.6),
+                  fontSize: 10,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 4),
+              const Text(
+                'Net Asset Value per Token',
+                style: TextStyle(color: Colors.white70, fontSize: 12),
+              ),
+            ],
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                '\$${tokenNAV.toStringAsFixed(2)}',
+                style: const TextStyle(
+                  color: AppColors.primary,
+                  fontSize: 24,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+              Text(
+                '÷ $totalTokens tokens',
+                style: const TextStyle(color: Colors.white54, fontSize: 10),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildQuickStats(
+    double currentVal,
+    double appreciation,
+    Valuation? latest,
+  ) {
+    final latestChange = latest?.changePercent ?? 0.0;
     return Row(
       children: [
         Expanded(
@@ -93,21 +442,27 @@ class AppraisalHistoryScreen extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 4),
-                const Text(
-                  '\$14,850,000',
-                  style: TextStyle(
+                Text(
+                  '\$${(currentVal / 1000000).toStringAsFixed(2)}M',
+                  style: const TextStyle(
                     color: Colors.white,
                     fontSize: 20,
                     fontWeight: FontWeight.w900,
                   ),
                 ),
                 const SizedBox(height: 8),
-                const Row(
+                Row(
                   children: [
-                    Icon(Icons.trending_up, color: Colors.green, size: 16),
-                    SizedBox(width: 4),
+                    Icon(
+                      latestChange >= 0
+                          ? Icons.trending_up
+                          : Icons.trending_down,
+                      color: latestChange >= 0 ? Colors.green : Colors.red,
+                      size: 16,
+                    ),
+                    const SizedBox(width: 4),
                     Text(
-                      '+2.1% (Last 6m)',
+                      '${latestChange >= 0 ? '+' : ''}${latestChange.toStringAsFixed(1)}% (Last 6m)',
                       style: TextStyle(
                         color: Colors.green,
                         fontSize: 12,
@@ -141,8 +496,8 @@ class AppraisalHistoryScreen extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 4),
-                const Text(
-                  '+24.5%',
+                Text(
+                  '+${appreciation.toStringAsFixed(1)}%',
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 20,
@@ -166,7 +521,7 @@ class AppraisalHistoryScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildAnalyticalChart() {
+  Widget _buildAnalyticalChart(List<Valuation> valuations) {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
@@ -301,7 +656,7 @@ class AppraisalHistoryScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildMilestoneTable() {
+  Widget _buildMilestoneTable(List<Valuation> valuations) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -441,7 +796,7 @@ class AppraisalHistoryScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildDownloadCTA() {
+  Widget _buildDownloadCTA(DateTime? lastUpdated) {
     return Column(
       children: [
         ElevatedButton.icon(
@@ -462,9 +817,9 @@ class AppraisalHistoryScreen extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 16),
-        const Text(
-          'LAST UPDATED OCT 14, 2023 • ALL VALUES IN USD',
-          style: TextStyle(
+        Text(
+          'LAST UPDATED ${lastUpdated != null ? _formatDate(lastUpdated).toUpperCase() : 'N/A'} • ALL VALUES IN USD',
+          style: const TextStyle(
             color: Colors.white38,
             fontSize: 10,
             fontWeight: FontWeight.bold,
@@ -473,6 +828,25 @@ class AppraisalHistoryScreen extends StatelessWidget {
         ),
       ],
     );
+  }
+
+  /// Format date for display
+  String _formatDate(DateTime date) {
+    const months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
+    return '${months[date.month - 1]} ${date.day}, ${date.year}';
   }
 }
 

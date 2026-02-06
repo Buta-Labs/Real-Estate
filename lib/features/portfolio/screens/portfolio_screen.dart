@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
 
 import 'package:orre_mmc_app/shared/widgets/glass_container.dart';
 import 'package:orre_mmc_app/theme/app_colors.dart';
@@ -8,6 +9,7 @@ import 'package:orre_mmc_app/features/portfolio/providers/portfolio_provider.dar
 import 'package:orre_mmc_app/features/portfolio/models/portfolio_item.dart';
 import 'package:orre_mmc_app/core/blockchain/blockchain_repository.dart';
 import 'package:orre_mmc_app/core/blockchain/blockchain_result.dart';
+import 'package:orre_mmc_app/features/marketplace/domain/stay_logic.dart';
 
 class PortfolioScreen extends ConsumerWidget {
   const PortfolioScreen({super.key});
@@ -15,6 +17,8 @@ class PortfolioScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final portfolioAsync = ref.watch(portfolioAssetsProvider);
+    final priceFormat = NumberFormat.currency(symbol: '\$', decimalDigits: 0);
+    final incomeFormat = NumberFormat.currency(symbol: '\$', decimalDigits: 2);
 
     return Scaffold(
       body: Stack(
@@ -143,12 +147,16 @@ class PortfolioScreen extends ConsumerWidget {
                 sliver: SliverList(
                   delegate: SliverChildListDelegate([
                     // Portfolio Header Card
-                    _buildPortfolioHeader(portfolioAsync),
+                    _buildPortfolioHeader(
+                      portfolioAsync,
+                      priceFormat,
+                      incomeFormat,
+                    ),
 
                     const SizedBox(height: 16),
 
                     // Claimable Earnings Section
-                    _buildClaimableEarnings(portfolioAsync, ref),
+                    _buildClaimableEarnings(portfolioAsync, ref, incomeFormat),
 
                     const SizedBox(height: 16),
 
@@ -181,7 +189,7 @@ class PortfolioScreen extends ConsumerWidget {
                     const SizedBox(height: 16),
 
                     // Asset List
-                    ..._buildAssetList(portfolioAsync),
+                    ..._buildAssetList(portfolioAsync, priceFormat),
 
                     const SizedBox(height: 100),
                   ]),
@@ -194,7 +202,11 @@ class PortfolioScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildPortfolioHeader(AsyncValue<List<PortfolioItem>> portfolioAsync) {
+  Widget _buildPortfolioHeader(
+    AsyncValue<List<PortfolioItem>> portfolioAsync,
+    NumberFormat priceFormat,
+    NumberFormat incomeFormat,
+  ) {
     return GlassContainer(
       padding: const EdgeInsets.all(24),
       borderRadius: BorderRadius.circular(24),
@@ -214,7 +226,7 @@ class PortfolioScreen extends ConsumerWidget {
                 (sum, item) => sum + item.currentValue,
               );
               return Text(
-                '\$${totalValue.toStringAsFixed(2)}',
+                priceFormat.format(totalValue),
                 style: GoogleFonts.manrope(
                   fontSize: 36,
                   fontWeight: FontWeight.bold,
@@ -276,7 +288,7 @@ class PortfolioScreen extends ConsumerWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    '\$1,550.00',
+                    incomeFormat.format(1550),
                     style: GoogleFonts.manrope(
                       fontWeight: FontWeight.bold,
                       fontSize: 16,
@@ -407,7 +419,10 @@ class PortfolioScreen extends ConsumerWidget {
     );
   }
 
-  List<Widget> _buildAssetList(AsyncValue<List<PortfolioItem>> portfolioAsync) {
+  List<Widget> _buildAssetList(
+    AsyncValue<List<PortfolioItem>> portfolioAsync,
+    NumberFormat priceFormat,
+  ) {
     return portfolioAsync.when(
       data: (items) {
         if (items.isEmpty) {
@@ -420,7 +435,7 @@ class PortfolioScreen extends ConsumerWidget {
             ),
           ];
         }
-        return items.map((item) => _buildAssetCard(item)).toList();
+        return items.map((item) => _buildAssetCard(item, priceFormat)).toList();
       },
       loading: () => [const Center(child: CircularProgressIndicator())],
       error: (e, stack) => [
@@ -429,7 +444,7 @@ class PortfolioScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildAssetCard(PortfolioItem item) {
+  Widget _buildAssetCard(PortfolioItem item, NumberFormat priceFormat) {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
@@ -488,7 +503,7 @@ class PortfolioScreen extends ConsumerWidget {
                               ),
                             ),
                             Text(
-                              '\$${item.currentValue.toStringAsFixed(2)}',
+                              priceFormat.format(item.currentValue),
                               style: GoogleFonts.manrope(
                                 fontWeight: FontWeight.bold,
                               ),
@@ -521,6 +536,62 @@ class PortfolioScreen extends ConsumerWidget {
               ),
             ],
           ),
+          if (item.property.tierIndex == 2) ...[
+            const SizedBox(height: 12),
+            const Divider(color: Colors.white10),
+            const SizedBox(height: 12),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'STAY BENEFIT',
+                      style: GoogleFonts.manrope(
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.grey[500],
+                      ),
+                    ),
+                    Text(
+                      item.currentValue >= 5000
+                          ? 'Unlocked: ${calculateStayRights(item.currentValue, item.property.price)} Days/Year'
+                          : 'Invest \$${(5000 - item.currentValue).toStringAsFixed(0)} more to unlock stay',
+                      style: GoogleFonts.manrope(
+                        fontSize: 12,
+                        color: item.currentValue >= 5000
+                            ? Colors.green
+                            : Colors.orange,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+                ElevatedButton.icon(
+                  onPressed: item.currentValue >= 5000
+                      ? () {
+                          // TODO: Implement Booking flow
+                        }
+                      : null,
+                  icon: const Icon(Icons.hotel, size: 16),
+                  label: const Text('Book Stay'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.purpleAccent.withValues(alpha: 0.2),
+                    foregroundColor: Colors.white,
+                    disabledBackgroundColor: Colors.white.withValues(
+                      alpha: 0.05,
+                    ),
+                    disabledForegroundColor: Colors.grey,
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
         ],
       ),
     );
@@ -529,6 +600,7 @@ class PortfolioScreen extends ConsumerWidget {
   Widget _buildClaimableEarnings(
     AsyncValue<List<PortfolioItem>> portfolioAsync,
     WidgetRef ref,
+    NumberFormat incomeFormat,
   ) {
     return portfolioAsync.when(
       data: (items) {
@@ -560,7 +632,7 @@ class PortfolioScreen extends ConsumerWidget {
                   ),
                   const Spacer(),
                   Text(
-                    '\$${totalClaimable.toStringAsFixed(2)}',
+                    incomeFormat.format(totalClaimable),
                     style: GoogleFonts.manrope(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
@@ -632,7 +704,7 @@ class PortfolioScreen extends ConsumerWidget {
                           color: AppColors.primary,
                         ),
                         label: Text(
-                          'Claim \$${item.claimableRent.toStringAsFixed(2)}',
+                          'Claim ${incomeFormat.format(item.claimableRent)}',
                           style: GoogleFonts.manrope(
                             fontWeight: FontWeight.bold,
                             color: AppColors.primary,
@@ -657,7 +729,7 @@ class PortfolioScreen extends ConsumerWidget {
         );
       },
       loading: () => const SizedBox.shrink(),
-      error: (_, __) => const SizedBox.shrink(),
+      error: (_, _) => const SizedBox.shrink(),
     );
   }
 }

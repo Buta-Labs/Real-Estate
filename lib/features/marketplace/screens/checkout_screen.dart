@@ -10,6 +10,7 @@ import 'package:orre_mmc_app/core/services/toast_service.dart';
 import 'package:orre_mmc_app/core/services/contract_service.dart';
 import 'package:orre_mmc_app/features/auth/providers/user_provider.dart';
 import 'package:orre_mmc_app/shared/widgets/signature_pad.dart';
+import 'package:orre_mmc_app/features/marketplace/repositories/investment_repository.dart';
 
 class CheckoutScreen extends ConsumerStatefulWidget {
   const CheckoutScreen({super.key});
@@ -23,6 +24,9 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
   static const double _maxLimit = 24500;
   static const double _tokenPrice = 10;
   static const double _feeRate = 0.005;
+
+  // Instance of repository for rules
+  final _invRepo = InvestmentRepository();
   bool _isLoading = false;
   bool _hasShownProfileDialog = false;
 
@@ -30,7 +34,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
   bool _tier2Acknowledged = false;
   Uint8List? _signatureImage;
 
-  // Hardcoded for MVP - Tier 2 property for demonstration
+  // Hardcoded for MVP - Tier 3 property for demonstration (Index 2)
   static const int _demoTierIndex = 2;
   static const String _demoContractAddress =
       '0x1234567890123456789012345678901234567890';
@@ -44,7 +48,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
       return;
     }
 
-    // Step 1: Check if Tier 2 foreign investor needs acknowledgment
+    // Step 1: Check if Tier 3 foreign investor needs acknowledgment
     if (_demoTierIndex == 2 &&
         user.country != 'Azerbaijan' &&
         !_tier2Acknowledged) {
@@ -81,7 +85,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
               const SizedBox(width: 12),
               const Expanded(
                 child: Text(
-                  'Tier 2 Stay Rights Disclosure',
+                  'Tier 3 Stay Rights Disclosure',
                   style: TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.bold,
@@ -105,7 +109,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
               ),
               const SizedBox(height: 12),
               const Text(
-                'As a Tier 2 investor, you will receive stay rights at the property. However, you must understand and acknowledge the following:',
+                'As a Tier 3 investor, you will receive stay rights at the property. However, you must understand and acknowledge the following:',
                 style: TextStyle(color: Colors.white70, fontSize: 13),
               ),
               const SizedBox(height: 16),
@@ -119,7 +123,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                 controlAffinity: ListTileControlAffinity.leading,
                 activeColor: AppColors.primary,
                 title: const Text(
-                  'I understand that Tier 2 stay rights are a revocable personal license managed by ORRE LLC and do not constitute a timeshare, tenancy, or property right.',
+                  'I understand that Tier 3 stay rights are a revocable personal license managed by ORRE LLC and do not constitute a timeshare, tenancy, or property right.',
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 13,
@@ -500,8 +504,11 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
             thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 12),
           ),
           child: Slider(
-            value: _amount.clamp(0, max),
-            min: 0,
+            value: _amount.clamp(
+              _invRepo.getMinimumInvestment(_demoTierIndex),
+              max,
+            ),
+            min: _invRepo.getMinimumInvestment(_demoTierIndex),
             max: max,
             onChanged: (value) => setState(() => _amount = value),
           ),
@@ -511,7 +518,10 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text('\$100', style: TextStyle(color: Colors.grey)),
+              Text(
+                '\$${_invRepo.getMinimumInvestment(_demoTierIndex).toInt()}',
+                style: TextStyle(color: Colors.grey),
+              ),
               Text(
                 '\$${max.toInt()}',
                 style: const TextStyle(color: Colors.grey),
