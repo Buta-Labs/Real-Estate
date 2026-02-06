@@ -89,10 +89,11 @@ class _SignaturePadState extends State<SignaturePad> {
             borderRadius: BorderRadius.circular(10),
             child: HandSignature(
               control: controller,
-              color: Colors.white,
-              width: 2.0,
-              maxWidth: 4.0,
-              type: SignatureDrawType.shape,
+              drawer: ShapeSignatureDrawer(
+                color: Colors.white,
+                width: 2.0,
+                maxWidth: 4.0,
+              ),
             ),
           ),
         ),

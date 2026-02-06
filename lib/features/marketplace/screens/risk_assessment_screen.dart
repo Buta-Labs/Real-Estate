@@ -281,12 +281,15 @@ class _RiskAssessmentScreenState extends State<RiskAssessmentScreen> {
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              Colors.white.withOpacity(0.1),
-              Colors.white.withOpacity(0.05),
+              Colors.white.withValues(alpha: 0.1),
+              Colors.white.withValues(alpha: 0.05),
             ],
           ),
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: Colors.white.withOpacity(0.2), width: 1.5),
+          border: Border.all(
+            color: Colors.white.withValues(alpha: 0.2),
+            width: 1.5,
+          ),
         ),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(20),
@@ -333,7 +336,9 @@ class _RiskAssessmentScreenState extends State<RiskAssessmentScreen> {
                       decoration: BoxDecoration(
                         color: ratingColor.withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(4),
-                        border: Border.all(color: ratingColor.withOpacity(0.5)),
+                        border: Border.all(
+                          color: ratingColor.withValues(alpha: 0.5),
+                        ),
                       ),
                       child: Text(
                         rating,
@@ -357,7 +362,7 @@ class _RiskAssessmentScreenState extends State<RiskAssessmentScreen> {
                           vertical: 2,
                         ),
                         decoration: BoxDecoration(
-                          color: AppColors.primary.withOpacity(0.2),
+                          color: AppColors.primary.withValues(alpha: 0.2),
                           borderRadius: BorderRadius.circular(4),
                         ),
                         child: Row(
@@ -414,7 +419,7 @@ class _RiskAssessmentScreenState extends State<RiskAssessmentScreen> {
                   borderRadius: BorderRadius.circular(4),
                   child: LinearProgressIndicator(
                     value: progress,
-                    backgroundColor: Colors.white.withOpacity(0.1),
+                    backgroundColor: Colors.white.withValues(alpha: 0.1),
                     valueColor: AlwaysStoppedAnimation<Color>(ratingColor),
                     minHeight: 6,
                   ),
@@ -483,7 +488,7 @@ class _RiskAssessmentScreenState extends State<RiskAssessmentScreen> {
         decoration: BoxDecoration(
           color: const Color(0xFF1a1a1a),
           borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-          border: Border.all(color: AppColors.primary.withOpacity(0.3)),
+          border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -558,7 +563,7 @@ class _RiskAssessmentScreenState extends State<RiskAssessmentScreen> {
           decoration: BoxDecoration(
             color: const Color(0xFF1a1a1a),
             borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-            border: Border.all(color: Colors.orange.withOpacity(0.3)),
+            border: Border.all(color: Colors.orange.withValues(alpha: 0.3)),
           ),
           child: SingleChildScrollView(
             controller: scrollController,
@@ -583,9 +588,11 @@ class _RiskAssessmentScreenState extends State<RiskAssessmentScreen> {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: Colors.orange.withOpacity(0.1),
+                    color: Colors.orange.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.orange.withOpacity(0.3)),
+                    border: Border.all(
+                      color: Colors.orange.withValues(alpha: 0.3),
+                    ),
                   ),
                   child: const Row(
                     children: [
@@ -706,7 +713,7 @@ class _RiskAssessmentScreenState extends State<RiskAssessmentScreen> {
           decoration: BoxDecoration(
             color: const Color(0xFF1a1a1a),
             borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-            border: Border.all(color: Colors.orange.withOpacity(0.3)),
+            border: Border.all(color: Colors.orange.withValues(alpha: 0.3)),
           ),
           child: SingleChildScrollView(
             controller: scrollController,
@@ -731,9 +738,11 @@ class _RiskAssessmentScreenState extends State<RiskAssessmentScreen> {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: Colors.orange.withOpacity(0.1),
+                    color: Colors.orange.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.orange.withOpacity(0.3)),
+                    border: Border.all(
+                      color: Colors.orange.withValues(alpha: 0.3),
+                    ),
                   ),
                   child: const Row(
                     children: [
@@ -819,7 +828,7 @@ class _RiskAssessmentScreenState extends State<RiskAssessmentScreen> {
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.05),
+                    color: Colors.white.withValues(alpha: 0.05),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Column(
@@ -1039,8 +1048,8 @@ class _RiskAssessmentScreenState extends State<RiskAssessmentScreen> {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            Colors.white.withOpacity(0.08),
-            Colors.white.withOpacity(0.04),
+            Colors.white.withValues(alpha: 0.08),
+            Colors.white.withValues(alpha: 0.04),
           ],
         ),
         borderRadius: BorderRadius.circular(12),

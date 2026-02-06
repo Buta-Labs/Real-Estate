@@ -246,7 +246,7 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
                                   ),
                                 ],
                               ),
-                              error: (_, __) => Row(
+                              error: (_, _) => Row(
                                 children: [
                                   _buildStatCard('\$0', '24h Vol'),
                                   const SizedBox(width: 12),
@@ -297,7 +297,7 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
                                                         .toList()
                                                       ..sort(),
                                                 loading: () => <String>[],
-                                                error: (_, __) => <String>[],
+                                                error: (_, _) => <String>[],
                                               );
 
                                           final result =

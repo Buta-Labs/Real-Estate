@@ -96,7 +96,7 @@ class _FinancialsTabState extends ConsumerState<FinancialsTab> {
                 ? _buildWaterfallCard(reports.first)
                 : const SizedBox.shrink(),
             loading: () => const SizedBox.shrink(),
-            error: (_, __) => const SizedBox.shrink(),
+            error: (_, _) => const SizedBox.shrink(),
           ),
           const SizedBox(height: 24),
 
@@ -124,7 +124,7 @@ class _FinancialsTabState extends ConsumerState<FinancialsTab> {
             loading: () => const Center(
               child: CircularProgressIndicator(color: AppColors.primary),
             ),
-            error: (_, __) => const SizedBox.shrink(),
+            error: (_, _) => const SizedBox.shrink(),
           ),
           const SizedBox(height: 24),
 

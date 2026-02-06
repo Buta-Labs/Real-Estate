@@ -284,10 +284,10 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
       }
 
       // Perform blockchain transaction with PDF hash
-      // TODO: Update this to pass legalDocHash in Step 2
       final result = await repository.purchaseToken(
         _demoContractAddress,
         _amount,
+        legalDocHash: contractResult.pdfHash,
         onStatusChanged: (status) {
           ToastService().showInfo(context, status);
         },

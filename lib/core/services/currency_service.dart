@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
@@ -16,7 +17,7 @@ class CurrencyService {
         return (rates['AZN'] as num?)?.toDouble() ?? 1.70; // Default fallback
       }
     } catch (e) {
-      print('Error fetching currency rate: $e');
+      debugPrint('Error fetching currency rate: $e');
     }
     return 1.70; // Fallback rate
   }
