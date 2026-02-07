@@ -53,7 +53,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   @override
   Widget build(BuildContext context) {
     final userAsync = ref.watch(userProvider);
-    final user = userAsync.valueOrNull;
+    final user = userAsync.value;
 
     final displayName =
         user?.displayName ?? user?.email.split('@')[0] ?? 'User';

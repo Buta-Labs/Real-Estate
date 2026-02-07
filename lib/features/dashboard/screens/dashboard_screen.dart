@@ -18,11 +18,11 @@ class DashboardScreen extends ConsumerWidget {
     final userAsync = ref.watch(userProvider);
     final walletBalanceAsync = ref.watch(walletBalanceProvider);
 
-    final user = userAsync.valueOrNull;
+    final user = userAsync.value;
     final displayName =
         user?.displayName ?? user?.email.split('@')[0] ?? 'User';
     final kycStatus = user?.kycStatus ?? 'none';
-    final balance = walletBalanceAsync.valueOrNull ?? '0.00';
+    final balance = walletBalanceAsync.value ?? '0.00';
 
     return Scaffold(
       body: CustomScrollView(

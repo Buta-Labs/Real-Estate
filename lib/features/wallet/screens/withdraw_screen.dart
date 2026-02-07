@@ -289,7 +289,7 @@ class _WithdrawScreenState extends ConsumerState<WithdrawScreen> {
                 child: TextButton(
                   onPressed: () {
                     final balanceAsync = ref.read(walletBalanceProvider);
-                    final val = balanceAsync.valueOrNull ?? '0';
+                    final val = balanceAsync.value ?? '0';
                     _amountController.text = val;
                   },
                   style: TextButton.styleFrom(

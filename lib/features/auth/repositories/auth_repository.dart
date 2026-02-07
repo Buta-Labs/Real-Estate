@@ -21,7 +21,16 @@ final authStateProvider = StreamProvider<User?>((ref) {
 });
 
 /// Tracks if the user has completed MFA for the current app session.
-final mfaVerifiedProvider = StateProvider<bool>((ref) => false);
+final mfaVerifiedProvider = NotifierProvider<MfaVerifiedNotifier, bool>(() {
+  return MfaVerifiedNotifier();
+});
+
+class MfaVerifiedNotifier extends Notifier<bool> {
+  @override
+  bool build() => false;
+
+  void setVerified(bool verified) => state = verified;
+}
 
 class AuthRepository {
   final FirebaseAuth _firebaseAuth;
@@ -285,17 +294,25 @@ class AuthRepository {
   // Google Sign In
   Future<UserCredential> signInWithGoogle() async {
     try {
-      final googleSignIn = google_sign_in.GoogleSignIn();
-      final google_sign_in.GoogleSignInAccount? googleUser = await googleSignIn
-          .signIn();
-      if (googleUser == null) {
-        throw Exception('Google Sign In cancelled by user.');
-      }
+      final googleSignIn = google_sign_in.GoogleSignIn.instance;
+      await googleSignIn.initialize();
 
+      final google_sign_in.GoogleSignInAccount googleUser = await googleSignIn
+          .authenticate(scopeHint: ['email', 'profile', 'openid']);
+
+      // In 7.2.0, authentication is a property, and accessToken requires explicit authorization
       final google_sign_in.GoogleSignInAuthentication googleAuth =
-          await googleUser.authentication;
+          googleUser.authentication;
+
+      final google_sign_in.GoogleSignInClientAuthorization authz =
+          await googleUser.authorizationClient.authorizeScopes([
+            'email',
+            'profile',
+            'openid',
+          ]);
+
       final AuthCredential credential = GoogleAuthProvider.credential(
-        accessToken: googleAuth.accessToken,
+        accessToken: authz.accessToken,
         idToken: googleAuth.idToken,
       );
 

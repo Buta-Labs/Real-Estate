@@ -41,7 +41,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
   @override
   void initState() {
     super.initState();
-    final user = ref.read(userProvider).valueOrNull;
+    final user = ref.read(userProvider).value;
     _nameController = TextEditingController(text: user?.displayName ?? '');
     _fullLegalNameController = TextEditingController(
       text: user?.fullLegalName ?? '',
@@ -61,7 +61,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
   }
 
   Future<void> _handleSave() async {
-    final user = ref.read(userProvider).valueOrNull;
+    final user = ref.read(userProvider).value;
     if (user == null) return;
 
     // Validation

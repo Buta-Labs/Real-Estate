@@ -12,10 +12,22 @@ import 'package:orre_mmc_app/features/auth/providers/user_provider.dart';
 // But ConnectWallet updates it.
 // Let's make it a computed provider or auto-sync.
 
-final walletAddressProvider = StateProvider<String?>((ref) {
-  final userAsync = ref.watch(userProvider);
-  return userAsync.value?.walletAddress;
-});
+final walletAddressProvider = NotifierProvider<WalletAddressNotifier, String?>(
+  () {
+    return WalletAddressNotifier();
+  },
+);
+
+class WalletAddressNotifier extends Notifier<String?> {
+  @override
+  String? build() {
+    final userAsync = ref.watch(userProvider);
+    return userAsync.value?.walletAddress;
+  }
+
+  @override
+  set state(String? address) => super.state = address;
+}
 
 final walletBalanceProvider = FutureProvider.autoDispose<String>((ref) async {
   final repository = ref.watch(blockchainRepositoryProvider);

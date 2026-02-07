@@ -94,7 +94,7 @@ class _MfaVerificationScreenState extends ConsumerState<MfaVerificationScreen> {
       }
 
       // Mark session as verified
-      ref.read(mfaVerifiedProvider.notifier).state = true;
+      ref.read(mfaVerifiedProvider.notifier).setVerified(true);
 
       if (mounted) {
         context.go('/dashboard');

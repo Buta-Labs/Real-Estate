@@ -66,14 +66,13 @@ import 'package:orre_mmc_app/features/marketplace/models/property_model.dart';
 final rootNavigatorKey = GlobalKey<NavigatorState>();
 
 /// Tracks if MFA is enrolled. null = loading, true = enrolled, false = not enrolled.
-final mfaProvider = StateNotifierProvider<MfaNotifier, bool?>((ref) {
-  return MfaNotifier(ref);
+final mfaProvider = NotifierProvider<MfaNotifier, bool?>(() {
+  return MfaNotifier();
 });
 
-class MfaNotifier extends StateNotifier<bool?> {
-  final Ref ref;
-
-  MfaNotifier(this.ref) : super(null) {
+class MfaNotifier extends Notifier<bool?> {
+  @override
+  bool? build() {
     final authRepo = ref.read(authRepositoryProvider);
 
     ref.listen(authStateProvider, (previous, next) {
@@ -94,14 +93,16 @@ class MfaNotifier extends StateNotifier<bool?> {
             final dynamic mf = (user as dynamic).multiFactor;
             // Try async getEnrolledFactors first
             final List<dynamic> factors = await mf.getEnrolledFactors();
-            if (mounted) state = factors.isNotEmpty;
+            if (state == null) state = factors.isNotEmpty;
           } catch (e) {
             // Fallback to sync check using captured repo
-            if (mounted) state = authRepo.hasMfaEnrolled(user);
+            state = authRepo.hasMfaEnrolled(user);
           }
         }());
       }
-    }, fireImmediately: true);
+    });
+
+    return null;
   }
 
   void setVerified(bool isVerified) {

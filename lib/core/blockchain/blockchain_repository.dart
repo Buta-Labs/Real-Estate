@@ -473,7 +473,7 @@ class BlockchainRepository {
       );
 
       final List<dynamic> addresses = result.first;
-      return addresses.map((e) => (e as EthereumAddress).hex).toList();
+      return addresses.map((e) => (e as EthereumAddress).toString()).toList();
     } catch (e) {
       debugPrint('Error fetching deployed properties: $e');
       return [];

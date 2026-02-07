@@ -15,11 +15,13 @@ void main() async {
 
   // Initialize App Check
   await FirebaseAppCheck.instance.activate(
-    androidProvider: kDebugMode
-        ? AndroidProvider.debug
-        : AndroidProvider.playIntegrity,
-    appleProvider: kDebugMode ? AppleProvider.debug : AppleProvider.deviceCheck,
-    webProvider: ReCaptchaEnterpriseProvider(AppConfig.recaptchaSiteKey),
+    providerAndroid: kDebugMode
+        ? AndroidDebugProvider()
+        : AndroidPlayIntegrityProvider(),
+    providerApple: kDebugMode
+        ? AppleDebugProvider()
+        : AppleDeviceCheckProvider(),
+    providerWeb: ReCaptchaEnterpriseProvider(AppConfig.recaptchaSiteKey),
   );
 
   runApp(const ProviderScope(child: MyApp()));
