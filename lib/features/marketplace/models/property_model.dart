@@ -1,3 +1,67 @@
+class PropertySpecifications {
+  final double sqm;
+  final int bedrooms;
+  final int bathrooms;
+  final int livingRooms;
+  final int kitchens;
+  final int balconies;
+  final int powderRooms;
+  final String furnishing;
+
+  PropertySpecifications({
+    this.sqm = 0.0,
+    this.bedrooms = 0,
+    this.bathrooms = 0,
+    this.livingRooms = 0,
+    this.kitchens = 0,
+    this.balconies = 0,
+    this.powderRooms = 0,
+    this.furnishing = 'Unfurnished',
+  });
+
+  Map<String, dynamic> toMap() {
+    return {
+      'sqm': sqm,
+      'bedrooms': bedrooms,
+      'bathrooms': bathrooms,
+      'livingRooms': livingRooms,
+      'kitchens': kitchens,
+      'balconies': balconies,
+      'powderRooms': powderRooms,
+      'furnishing': furnishing,
+    };
+  }
+
+  factory PropertySpecifications.fromMap(Map<String, dynamic> map) {
+    double safeDouble(dynamic val) {
+      if (val == null) return 0.0;
+      if (val is int) return val.toDouble();
+      if (val is double) return val;
+      if (val is String) return double.tryParse(val) ?? 0.0;
+      return 0.0;
+    }
+
+    int safeInt(dynamic val) {
+      if (val == null) return 0;
+      if (val is int) return val;
+      if (val is double) return val.toInt();
+      if (val is String) return int.tryParse(val) ?? 0;
+      return 0;
+    }
+
+    return PropertySpecifications(
+      sqm: safeDouble(map['sqm']),
+      bedrooms: safeInt(map['bedrooms']),
+      bathrooms: safeInt(map['bathrooms']),
+      livingRooms: safeInt(map['livingRooms']),
+      kitchens: safeInt(map['kitchens']),
+      balconies: safeInt(map['balconies']),
+      powderRooms: safeInt(map['powderRooms']),
+      furnishing: map['furnishing'] ?? 'Unfurnished',
+    );
+  }
+}
+
 class Property {
   final String id;
   final String title;
@@ -27,6 +91,7 @@ class Property {
   final double? initialValuation;
   final DateTime? lastAppraisalDate;
   final String? occupancyStatus;
+  final PropertySpecifications specifications;
 
   Property({
     required this.id,
@@ -57,7 +122,8 @@ class Property {
     this.initialValuation,
     this.lastAppraisalDate,
     this.occupancyStatus,
-  });
+    PropertySpecifications? specifications,
+  }) : specifications = specifications ?? PropertySpecifications();
 
   Map<String, dynamic> toMap() {
     return {
@@ -88,6 +154,7 @@ class Property {
       'initialValuation': initialValuation,
       'lastAppraisalDate': lastAppraisalDate?.toIso8601String(),
       'occupancyStatus': occupancyStatus,
+      'specifications': specifications.toMap(),
     };
   }
 
@@ -144,6 +211,10 @@ class Property {
           ? DateTime.tryParse(map['lastAppraisalDate'] as String)
           : null,
       occupancyStatus: map['occupancyStatus'],
+      specifications: map['specifications'] != null
+          ? PropertySpecifications.fromMap(
+              Map<String, dynamic>.from(map['specifications']))
+          : null,
     );
   }
 }

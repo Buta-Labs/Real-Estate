@@ -44,7 +44,7 @@ dependencies:
   firebase_auth: ^6.1.4
   cloud_firestore: ^6.1.2
   web3dart: ^3.0.2
-  reown_appkit: ^1.6.0
+  reown_appkit: 1.8.2
   http: ^1.6.0
   crypto: ^3.0.7
   google_sign_in: ^7.2.0

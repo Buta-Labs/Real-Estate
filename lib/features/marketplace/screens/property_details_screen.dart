@@ -709,57 +709,126 @@ class _PropertyDetailsScreenState extends ConsumerState<PropertyDetailsScreen> {
   }
 
   Widget _buildAboutSection() {
+    return Column(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: const Color(0xFF1C2333),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'About the Property',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                widget.property.description.isNotEmpty
+                    ? widget.property.description
+                    : 'Experience the pinnacle of luxury in this exclusive asset. Featuring premium finishes and located in a prime area, this property represents a unique investment opportunity.',
+                style: const TextStyle(color: Colors.grey, height: 1.5),
+              ),
+              const SizedBox(height: 20),
+              if (widget.property.amenities.isNotEmpty) ...[
+                Wrap(
+                  spacing: 12,
+                  runSpacing: 12,
+                  children: widget.property.amenities
+                      .map((amenity) => _buildAmenity(amenity))
+                      .toList(),
+                ),
+                const SizedBox(height: 24),
+              ],
+              const Divider(color: Colors.white10),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  _buildFeatureItem(
+                    Icons.square_foot,
+                    '${widget.property.specifications.sqm > 0 ? widget.property.specifications.sqm : widget.property.totalArea} sqm',
+                  ),
+                  const SizedBox(width: 24),
+                  _buildFeatureItem(
+                    Icons.bed,
+                    '${widget.property.specifications.bedrooms > 0 ? widget.property.specifications.bedrooms : widget.property.rooms} Bedrooms',
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 24),
+        _buildRoomBreakdown(),
+      ],
+    );
+  }
+
+  Widget _buildRoomBreakdown() {
+    final specs = widget.property.specifications;
+    final roomItems = [
+      if (specs.bedrooms > 0)
+        _RoomSpecItem(Icons.bed, '${specs.bedrooms} Bedrooms'),
+      if (specs.bathrooms > 0)
+        _RoomSpecItem(Icons.bathtub, '${specs.bathrooms} Washrooms'),
+      if (specs.livingRooms > 0)
+        _RoomSpecItem(Icons.weekend, '${specs.livingRooms} Living room'),
+      if (specs.kitchens > 0)
+        _RoomSpecItem(Icons.kitchen, '${specs.kitchens} Kitchen'),
+      if (specs.balconies > 0)
+        _RoomSpecItem(Icons.balcony, '${specs.balconies} Balcony'),
+      if (specs.powderRooms > 0)
+        _RoomSpecItem(Icons.wash, '${specs.powderRooms} Powder Room'),
+    ];
+
+    if (roomItems.isEmpty) return const SizedBox.shrink();
+
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: const Color(0xFF1C2333),
+        color: const Color(0xFF0F1522), // Darker background for breakdown
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'About the Property',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
+          GridView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              childAspectRatio: 3.5,
+              crossAxisSpacing: 16,
+              mainAxisSpacing: 16,
             ),
-          ),
-          const SizedBox(height: 12),
-          Text(
-            widget.property.description.isNotEmpty
-                ? widget.property.description
-                : 'Experience the pinnacle of luxury in this exclusive asset. Featuring premium finishes and located in a prime area, this property represents a unique investment opportunity.',
-            style: const TextStyle(color: Colors.grey, height: 1.5),
-          ),
-          const SizedBox(height: 16),
-          if (widget.property.amenities.isNotEmpty) ...[
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                children: widget.property.amenities
-                    .map(
-                      (amenity) => Padding(
-                        padding: const EdgeInsets.only(right: 8.0),
-                        child: _buildAmenity(_getAmenityIcon(amenity), amenity),
+            itemCount: roomItems.length,
+            itemBuilder: (context, index) {
+              final item = roomItems[index];
+              return Row(
+                children: [
+                  Icon(item.icon, color: const Color(0xFFA5B4FC), size: 24),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      item.label,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w500,
                       ),
-                    )
-                    .toList(),
-              ),
-            ),
-            const SizedBox(height: 16),
-          ],
-          Row(
-            children: [
-              _buildFeatureItem(
-                Icons.square_foot,
-                '${widget.property.totalArea} sqm',
-              ),
-              const SizedBox(width: 16),
-              _buildFeatureItem(Icons.bed, '${widget.property.rooms} Rooms'),
-            ],
+                    ),
+                  ),
+                ],
+              );
+            },
           ),
         ],
       ),
@@ -788,24 +857,25 @@ class _PropertyDetailsScreenState extends ConsumerState<PropertyDetailsScreen> {
     );
   }
 
-  Widget _buildAmenity(IconData icon, String label) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: AppColors.backgroundDark,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
-      ),
-      child: Row(
-        children: [
-          Icon(icon, size: 16, color: AppColors.primary),
-          const SizedBox(width: 8),
-          Text(
-            label,
-            style: const TextStyle(color: Colors.white, fontSize: 12),
+  Widget _buildAmenity(String label) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        const Icon(
+          Icons.check_circle,
+          color: Color(0xFF10B981),
+          size: 18,
+        ),
+        const SizedBox(width: 8),
+        Text(
+          label,
+          style: const TextStyle(
+            color: Colors.grey,
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
@@ -1274,4 +1344,11 @@ class _PropertyDetailsScreenState extends ConsumerState<PropertyDetailsScreen> {
       ),
     );
   }
+}
+
+class _RoomSpecItem {
+  final IconData icon;
+  final String label;
+
+  _RoomSpecItem(this.icon, this.label);
 }

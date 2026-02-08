@@ -1188,10 +1188,10 @@ packages:
     dependency: "direct main"
     description:
       name: reown_appkit
-      sha256: "6ea7d0145608d41f38c2286119dfbf1cdabad6644ebe8c8ecb13c0177dae14ee"
+      sha256: fdbc7768c9afd8fbc8682d03c9e72c9057d673c93e940f7adb91739f779a0e41
       url: "https://pub.dev"
     source: hosted
-    version: "1.7.6"
+    version: "1.8.2"
   reown_core:
     dependency: transitive
     description:
