@@ -4,18 +4,20 @@ import 'package:orre_mmc_app/theme/app_colors.dart';
 import 'package:orre_mmc_app/core/utils/haptic_utils.dart';
 import 'package:orre_mmc_app/core/utils/url_launcher_utils.dart';
 import 'package:orre_mmc_app/core/services/currency_service.dart';
+import 'package:orre_mmc_app/features/marketplace/models/property_model.dart';
 import 'dart:math' as math;
 import 'dart:ui';
 
 class RiskAssessmentScreen extends StatefulWidget {
-  const RiskAssessmentScreen({super.key});
+  final Property property;
+  const RiskAssessmentScreen({super.key, required this.property});
 
   @override
   State<RiskAssessmentScreen> createState() => _RiskAssessmentScreenState();
 }
 
 class _RiskAssessmentScreenState extends State<RiskAssessmentScreen> {
-  double _usdToAznRate = 1.70;
+  // No longer used: double _usdToAznRate = 1.70;
   double _fxVolatility = 2.3;
 
   @override
@@ -25,10 +27,9 @@ class _RiskAssessmentScreenState extends State<RiskAssessmentScreen> {
   }
 
   Future<void> _loadCurrencyData() async {
-    final rate = await CurrencyService.getUsdToAznRate();
+    // We only need volatility now as the peg is fixed at 1.70
     final volatility = await CurrencyService.getVolatility();
     setState(() {
-      _usdToAznRate = rate;
       _fxVolatility = volatility;
     });
   }
@@ -48,7 +49,7 @@ class _RiskAssessmentScreenState extends State<RiskAssessmentScreen> {
               icon: const Icon(Icons.arrow_back_ios_new, size: 20),
               onPressed: () => context.pop(),
             ),
-            title: const Column(
+            title: Column(
               children: [
                 Text(
                   'RISK ANALYSIS',
@@ -60,7 +61,7 @@ class _RiskAssessmentScreenState extends State<RiskAssessmentScreen> {
                   ),
                 ),
                 Text(
-                  'The Obsidian Heights',
+                  widget.property.title,
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 14,
@@ -137,7 +138,7 @@ class _RiskAssessmentScreenState extends State<RiskAssessmentScreen> {
         ),
         const SizedBox(height: 24),
         const Text(
-          'Balanced asset performance with high stability and medium liquidity, optimized for 3-5 year holding periods.',
+          'Balanced asset profile prioritizing capital preservation and long-term appreciation. Optimized for investors with a 3-5 year holding horizon.',
           textAlign: TextAlign.center,
           style: TextStyle(color: Colors.white54, fontSize: 13, height: 1.5),
         ),
@@ -175,7 +176,63 @@ class _RiskAssessmentScreenState extends State<RiskAssessmentScreen> {
           onTap: () => _showTooltip(
             context,
             'Market Liquidity',
-            'Real estate is inherently illiquid. Your ability to sell depends on the P2P marketplace and other app users.\n\n**Average Time to Sell:** 45 days\n\n**Exit Options:**\n• List on in-app P2P marketplace\n• Wait for property liquidation event\n• Transfer to another investor (with fees)',
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Real estate is inherently illiquid. Your ability to sell depends on the P2P marketplace and other app users.',
+                  style: TextStyle(
+                    color: Colors.white70,
+                    fontSize: 13,
+                    height: 1.5,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                const Text(
+                  'Liquidity: Market Dependent (Varies by Demand)',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                const Text(
+                  'Exit Options:',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                _buildBulletPoint(
+                  'Trade on Orre P2P Marketplace (Instant Listing)',
+                ),
+                _buildBulletPoint(
+                  'Private Transfer (Peer-to-Peer Wallet Send)',
+                ),
+                _buildBulletPoint('Property Sale Event (5-7 Year Exit)'),
+                const SizedBox(height: 16),
+                const Text(
+                  'No Guarantee',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  'Note: Tokens are not redeemable by the issuer on demand. You must find a buyer on the marketplace.',
+                  style: TextStyle(
+                    color: Colors.white54,
+                    fontSize: 12,
+                    fontStyle: FontStyle.italic,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
         const SizedBox(height: 16),
@@ -200,7 +257,7 @@ class _RiskAssessmentScreenState extends State<RiskAssessmentScreen> {
         // 3. Regulatory Risk (NEW)
         _buildGlassMorphismRiskCard(
           title: 'Regulatory Risk',
-          subtitle: '2026 Clarity Act compliant',
+          subtitle: 'Operating under Civil Law',
           rating: 'MODERATE',
           ratingColor: Colors.orange,
           progress: 0.60,
@@ -213,14 +270,13 @@ class _RiskAssessmentScreenState extends State<RiskAssessmentScreen> {
         // 4. Technical Security (NEW)
         _buildGlassMorphismRiskCard(
           title: 'Technical Security',
-          subtitle: 'Smart contract audited by CertiK',
-          rating: '98/100',
+          subtitle: 'Verified OpenZeppelin standards',
+          rating: 'SECURE',
           ratingColor: AppColors.primary,
-          progress: 0.98,
+          progress: 1.0,
           icon: Icons.security,
-          badge: 'AUDITED',
           onTap: () => _showTechnicalSecurityTooltip(context),
-          actionLabel: 'View Audit',
+          actionLabel: 'View on BaseScan',
         ),
         const SizedBox(height: 16),
 
@@ -232,7 +288,7 @@ class _RiskAssessmentScreenState extends State<RiskAssessmentScreen> {
           ratingColor: _getFxRiskColor(),
           progress: _calculateFxRiskProgress(),
           icon: Icons.currency_exchange,
-          liveData: '1 USD = ${_usdToAznRate.toStringAsFixed(2)} AZN',
+          liveData: '1.70 AZN = 1 USD (Fixed Peg)',
           onTap: () => _showFxRiskTooltip(context),
         ),
       ],
@@ -301,33 +357,38 @@ class _RiskAssessmentScreenState extends State<RiskAssessmentScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      children: [
-                        Icon(icon, color: ratingColor, size: 20),
-                        const SizedBox(width: 12),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              title,
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 14,
-                              ),
+                    Expanded(
+                      child: Row(
+                        children: [
+                          Icon(icon, color: ratingColor, size: 20),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  title,
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  subtitle,
+                                  style: const TextStyle(
+                                    color: Colors.white38,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ],
                             ),
-                            const SizedBox(height: 4),
-                            Text(
-                              subtitle,
-                              style: const TextStyle(
-                                color: Colors.white38,
-                                fontSize: 12,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
+                          ),
+                        ],
+                      ),
                     ),
+                    const SizedBox(width: 8),
                     Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 8,
@@ -479,7 +540,7 @@ class _RiskAssessmentScreenState extends State<RiskAssessmentScreen> {
     );
   }
 
-  void _showTooltip(BuildContext context, String title, String content) {
+  void _showTooltip(BuildContext context, String title, Widget content) {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
@@ -509,14 +570,7 @@ class _RiskAssessmentScreenState extends State<RiskAssessmentScreen> {
               ],
             ),
             const SizedBox(height: 16),
-            Text(
-              content,
-              style: const TextStyle(
-                color: Colors.white70,
-                fontSize: 14,
-                height: 1.6,
-              ),
-            ),
+            content,
             const SizedBox(height: 24),
             SizedBox(
               width: double.infinity,
@@ -545,148 +599,151 @@ class _RiskAssessmentScreenState extends State<RiskAssessmentScreen> {
     _showTooltip(
       context,
       'Legal & Title Verification',
-      '**Azerbaijan Property Law**\n\nForeigners can own buildings but NOT land in Azerbaijan. The land must be held under a 99-year lease from the state.\n\n**This Property:**\n✅ Building ownership: Verified\n✅ Land lease: 99-year term (expires 2123)\n✅ Title registered with State Service for Registration of Property\n\n**Protection:** Assets held in ring-fenced SPV (Delaware/Azerbaijan LLC), legally separated from Orre MMC corporate risks.',
+      Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Asset Ownership Model',
+            style: TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+              fontSize: 14,
+            ),
+          ),
+          const SizedBox(height: 8),
+          const Text(
+            'To ensure operational efficiency and lower costs for investors, all real estate assets are currently acquired and titled directly under Orre MMC.',
+            style: TextStyle(color: Colors.white70, fontSize: 13, height: 1.5),
+          ),
+          const SizedBox(height: 16),
+          const Text(
+            'This Property',
+            style: TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+              fontSize: 14,
+            ),
+          ),
+          const SizedBox(height: 8),
+          const Text(
+            '✅ Title Holder: Orre MMC (The Issuer).',
+            style: TextStyle(color: Colors.white70, fontSize: 13),
+          ),
+          const Text(
+            '✅ Investor Rights: Tokens represent a contractual right to the specific revenue and sale proceeds of this specific unit.',
+            style: TextStyle(color: Colors.white70, fontSize: 13),
+          ),
+          const Text(
+            '✅ Segregation: Rent and sale funds are strictly segregated via Smart Contract and internal accounting ledgers.',
+            style: TextStyle(color: Colors.white70, fontSize: 13),
+          ),
+          const SizedBox(height: 16),
+          const Text(
+            'Risk Disclosure',
+            style: TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+              fontSize: 14,
+            ),
+          ),
+          const SizedBox(height: 8),
+          const Text(
+            'Assets are held centrally. While Orre MMC maintains comprehensive liability insurance, a legal claim against the Issuer could theoretically impact the broader portfolio.',
+            style: TextStyle(
+              color: Colors.white54,
+              fontSize: 12,
+              fontStyle: FontStyle.italic,
+            ),
+          ),
+        ],
+      ),
     );
   }
 
   void _showRegulatoryTooltip(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => DraggableScrollableSheet(
-        initialChildSize: 0.7,
-        maxChildSize: 0.9,
-        minChildSize: 0.5,
-        builder: (context, scrollController) => Container(
-          padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(
-            color: const Color(0xFF1a1a1a),
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-            border: Border.all(color: Colors.orange.withValues(alpha: 0.3)),
-          ),
-          child: SingleChildScrollView(
-            controller: scrollController,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+    _showTooltip(
+      context,
+      'Regulatory Compliance',
+      Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.orange.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: Colors.orange.withValues(alpha: 0.3)),
+            ),
+            child: const Row(
               children: [
-                Row(
-                  children: [
-                    const Icon(Icons.gavel, color: Colors.orange),
-                    const SizedBox(width: 12),
-                    const Text(
-                      'Regulatory Compliance',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.orange.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(
-                      color: Colors.orange.withValues(alpha: 0.3),
-                    ),
-                  ),
-                  child: const Row(
-                    children: [
-                      Icon(
-                        Icons.warning_amber_rounded,
-                        color: Colors.orange,
-                        size: 20,
-                      ),
-                      SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          'Evolving Regulation - Stay Informed',
-                          style: TextStyle(
-                            color: Colors.orange,
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 16),
-                const Text(
-                  '2026 Clarity Act',
-                  style: TextStyle(
-                    color: AppColors.primary,
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                const Text(
-                  'This token is classified as a Digital Security under the 2026 Clarity Act. Orre MMC is registered with the Azerbaijan Securities Commission as a digital asset issuer.',
-                  style: TextStyle(
-                    color: Colors.white70,
-                    fontSize: 14,
-                    height: 1.5,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                const Text(
-                  'Your Rights:',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                _buildBulletPoint(
-                  'Investor protection equivalent to traditional securities',
-                ),
-                _buildBulletPoint('Mandatory quarterly financial disclosures'),
-                _buildBulletPoint(
-                  'Right to vote on major asset decisions (if holding >5%)',
-                ),
-                const SizedBox(height: 16),
-                const Text(
-                  'Restrictions:',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                _buildBulletPoint('Resale requires KYC/AML verification'),
-                _buildBulletPoint(
-                  'Subject to capital gains tax in your jurisdiction',
-                ),
-                _buildBulletPoint('May be restricted in certain countries'),
-                const SizedBox(height: 24),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () => Navigator.pop(context),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primary,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                    ),
-                    child: const Text(
-                      'Got It',
-                      style: TextStyle(
-                        color: Colors.black,
-                        fontWeight: FontWeight.bold,
-                      ),
+                Icon(Icons.gavel, color: Colors.orange, size: 20),
+                SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'Operating under Civil Law',
+                    style: TextStyle(
+                      color: Colors.orange,
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
                 ),
               ],
             ),
           ),
-        ),
+          const SizedBox(height: 20),
+          const Text(
+            '1. Legal Framework',
+            style: TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+              fontSize: 14,
+            ),
+          ),
+          const SizedBox(height: 8),
+          const Text(
+            'These tokens function as digital proofs of a contractual agreement under the Civil Code of the Republic of Azerbaijan. Orre MMC enforces strict KYC/AML standards aligned with Central Bank guidelines.',
+            style: TextStyle(color: Colors.white70, fontSize: 13, height: 1.5),
+          ),
+          const SizedBox(height: 16),
+          const Text(
+            '2. Your Rights',
+            style: TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+              fontSize: 14,
+            ),
+          ),
+          const SizedBox(height: 8),
+          _buildBulletPoint(
+            'Economic Interest: You have a direct right to share in rental income and sale proceeds.',
+          ),
+          _buildBulletPoint(
+            'Transparency: You have access to monthly performance reports and bank-verified proof of funds.',
+          ),
+          _buildBulletPoint(
+            'Asset Security: The underlying real estate is fully insured and legally titled.',
+          ),
+          const SizedBox(height: 16),
+          const Text(
+            '3. Restrictions',
+            style: TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+              fontSize: 14,
+            ),
+          ),
+          const SizedBox(height: 8),
+          _buildBulletPoint(
+            'Identity Verification: Mandatory KYC/AML checks are required before any withdrawal.',
+          ),
+          _buildBulletPoint(
+            'Tax Responsibility: Investors are responsible for declaring capital gains in their local jurisdiction.',
+          ),
+          _buildBulletPoint(
+            'Transferability: Tokens may only be sold on the Orre P2P Market to verified users.',
+          ),
+        ],
       ),
     );
   }
@@ -695,188 +752,204 @@ class _RiskAssessmentScreenState extends State<RiskAssessmentScreen> {
     _showTooltip(
       context,
       'Technical Security',
-      '**Smart Contract Audit**\n\n✅ Audited by: CertiK (2024)\n✅ Security Score: 98/100\n✅ Vulnerabilities: 0 Critical, 0 High\n\n**Base L2 Security:**\nInherited Ethereum Mainnet security via Base Network Layer 2. Your investments are protected by the same cryptographic security as Ethereum.\n\n**On-Chain Verification:**\nAll transactions are publicly verifiable on BaseScan. Full transparency guaranteed.',
+      Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Smart Contract Standards',
+            style: TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+              fontSize: 14,
+            ),
+          ),
+          const SizedBox(height: 8),
+          const Row(
+            children: [
+              Icon(Icons.code, color: AppColors.primary, size: 18),
+              SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'Built on audited OpenZeppelin libraries. Source code is verified on BaseScan for full transparency.',
+                  style: TextStyle(
+                    color: Colors.white70,
+                    fontSize: 13,
+                    height: 1.5,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          const Text(
+            'Network Security',
+            style: TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+              fontSize: 14,
+            ),
+          ),
+          const SizedBox(height: 8),
+          const Row(
+            children: [
+              Icon(Icons.shield_outlined, color: AppColors.primary, size: 18),
+              SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'Secured by Base L2 (Coinbase), inheriting Ethereum\'s cryptographic security.',
+                  style: TextStyle(
+                    color: Colors.white70,
+                    fontSize: 13,
+                    height: 1.5,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          const Text(
+            'Verification',
+            style: TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+              fontSize: 14,
+            ),
+          ),
+          const SizedBox(height: 8),
+          const Row(
+            children: [
+              Icon(Icons.verified_outlined, color: AppColors.primary, size: 18),
+              SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'All transactions and token holdings are publicly verifiable on-chain.',
+                  style: TextStyle(
+                    color: Colors.white70,
+                    fontSize: 13,
+                    height: 1.5,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 
   void _showFxRiskTooltip(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => DraggableScrollableSheet(
-        initialChildSize: 0.7,
-        maxChildSize: 0.9,
-        minChildSize: 0.5,
-        builder: (context, scrollController) => Container(
-          padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(
-            color: const Color(0xFF1a1a1a),
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-            border: Border.all(color: Colors.orange.withValues(alpha: 0.3)),
-          ),
-          child: SingleChildScrollView(
-            controller: scrollController,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+    _showTooltip(
+      context,
+      'Currency Exposure',
+      Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.orange.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: Colors.orange.withValues(alpha: 0.3)),
+            ),
+            child: const Row(
               children: [
-                Row(
-                  children: [
-                    const Icon(Icons.currency_exchange, color: Colors.orange),
-                    const SizedBox(width: 12),
-                    const Text(
-                      'Currency Exposure',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
+                Icon(
+                  Icons.warning_amber_rounded,
+                  color: Colors.orange,
+                  size: 20,
                 ),
-                const SizedBox(height: 16),
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.orange.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(
-                      color: Colors.orange.withValues(alpha: 0.3),
-                    ),
-                  ),
-                  child: const Row(
-                    children: [
-                      Icon(
-                        Icons.warning_amber_rounded,
-                        color: Colors.orange,
-                        size: 20,
-                      ),
-                      SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          'Currency volatility may affect returns',
-                          style: TextStyle(
-                            color: Colors.orange,
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 16),
-                const Text(
-                  'USD Token / AZN Income Mismatch',
-                  style: TextStyle(
-                    color: AppColors.primary,
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                const Text(
-                  'Your tokens are priced in USD (\$1,250/share), but property rental income is collected in Azerbaijani Manat (AZN).',
-                  style: TextStyle(
-                    color: Colors.white70,
-                    fontSize: 14,
-                    height: 1.5,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                _buildFxDataRow(
-                  'Current Exchange Rate',
-                  '${_usdToAznRate.toStringAsFixed(2)} AZN = 1 USD',
-                ),
-                _buildFxDataRow(
-                  '30-Day Volatility',
-                  '±${_fxVolatility.toStringAsFixed(1)}%',
-                ),
-                const SizedBox(height: 16),
-                const Text(
-                  'What This Means:',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                _buildBulletPoint(
-                  'If AZN weakens vs USD, dividend payments decrease in dollar terms',
-                ),
-                _buildBulletPoint('If AZN strengthens, dividends increase'),
-                const SizedBox(height: 16),
-                const Text(
-                  'Our Hedge:',
-                  style: TextStyle(
-                    color: AppColors.primary,
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                const Text(
-                  'Orre MMC maintains a 6-month AZN reserve to smooth short-term fluctuations. Long-term exposure remains.',
-                  style: TextStyle(
-                    color: Colors.white70,
-                    fontSize: 14,
-                    height: 1.5,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.05),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Example Impact:',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 13,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      _buildExampleRow('Expected monthly rent', '2,550 AZN'),
-                      _buildExampleRow(
-                        'At ${_usdToAznRate.toStringAsFixed(2)} rate',
-                        '\$${(2550 / _usdToAznRate).toStringAsFixed(0)} USD',
-                      ),
-                      _buildExampleRow(
-                        'If rate moves to ${(_usdToAznRate + 0.15).toStringAsFixed(2)}',
-                        '\$${(2550 / (_usdToAznRate + 0.15)).toStringAsFixed(0)} USD (-${(((2550 / (_usdToAznRate + 0.15)) / (2550 / _usdToAznRate) - 1) * -100).toStringAsFixed(1)}%)',
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 24),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () => Navigator.pop(context),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primary,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                    ),
-                    child: const Text(
-                      'Got It',
-                      style: TextStyle(
-                        color: Colors.black,
-                        fontWeight: FontWeight.bold,
-                      ),
+                SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    '⚠️ Devaluation Risk (Pegged Currency)',
+                    style: TextStyle(
+                      color: Colors.orange,
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
                 ),
               ],
             ),
           ),
-        ),
+          const SizedBox(height: 20),
+          const Text(
+            '1. USD Token / AZN Income Mismatch',
+            style: TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+              fontSize: 14,
+            ),
+          ),
+          const SizedBox(height: 8),
+          const Text(
+            'Your tokens are priced in USD (\$50/share), but property rental income is collected in Azerbaijani Manat (AZN).',
+            style: TextStyle(color: Colors.white70, fontSize: 13, height: 1.5),
+          ),
+          const SizedBox(height: 12),
+          _buildFxDataRow(
+            'Current Exchange Rate',
+            '1.70 AZN = 1 USD (Fixed Peg)',
+          ),
+          _buildFxDataRow('Market Status', 'Stable (Pegged by Central Bank)'),
+          const SizedBox(height: 16),
+          const Text(
+            '2. What This Means',
+            style: TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+              fontSize: 14,
+            ),
+          ),
+          const SizedBox(height: 8),
+          _buildBulletPoint(
+            'Stability: Returns are stable as long as the Central Bank maintains the 1.70 peg.',
+          ),
+          _buildBulletPoint(
+            'Risk: If the government devalues the currency (e.g., to 2.00 AZN), the USD value of your monthly dividends will decrease proportionally.',
+          ),
+          const SizedBox(height: 16),
+          const Text(
+            '3. Our Strategy (Immediate Conversion)',
+            style: TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+              fontSize: 14,
+            ),
+          ),
+          const SizedBox(height: 8),
+          const Text(
+            'Orre MMC converts collected AZN rent into USDC/USD within 48 hours of receipt to minimize exposure to any sudden devaluation events.',
+            style: TextStyle(color: Colors.white70, fontSize: 13, height: 1.5),
+          ),
+          const SizedBox(height: 16),
+          const Text(
+            '4. Example Impact (Devaluation Scenario)',
+            style: TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+              fontSize: 14,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.05),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Column(
+              children: [
+                _buildExampleRow('Expected Monthly Rent', '2,550 AZN'),
+                _buildExampleRow('At Current Rate (1.70)', '\$1,500 USD'),
+                _buildExampleRow(
+                  'If Rate Moves to 1.85',
+                  '\$1,378 USD (-8.1%)',
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -987,19 +1060,19 @@ class _RiskAssessmentScreenState extends State<RiskAssessmentScreen> {
         ),
         const SizedBox(height: 12),
 
-        // 2. SPV Asset Isolation (Enhanced)
+        // 2. Direct Asset Ownership
         _buildStrategyItem(
           Icons.gavel,
-          'SPV Asset Isolation',
-          'Property held in Delaware/Azerbaijan LLC, legally separated from Orre MMC corporate risks',
+          'Direct Asset Ownership',
+          'Property titled directly under Orre MMC with strictly segregated revenue funds',
         ),
         const SizedBox(height: 12),
 
-        // 3. Automated Tax & Fee Settlement (NEW)
+        // 3. Automated Net Distribution
         _buildStrategyItem(
           Icons.calculate,
-          'Automated Tax Settlement',
-          '10% Azerbaijan withholding + 20% performance fee auto-settled by smart contract before payout',
+          'Automated Net Distribution',
+          'Dividends are distributed net of 10% Azerbaijan withholding tax and performance fees to ensure full compliance.',
         ),
         const SizedBox(height: 12),
 
@@ -1024,11 +1097,11 @@ class _RiskAssessmentScreenState extends State<RiskAssessmentScreen> {
         ),
         const SizedBox(height: 12),
 
-        // 6. Custody (Existing)
+        // 6. Secure Treasury Management
         _buildStrategyItem(
           Icons.verified_user,
-          'Third-Party Custody',
-          'Institutional custodians manage financial flows',
+          'Secure Treasury Management',
+          'Assets and funds are secured using Multi-Signature wallets and strict operational access controls.',
         ),
       ],
     );
@@ -1147,7 +1220,7 @@ class _RiskAssessmentScreenState extends State<RiskAssessmentScreen> {
                 Row(
                   children: [
                     Text(
-                      '\$1,250',
+                      '\$50',
                       style: TextStyle(
                         color: Colors.white,
                         fontSize: 20,

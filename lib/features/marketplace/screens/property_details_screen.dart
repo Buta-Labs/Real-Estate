@@ -1109,7 +1109,8 @@ class _PropertyDetailsScreenState extends ConsumerState<PropertyDetailsScreen> {
           children: [
             Expanded(
               child: GestureDetector(
-                onTap: () => context.push('/risk-assessment'),
+                onTap: () =>
+                    context.push('/risk-assessment', extra: widget.property),
                 child: _buildSecondaryButton(
                   icon: Icons.warning_amber,
                   label: 'Risk Audit',

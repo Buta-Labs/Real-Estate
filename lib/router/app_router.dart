@@ -329,7 +329,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '/risk-assessment',
-        builder: (context, state) => const RiskAssessmentScreen(),
+        builder: (context, state) {
+          final property = state.extra as Property;
+          return RiskAssessmentScreen(property: property);
+        },
       ),
       GoRoute(
         path: '/appraisal-history',

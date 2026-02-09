@@ -7,18 +7,7 @@ import 'package:orre_mmc_app/features/wallet/providers/wallet_provider.dart';
 import 'package:orre_mmc_app/features/auth/repositories/auth_repository.dart';
 import 'package:orre_mmc_app/features/wallet/repositories/transaction_repository.dart';
 
-final walletCurrencyProvider = NotifierProvider<WalletCurrencyNotifier, String>(
-  WalletCurrencyNotifier.new,
-);
-
-class WalletCurrencyNotifier extends Notifier<String> {
-  @override
-  String build() => 'USDT';
-
-  void setCurrency(String currency) {
-    state = currency;
-  }
-}
+// Redundant local providers removed, using from wallet_provider.dart
 
 class WalletScreen extends ConsumerWidget {
   const WalletScreen({super.key});
@@ -319,8 +308,10 @@ class WalletScreen extends ConsumerWidget {
                     Expanded(
                       child: Consumer(
                         builder: (context, ref, child) {
-                          final usdcAsync = ref.watch(usdcBalanceProvider);
-                          return usdcAsync.when(
+                          final balanceAsync = ref.watch(
+                            activeTokenBalanceProvider,
+                          );
+                          return balanceAsync.when(
                             data: (val) => _buildSubBalance(
                               '\$$val',
                               'INVESTABLE',
@@ -348,11 +339,35 @@ class WalletScreen extends ConsumerWidget {
                     ),
                     const SizedBox(width: 12),
                     Expanded(
-                      child: _buildSubBalance(
-                        '\$4,500.00',
-                        'WITHDRAWABLE',
-                        Colors.black.withValues(alpha: 0.2),
-                        Colors.white.withValues(alpha: 0.6),
+                      child: Consumer(
+                        builder: (context, ref, child) {
+                          final balanceAsync = ref.watch(
+                            activeTokenBalanceProvider,
+                          );
+                          return balanceAsync.when(
+                            data: (val) => _buildSubBalance(
+                              '\$$val',
+                              'WITHDRAWABLE',
+                              Colors.black.withValues(alpha: 0.2),
+                              Colors.white.withValues(alpha: 0.6),
+                            ),
+                            loading: () => const Center(
+                              child: SizedBox(
+                                height: 20,
+                                width: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
+                              ),
+                            ),
+                            error: (_, _) => _buildSubBalance(
+                              '\$0.00',
+                              'WITHDRAWABLE',
+                              Colors.black.withValues(alpha: 0.2),
+                              Colors.white.withValues(alpha: 0.6),
+                            ),
+                          );
+                        },
                       ),
                     ),
                   ],

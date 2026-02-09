@@ -43,13 +43,7 @@ final usdcBalanceProvider = FutureProvider.autoDispose<String>((ref) async {
   final address = ref.watch(walletAddressProvider);
   if (address == null) return "0.00";
 
-  // Use the USDC address defined in repository
   try {
-    // We need to implement a real getTokenBalance in repository or use a generic one
-    // For now, let's assuming repository has a method or we add one.
-    // Actually repository.getTokenBalance takes tokenAddress.
-    // We'll use the static constant from BlockchainRepository if accessible or hardcode it temporarily/expose it.
-    // BlockchainRepository.usdcAddress is static const.
     final balance = await repository.getTokenBalance(
       BlockchainRepository.usdcAddress,
     );
@@ -58,6 +52,51 @@ final usdcBalanceProvider = FutureProvider.autoDispose<String>((ref) async {
     return "0.00";
   }
 });
+
+final usdtBalanceProvider = FutureProvider.autoDispose<String>((ref) async {
+  final repository = ref.watch(blockchainRepositoryProvider);
+  final address = ref.watch(walletAddressProvider);
+  if (address == null) return "0.00";
+
+  try {
+    final balance = await repository.getTokenBalance(
+      BlockchainRepository.usdtAddress,
+    );
+    return balance.toStringAsFixed(2);
+  } catch (e) {
+    return "0.00";
+  }
+});
+
+/// A provider that switches balance based on the UI selection (USDT/USDC)
+/// Importing the UI provider here might cause circularity, so we'll look it up via ref.watch if we move it or define a common one.
+/// For now, since WalletCurrencyNotifier is in wallet_screen.dart, we should probably move it to a shared place or this provider file.
+final activeTokenBalanceProvider = FutureProvider.autoDispose<String>((
+  ref,
+) async {
+  // We need to watch the currency selection.
+  // Since WalletCurrencyNotifier is currently in wallet_screen.dart, let's assume we pass the ref or move the notifier.
+  // I will move WalletCurrencyNotifier to this file for better architectural layering.
+  final currency = ref.watch(walletCurrencyProvider);
+  if (currency == 'USDC') {
+    return ref.watch(usdcBalanceProvider.future);
+  } else {
+    return ref.watch(usdtBalanceProvider.future);
+  }
+});
+
+class WalletCurrencyNotifier extends Notifier<String> {
+  @override
+  String build() => 'USDT';
+
+  void setCurrency(String currency) {
+    state = currency;
+  }
+}
+
+final walletCurrencyProvider = NotifierProvider<WalletCurrencyNotifier, String>(
+  WalletCurrencyNotifier.new,
+);
 
 Future<void> connectWallet(BuildContext context, WidgetRef ref) async {
   final repository = ref.read(blockchainRepositoryProvider);

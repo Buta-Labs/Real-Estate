@@ -189,7 +189,7 @@ class PortfolioScreen extends ConsumerWidget {
                     const SizedBox(height: 16),
 
                     // Asset List
-                    ..._buildAssetList(portfolioAsync, priceFormat),
+                    ..._buildAssetList(context, portfolioAsync, priceFormat),
 
                     const SizedBox(height: 100),
                   ]),
@@ -420,6 +420,7 @@ class PortfolioScreen extends ConsumerWidget {
   }
 
   List<Widget> _buildAssetList(
+    BuildContext context,
     AsyncValue<List<PortfolioItem>> portfolioAsync,
     NumberFormat priceFormat,
   ) {
@@ -435,7 +436,9 @@ class PortfolioScreen extends ConsumerWidget {
             ),
           ];
         }
-        return items.map((item) => _buildAssetCard(item, priceFormat)).toList();
+        return items
+            .map((item) => _buildAssetCard(context, item, priceFormat))
+            .toList();
       },
       loading: () => [const Center(child: CircularProgressIndicator())],
       error: (e, stack) => [
@@ -444,7 +447,11 @@ class PortfolioScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildAssetCard(PortfolioItem item, NumberFormat priceFormat) {
+  Widget _buildAssetCard(
+    BuildContext context,
+    PortfolioItem item,
+    NumberFormat priceFormat,
+  ) {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
