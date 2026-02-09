@@ -212,7 +212,7 @@ class DashboardScreen extends ConsumerWidget {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        '$balance POL',
+                        '$balance ETH',
                         style: GoogleFonts.manrope(
                           fontSize: 36,
                           fontWeight: FontWeight.bold,

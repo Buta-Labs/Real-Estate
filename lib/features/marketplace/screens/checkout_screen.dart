@@ -11,9 +11,12 @@ import 'package:orre_mmc_app/core/services/contract_service.dart';
 import 'package:orre_mmc_app/features/auth/providers/user_provider.dart';
 import 'package:orre_mmc_app/shared/widgets/signature_pad.dart';
 import 'package:orre_mmc_app/features/marketplace/repositories/investment_repository.dart';
+import 'package:orre_mmc_app/features/marketplace/models/property_model.dart';
+import 'package:orre_mmc_app/features/auth/models/user_model.dart';
 
 class CheckoutScreen extends ConsumerStatefulWidget {
-  const CheckoutScreen({super.key});
+  final Property property;
+  const CheckoutScreen({super.key, required this.property});
 
   @override
   ConsumerState<CheckoutScreen> createState() => _CheckoutScreenState();
@@ -22,7 +25,7 @@ class CheckoutScreen extends ConsumerStatefulWidget {
 class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
   double _amount = 5000;
   static const double _maxLimit = 24500;
-  static const double _tokenPrice = 10;
+  double get _tokenPrice => widget.property.price;
   static const double _feeRate = 0.005;
 
   // Instance of repository for rules
@@ -33,11 +36,32 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
   // Contract generation state
   bool _tier2Acknowledged = false;
   Uint8List? _signatureImage;
+  double? _liveBalance;
 
-  // Hardcoded for MVP - Tier 3 property for demonstration (Index 2)
-  static const int _demoTierIndex = 2;
-  static const String _demoContractAddress =
-      '0x1234567890123456789012345678901234567890';
+  @override
+  void initState() {
+    super.initState();
+    _fetchLiveBalance();
+  }
+
+  Future<void> _fetchLiveBalance() async {
+    try {
+      final repository = ref.read(blockchainRepositoryProvider);
+      const usdcAddress = '0x036CbD53842c5426634e7929541eC2318f3dCF7e';
+      final balance = await repository.getTokenBalance(usdcAddress);
+      if (mounted) {
+        setState(() {
+          _liveBalance = balance;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error fetching balance: $e');
+    }
+  }
+
+  // Use dynamic property data
+  int get _tierIndex => widget.property.tierIndex;
+  String get _contractAddress => widget.property.contractAddress;
 
   Future<void> _handlePurchase() async {
     final userAsync = ref.read(userProvider);
@@ -49,7 +73,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
     }
 
     // Step 1: Check if Tier 3 foreign investor needs acknowledgment
-    if (_demoTierIndex == 2 &&
+    if (_tierIndex == 2 &&
         user.country != 'Azerbaijan' &&
         !_tier2Acknowledged) {
       await _showGoldenCheckboxDialog(user);
@@ -246,7 +270,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
       final contractService = ContractService();
       final contractResult = await contractService.generateInvestmentContract(
         userId: user.uid,
-        propertyId: 'orion_penthouse_demo',
+        propertyId: widget.property.id,
         investmentAmount: _amount,
         signatureImage: _signatureImage!,
         userData: {
@@ -256,9 +280,9 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
           'country': user.country ?? 'Unknown',
         },
         propertyData: {
-          'title': 'The Orion Penthouse',
-          'contractAddress': _demoContractAddress,
-          'tierIndex': _demoTierIndex,
+          'title': widget.property.title,
+          'contractAddress': _contractAddress,
+          'tierIndex': _tierIndex,
         },
         transactionHash: 'PENDING', // Will be updated after blockchain tx
       );
@@ -285,7 +309,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
 
       // Perform blockchain transaction with PDF hash
       final result = await repository.purchaseToken(
-        _demoContractAddress,
+        _contractAddress,
         _amount,
         legalDocHash: contractResult.pdfHash,
         onStatusChanged: (status) {
@@ -331,7 +355,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
       if (user != null && !user.hasCompletedContractProfile()) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (mounted) {
-            _showCompleteProfileDialog(context);
+            _showCompleteProfileDialog(context, user);
           }
         });
       }
@@ -365,7 +389,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                   const SizedBox(height: 48),
                   _buildSlider(_maxLimit),
                   const SizedBox(height: 24),
-                  _buildWalletBalance(_maxLimit),
+                  _buildWalletBalance(_liveBalance ?? _maxLimit),
                 ],
               ),
             ),
@@ -391,22 +415,20 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
             height: 64,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(8),
-              image: const DecorationImage(
-                image: NetworkImage(
-                  'https://lh3.googleusercontent.com/aida-public/AB6AXuBxsR1Uvzzr5Rf008mbOADxpT_xz5mzvQ7Zkaur3EzLxob79FZM2ni_qrdwpycXrJTx07CJigcx3bYQL8YEYuhk6pRcitxavfGKrhgb5yzk6vSHssX9kFqgvm9vcqr9kPCvI4wFJsNTKz6WziTNWU6GoJklFRzq1lZVdzV2mdz3oVD-wDuc6_gWrPK6pSV5YBclX_UA3zvR1DGPhQq902g-boM1BD9RS4sCOAw2Hgqwy9XwheOKGN3TJypIKOrlEVK91rFm51A48A',
-                ),
+              image: DecorationImage(
+                image: NetworkImage(widget.property.imageUrl),
                 fit: BoxFit.cover,
               ),
             ),
           ),
           const SizedBox(width: 16),
-          const Expanded(
+          Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'The Orion Penthouse',
-                  style: TextStyle(
+                  widget.property.title,
+                  style: const TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.bold,
                   ),
@@ -414,8 +436,8 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                   overflow: TextOverflow.ellipsis,
                 ),
                 Text(
-                  'Fractional Ownership • 8.5% Yield',
-                  style: TextStyle(color: Colors.grey, fontSize: 12),
+                  'Fractional Ownership • ${widget.property.yieldRate}% Yield',
+                  style: const TextStyle(color: Colors.grey, fontSize: 12),
                 ),
               ],
             ),
@@ -505,10 +527,10 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
           ),
           child: Slider(
             value: _amount.clamp(
-              _invRepo.getMinimumInvestment(_demoTierIndex),
+              _invRepo.getMinimumInvestment(_tierIndex),
               max,
             ),
-            min: _invRepo.getMinimumInvestment(_demoTierIndex),
+            min: _invRepo.getMinimumInvestment(_tierIndex).toDouble(),
             max: max,
             onChanged: (value) => setState(() => _amount = value),
           ),
@@ -519,8 +541,8 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                '\$${_invRepo.getMinimumInvestment(_demoTierIndex).toInt()}',
-                style: TextStyle(color: Colors.grey),
+                '\$${_invRepo.getMinimumInvestment(_tierIndex).toInt()}',
+                style: const TextStyle(color: Colors.grey),
               ),
               Text(
                 '\$${max.toInt()}',
@@ -546,13 +568,13 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
             ),
             const SizedBox(width: 8),
             Text(
-              'Balance: \$${max.toInt()} USDT',
+              'Balance: \$${_liveBalance?.toStringAsFixed(2) ?? max.toStringAsFixed(2)} USDC',
               style: const TextStyle(color: Colors.grey),
             ),
           ],
         ),
         TextButton(
-          onPressed: () => setState(() => _amount = max),
+          onPressed: () => setState(() => _amount = _liveBalance ?? max),
           child: const Text(
             'Use Max',
             style: TextStyle(color: AppColors.primary),
@@ -676,7 +698,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
   }
 
   /// Show dialog forcing user to complete profile before investing
-  void _showCompleteProfileDialog(BuildContext context) {
+  void _showCompleteProfileDialog(BuildContext context, UserModel user) {
     // Prevent multiple dialogs
     if (_hasShownProfileDialog) return;
     _hasShownProfileDialog = true;
@@ -684,7 +706,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
     showDialog(
       context: context,
       barrierDismissible: false, // Cannot dismiss without action
-      builder: (context) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         backgroundColor: const Color(0xFF1C2333),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Row(
@@ -713,9 +735,19 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
               style: TextStyle(color: Colors.white70, fontSize: 14),
             ),
             const SizedBox(height: 16),
-            _buildRequiredField('Full Legal Name'),
-            _buildRequiredField('Country of Residence'),
-            _buildRequiredField('ID Number'),
+            _buildRequiredField(
+              'Full Legal Name',
+              isComplete:
+                  user.fullLegalName != null && user.fullLegalName!.isNotEmpty,
+            ),
+            _buildRequiredField(
+              'Country of Residence',
+              isComplete: user.country != null && user.country!.isNotEmpty,
+            ),
+            _buildRequiredField(
+              'ID Number',
+              isComplete: user.idNumber != null && user.idNumber!.isNotEmpty,
+            ),
             const SizedBox(height: 16),
             const Text(
               'These details are required for generating legally binding investment contracts.',
@@ -730,7 +762,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
         actions: [
           TextButton(
             onPressed: () {
-              context.pop(); // Close dialog
+              Navigator.of(dialogContext).pop(); // Close dialog
               context.pop(); // Go back from checkout
             },
             child: const Text(
@@ -740,8 +772,12 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
           ),
           ElevatedButton(
             onPressed: () {
-              context.pop(); // Close dialog
-              context.push('/profile'); // Navigate to profile
+              Navigator.of(dialogContext).pop(); // Close dialog
+              Future.microtask(() {
+                if (context.mounted) {
+                  context.go('/profile');
+                }
+              });
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.primary,
@@ -760,16 +796,23 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
     );
   }
 
-  Widget _buildRequiredField(String label) {
+  Widget _buildRequiredField(String label, {required bool isComplete}) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: Row(
         children: [
-          Icon(Icons.check_circle_outline, color: AppColors.primary, size: 18),
+          Icon(
+            isComplete ? Icons.check_circle_outline : Icons.circle_outlined,
+            color: isComplete ? AppColors.primary : Colors.white24,
+            size: 18,
+          ),
           const SizedBox(width: 8),
           Text(
             label,
-            style: const TextStyle(color: Colors.white, fontSize: 14),
+            style: TextStyle(
+              color: isComplete ? Colors.white : Colors.white54,
+              fontSize: 14,
+            ),
           ),
         ],
       ),

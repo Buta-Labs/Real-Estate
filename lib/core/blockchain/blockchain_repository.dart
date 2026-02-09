@@ -332,8 +332,8 @@ class BlockchainRepository {
       // AppKit often has balance in the session/account data
       final balance = _appKitModal.balanceNotifier.value;
       if (balance.isNotEmpty) {
-        return balance; // It returns formatted string usually? Or just value.
-        // Let's stick to reliable Web3Client for consistency if AppKit format varies
+        // AppKit balance often comes as "0.000 ETH". We want just the number for consistency.
+        return balance.split(' ').first;
       }
 
       final address = EthereumAddress.fromHex(addressStr);

@@ -14,6 +14,7 @@ import 'package:orre_mmc_app/features/marketplace/widgets/financials_tab.dart';
 import 'package:orre_mmc_app/features/marketplace/repositories/investment_repository.dart';
 import 'package:orre_mmc_app/core/blockchain/blockchain_providers.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:orre_mmc_app/features/wallet/providers/wallet_provider.dart';
 
 class PropertyDetailsScreen extends ConsumerStatefulWidget {
   final Property property;
@@ -774,6 +775,7 @@ class _PropertyDetailsScreenState extends ConsumerState<PropertyDetailsScreen> {
   Widget _buildRoomBreakdown() {
     final specs = widget.property.specifications;
     final roomItems = [
+      // Hardcoded fields (for backward compatibility)
       if (specs.bedrooms > 0)
         _RoomSpecItem(Icons.bed, '${specs.bedrooms} Bedrooms'),
       if (specs.bathrooms > 0)
@@ -786,6 +788,14 @@ class _PropertyDetailsScreenState extends ConsumerState<PropertyDetailsScreen> {
         _RoomSpecItem(Icons.balcony, '${specs.balconies} Balcony'),
       if (specs.powderRooms > 0)
         _RoomSpecItem(Icons.wash, '${specs.powderRooms} Powder Room'),
+
+      // Dynamic fields from Admin Panel
+      ...specs.dynamicSpecs.map(
+        (spec) => _RoomSpecItem(
+          _getDynamicSpecIcon(spec.label),
+          '${spec.label}: ${spec.value}${spec.unit.isNotEmpty ? ' ${spec.unit}' : ''}',
+        ),
+      ),
     ];
 
     if (roomItems.isEmpty) return const SizedBox.shrink();
@@ -793,13 +803,22 @@ class _PropertyDetailsScreenState extends ConsumerState<PropertyDetailsScreen> {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: const Color(0xFF0F1522), // Darker background for breakdown
+        color: const Color(0xFF1C2333), // Match About Section color
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          const Text(
+            'Property Specs',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 20),
           GridView.builder(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
@@ -814,14 +833,14 @@ class _PropertyDetailsScreenState extends ConsumerState<PropertyDetailsScreen> {
               final item = roomItems[index];
               return Row(
                 children: [
-                  Icon(item.icon, color: const Color(0xFFA5B4FC), size: 24),
+                  Icon(item.icon, color: AppColors.primary, size: 24),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
                       item.label,
                       style: const TextStyle(
                         color: Colors.white,
-                        fontSize: 15,
+                        fontSize: 14,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
@@ -833,6 +852,28 @@ class _PropertyDetailsScreenState extends ConsumerState<PropertyDetailsScreen> {
         ],
       ),
     );
+  }
+
+  IconData _getDynamicSpecIcon(String label) {
+    final lower = label.toLowerCase();
+    if (lower.contains('bed')) return Icons.bed;
+    if (lower.contains('bath') || lower.contains('wash')) return Icons.bathtub;
+    if (lower.contains('kitchen')) return Icons.kitchen;
+    if (lower.contains('living')) return Icons.weekend;
+    if (lower.contains('balcony')) return Icons.balcony;
+    if (lower.contains('parking')) return Icons.local_parking;
+    if (lower.contains('area') || lower.contains('sqm')) {
+      return Icons.square_foot;
+    }
+    if (lower.contains('office') || lower.contains('study')) return Icons.work;
+    if (lower.contains('laundry')) return Icons.local_laundry_service;
+    if (lower.contains('foyer') ||
+        lower.contains('entry') ||
+        lower.contains('hall')) {
+      return Icons.sensor_door;
+    }
+    if (lower.contains('ensuite')) return Icons.hot_tub;
+    return Icons.info_outline;
   }
 
   IconData _getAmenityIcon(String amenity) {
@@ -861,11 +902,7 @@ class _PropertyDetailsScreenState extends ConsumerState<PropertyDetailsScreen> {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        const Icon(
-          Icons.check_circle,
-          color: Color(0xFF10B981),
-          size: 18,
-        ),
+        Icon(_getAmenityIcon(label), color: const Color(0xFF10B981), size: 18),
         const SizedBox(width: 8),
         Text(
           label,
@@ -1222,7 +1259,7 @@ class _PropertyDetailsScreenState extends ConsumerState<PropertyDetailsScreen> {
           ),
           child: Row(
             children: [
-              const Expanded(
+              Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -1230,18 +1267,24 @@ class _PropertyDetailsScreenState extends ConsumerState<PropertyDetailsScreen> {
                       'Available Balance',
                       style: TextStyle(color: Colors.grey, fontSize: 12),
                     ),
-                    Text(
-                      '\$12,450.00',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                      ),
+                    Consumer(
+                      builder: (context, ref, _) {
+                        final balance = ref.watch(usdcBalanceProvider);
+                        return Text(
+                          '\$${balance.value ?? '0.00'}',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        );
+                      },
                     ),
                   ],
                 ),
               ),
               ElevatedButton.icon(
-                onPressed: () => context.push('/checkout'),
+                onPressed: () =>
+                    context.push('/checkout', extra: widget.property),
                 icon: const Text('Buy Tokens'),
                 label: const Icon(Icons.arrow_forward, size: 16),
                 style: ElevatedButton.styleFrom(
@@ -1318,7 +1361,7 @@ class _PropertyDetailsScreenState extends ConsumerState<PropertyDetailsScreen> {
               ElevatedButton.icon(
                 onPressed: () {
                   setState(() => _showScarcity = false);
-                  context.push('/checkout');
+                  context.push('/checkout', extra: widget.property);
                 },
                 icon: const Icon(Icons.account_balance_wallet),
                 label: const Text('Secure Your Stake'),

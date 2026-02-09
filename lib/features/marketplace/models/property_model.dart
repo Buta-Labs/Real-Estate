@@ -1,3 +1,23 @@
+class PropertySpec {
+  final String label;
+  final String value;
+  final String unit;
+
+  PropertySpec({required this.label, required this.value, this.unit = ''});
+
+  factory PropertySpec.fromMap(Map<String, dynamic> map) {
+    return PropertySpec(
+      label: map['label'] as String? ?? '',
+      value: map['value']?.toString() ?? '',
+      unit: map['unit'] as String? ?? '',
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {'label': label, 'value': value, 'unit': unit};
+  }
+}
+
 class PropertySpecifications {
   final double sqm;
   final int bedrooms;
@@ -7,6 +27,7 @@ class PropertySpecifications {
   final int balconies;
   final int powderRooms;
   final String furnishing;
+  final List<PropertySpec> dynamicSpecs;
 
   PropertySpecifications({
     this.sqm = 0.0,
@@ -17,6 +38,7 @@ class PropertySpecifications {
     this.balconies = 0,
     this.powderRooms = 0,
     this.furnishing = 'Unfurnished',
+    this.dynamicSpecs = const [],
   });
 
   Map<String, dynamic> toMap() {
@@ -29,36 +51,54 @@ class PropertySpecifications {
       'balconies': balconies,
       'powderRooms': powderRooms,
       'furnishing': furnishing,
+      'dynamicSpecs': dynamicSpecs.map((s) => s.toMap()).toList(),
     };
   }
 
-  factory PropertySpecifications.fromMap(Map<String, dynamic> map) {
-    double safeDouble(dynamic val) {
-      if (val == null) return 0.0;
-      if (val is int) return val.toDouble();
-      if (val is double) return val;
-      if (val is String) return double.tryParse(val) ?? 0.0;
-      return 0.0;
+  factory PropertySpecifications.fromMap(dynamic data) {
+    if (data == null) return PropertySpecifications();
+
+    if (data is List) {
+      return PropertySpecifications(
+        dynamicSpecs: data
+            .map(
+              (item) => PropertySpec.fromMap(Map<String, dynamic>.from(item)),
+            )
+            .toList(),
+      );
     }
 
-    int safeInt(dynamic val) {
-      if (val == null) return 0;
-      if (val is int) return val;
-      if (val is double) return val.toInt();
-      if (val is String) return int.tryParse(val) ?? 0;
-      return 0;
+    if (data is Map) {
+      final map = Map<String, dynamic>.from(data);
+      double safeDouble(dynamic val) {
+        if (val == null) return 0.0;
+        if (val is int) return val.toDouble();
+        if (val is double) return val;
+        if (val is String) return double.tryParse(val) ?? 0.0;
+        return 0.0;
+      }
+
+      int safeInt(dynamic val) {
+        if (val == null) return 0;
+        if (val is int) return val;
+        if (val is double) return val.toInt();
+        if (val is String) return int.tryParse(val) ?? 0;
+        return 0;
+      }
+
+      return PropertySpecifications(
+        sqm: safeDouble(map['sqm']),
+        bedrooms: safeInt(map['bedrooms']),
+        bathrooms: safeInt(map['bathrooms']),
+        livingRooms: safeInt(map['livingRooms']),
+        kitchens: safeInt(map['kitchens']),
+        balconies: safeInt(map['balconies']),
+        powderRooms: safeInt(map['powderRooms']),
+        furnishing: map['furnishing'] ?? 'Unfurnished',
+      );
     }
 
-    return PropertySpecifications(
-      sqm: safeDouble(map['sqm']),
-      bedrooms: safeInt(map['bedrooms']),
-      bathrooms: safeInt(map['bathrooms']),
-      livingRooms: safeInt(map['livingRooms']),
-      kitchens: safeInt(map['kitchens']),
-      balconies: safeInt(map['balconies']),
-      powderRooms: safeInt(map['powderRooms']),
-      furnishing: map['furnishing'] ?? 'Unfurnished',
-    );
+    return PropertySpecifications();
   }
 }
 
@@ -211,10 +251,7 @@ class Property {
           ? DateTime.tryParse(map['lastAppraisalDate'] as String)
           : null,
       occupancyStatus: map['occupancyStatus'],
-      specifications: map['specifications'] != null
-          ? PropertySpecifications.fromMap(
-              Map<String, dynamic>.from(map['specifications']))
-          : null,
+      specifications: PropertySpecifications.fromMap(map['specifications']),
     );
   }
 }

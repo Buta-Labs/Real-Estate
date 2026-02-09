@@ -270,7 +270,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '/checkout',
-        builder: (context, state) => const CheckoutScreen(),
+        builder: (context, state) {
+          final property = state.extra as Property;
+          return CheckoutScreen(property: property);
+        },
       ),
       GoRoute(
         path: '/property-updates',

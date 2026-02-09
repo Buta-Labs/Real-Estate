@@ -81,6 +81,9 @@ class UserModel {
 
   /// Check if user has completed required profile fields for contracts
   bool hasCompletedContractProfile() {
+    // If user is already KYC verified by admin, they can proceed
+    if (kycStatus == 'verified') return true;
+
     return fullLegalName != null &&
         fullLegalName!.isNotEmpty &&
         country != null &&

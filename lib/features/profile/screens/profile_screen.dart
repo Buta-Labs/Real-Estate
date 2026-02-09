@@ -9,6 +9,7 @@ import 'package:orre_mmc_app/features/auth/providers/user_provider.dart';
 import 'package:orre_mmc_app/shared/widgets/glass_container.dart';
 import 'package:orre_mmc_app/theme/app_colors.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:orre_mmc_app/features/wallet/providers/wallet_provider.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
@@ -273,12 +274,17 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
                   _buildSectionTitle('FINANCIALS'),
                   _buildSectionContainer([
-                    _buildSettingsItem(
-                      Icons.account_balance_wallet,
-                      'Wallet Balance',
-                      subtitle: '\$142,500.00',
-                      subtitleColor: AppColors.primary,
-                      onTap: () => context.push('/wallet'),
+                    Consumer(
+                      builder: (context, ref, _) {
+                        final balance = ref.watch(usdcBalanceProvider);
+                        return _buildSettingsItem(
+                          Icons.account_balance_wallet,
+                          'Wallet Balance',
+                          subtitle: '\$${balance.value ?? '0.00'}',
+                          subtitleColor: AppColors.primary,
+                          onTap: () => context.push('/wallet'),
+                        );
+                      },
                     ),
                     _buildDivider(),
                     _buildSettingsItem(
