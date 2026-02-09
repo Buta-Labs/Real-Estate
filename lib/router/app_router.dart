@@ -15,6 +15,7 @@ import 'package:orre_mmc_app/features/marketplace/screens/marketplace_screen.dar
 import 'package:orre_mmc_app/features/ai_advisor/screens/ai_advisor_screen.dart';
 import 'package:orre_mmc_app/features/wallet/screens/wallet_screen.dart';
 import 'package:orre_mmc_app/features/profile/screens/profile_screen.dart';
+import 'package:orre_mmc_app/theme/app_colors.dart';
 import 'package:orre_mmc_app/router/scaffold_with_bottom_nav.dart';
 import 'package:orre_mmc_app/features/documents/screens/documents_screen.dart';
 import 'package:orre_mmc_app/features/referrals/screens/referrals_screen.dart';
@@ -330,7 +331,17 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/risk-assessment',
         builder: (context, state) {
-          final property = state.extra as Property;
+          final property = state.extra as Property?;
+          if (property == null) {
+            // If no property is passed, navigate back
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              context.pop();
+            });
+            return const Scaffold(
+              backgroundColor: AppColors.backgroundDark,
+              body: Center(child: CircularProgressIndicator()),
+            );
+          }
           return RiskAssessmentScreen(property: property);
         },
       ),

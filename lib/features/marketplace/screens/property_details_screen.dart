@@ -818,7 +818,7 @@ class _PropertyDetailsScreenState extends ConsumerState<PropertyDetailsScreen> {
               fontWeight: FontWeight.bold,
             ),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 8),
           GridView.builder(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
@@ -950,7 +950,7 @@ class _PropertyDetailsScreenState extends ConsumerState<PropertyDetailsScreen> {
             fontWeight: FontWeight.bold,
           ),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 8),
         SizedBox(
           height: 140,
           child: ListView.separated(
