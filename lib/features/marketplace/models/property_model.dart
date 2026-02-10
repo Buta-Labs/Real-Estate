@@ -1,20 +1,24 @@
-class PropertySpec {
+class PropertySpecification {
   final String label;
   final String value;
   final String unit;
 
-  PropertySpec({required this.label, required this.value, this.unit = ''});
+  PropertySpecification({
+    required this.label,
+    required this.value,
+    this.unit = '',
+  });
 
-  factory PropertySpec.fromMap(Map<String, dynamic> map) {
-    return PropertySpec(
+  Map<String, dynamic> toMap() {
+    return {'label': label, 'value': value, 'unit': unit};
+  }
+
+  factory PropertySpecification.fromMap(Map<String, dynamic> map) {
+    return PropertySpecification(
       label: map['label'] as String? ?? '',
       value: map['value']?.toString() ?? '',
       unit: map['unit'] as String? ?? '',
     );
-  }
-
-  Map<String, dynamic> toMap() {
-    return {'label': label, 'value': value, 'unit': unit};
   }
 }
 
@@ -27,7 +31,7 @@ class PropertySpecifications {
   final int balconies;
   final int powderRooms;
   final String furnishing;
-  final List<PropertySpec> dynamicSpecs;
+  final List<PropertySpecification> dynamicSpecs;
 
   PropertySpecifications({
     this.sqm = 0.0,
@@ -62,7 +66,9 @@ class PropertySpecifications {
       return PropertySpecifications(
         dynamicSpecs: data
             .map(
-              (item) => PropertySpec.fromMap(Map<String, dynamic>.from(item)),
+              (item) => PropertySpecification.fromMap(
+                Map<String, dynamic>.from(item),
+              ),
             )
             .toList(),
       );
@@ -95,6 +101,14 @@ class PropertySpecifications {
         balconies: safeInt(map['balconies']),
         powderRooms: safeInt(map['powderRooms']),
         furnishing: map['furnishing'] ?? 'Unfurnished',
+        dynamicSpecs: map['dynamicSpecs'] != null
+            ? List<PropertySpecification>.from(
+                (map['dynamicSpecs'] as List).map(
+                  (x) =>
+                      PropertySpecification.fromMap(x as Map<String, dynamic>),
+                ),
+              )
+            : const [],
       );
     }
 
@@ -130,6 +144,7 @@ class Property {
   final double? currentValuation;
   final double? initialValuation;
   final DateTime? lastAppraisalDate;
+
   final String? occupancyStatus;
   final PropertySpecifications specifications;
 
