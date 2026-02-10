@@ -828,7 +828,6 @@ class _PropertyDetailsScreenState extends ConsumerState<PropertyDetailsScreen> {
               crossAxisSpacing: 16,
               mainAxisSpacing: 16,
             ),
-<<<<<<< Updated upstream
             itemCount: roomItems.length,
             itemBuilder: (context, index) {
               final item = roomItems[index];
@@ -850,39 +849,6 @@ class _PropertyDetailsScreenState extends ConsumerState<PropertyDetailsScreen> {
               );
             },
           ),
-=======
-            const SizedBox(height: 16),
-          ],
-          if (widget.property.specifications.isNotEmpty)
-            Wrap(
-              spacing: 24,
-              runSpacing: 16,
-              children: widget.property.specifications.map((spec) {
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      spec.label,
-                      style: const TextStyle(
-                        color: Colors.grey,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      '${spec.value} ${spec.unit}',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 15,
-                      ),
-                    ),
-                  ],
-                );
-              }).toList(),
-            ),
->>>>>>> Stashed changes
         ],
       ),
     );
@@ -922,7 +888,6 @@ class _PropertyDetailsScreenState extends ConsumerState<PropertyDetailsScreen> {
     return Icons.check_circle_outline;
   }
 
-<<<<<<< Updated upstream
   Widget _buildFeatureItem(IconData icon, String label) {
     return Row(
       children: [
@@ -945,23 +910,6 @@ class _PropertyDetailsScreenState extends ConsumerState<PropertyDetailsScreen> {
             color: Colors.grey,
             fontSize: 14,
             fontWeight: FontWeight.w500,
-=======
-  Widget _buildAmenity(IconData icon, String label) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: AppColors.backgroundDark,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
-      ),
-      child: Row(
-        children: [
-          Icon(icon, size: 16, color: AppColors.primary),
-          const SizedBox(width: 8),
-          Text(
-            label,
-            style: const TextStyle(color: Colors.white, fontSize: 12),
->>>>>>> Stashed changes
           ),
         ),
       ],

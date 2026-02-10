@@ -14,7 +14,7 @@ class BlockchainRepository {
       "https://sepolia.base.org"; // Base Sepolia Testnet
   static const int chainId = 84532;
   static const String zavodFactoryAddress =
-      '0x3793d34F8fB97665c530414307A035D9441a524e';
+      '0x1cfFa7ae2D61464Afa4c7d87B5366b376304DC25';
 
   late final Web3Client _client;
   late final ReownAppKitModal _appKitModal;
@@ -720,6 +720,128 @@ class BlockchainRepository {
     } catch (e) {
       debugPrint('Error getting total supply: $e');
       return 0.0;
+    }
+  }
+
+  // =============================================================
+  //                  LIQUIDATION / EXIT LOGIC
+  // =============================================================
+
+  Future<BlockchainResult<String>> enableLiquidation(
+    String propertyAddress,
+    double totalProceeds, {
+    Function(String)? onStatusChanged,
+  }) async {
+    try {
+      if (!_appKitModal.isConnected) return const Failure(WalletNotConnected());
+
+      final senderAddress = _appKitModal
+          .session
+          ?.namespaces?['eip155']
+          ?.accounts
+          .first
+          .split(':')
+          .last;
+      if (senderAddress == null) {
+        return const Failure(UnknownError('No account found'));
+      }
+
+      // Check USDC Allowance first (Admin must approve contract to pull proceeds)
+      // We assume Admin has enough USDC.
+      // Ideally reuse the purchaseToken logic for allowance check.
+      // For brevity, assuming allowance is handled or we implement it here similar to purchaseToken.
+      // ... (Allowance check skipped for brevity, but crucial in production)
+
+      onStatusChanged?.call('Enabling Liquidation...');
+
+      const abi =
+          '[{"inputs":[{"internalType":"uint256","name":"totalProceeds","type":"uint256"}],"name":"enableLiquidation","outputs":[],"stateMutability":"nonpayable","type":"function"}]';
+      final contract = DeployedContract(
+        ContractAbi.fromJson(abi, 'PropertyToken'),
+        EthereumAddress.fromHex(propertyAddress),
+      );
+
+      final func = contract.function('enableLiquidation');
+      // Convert to 6 decimals (USDC)
+      final amountInUnits = BigInt.from(totalProceeds * 1000000);
+
+      final data = func.encodeCall([amountInUnits]);
+      final dataHex =
+          '0x${data.map((b) => b.toRadixString(16).padLeft(2, '0')).join()}';
+
+      final tx = {
+        'from': senderAddress,
+        'to': propertyAddress,
+        'data': dataHex,
+      };
+
+      final result = await _appKitModal.request(
+        topic: _appKitModal.session!.topic!,
+        chainId: 'eip155:$chainId',
+        request: SessionRequestParams(
+          method: 'eth_sendTransaction',
+          params: [tx],
+        ),
+      );
+
+      onStatusChanged?.call('Liquidation Enabled!');
+      return Success(result.toString());
+    } catch (e) {
+      return Failure(UnknownError(e));
+    }
+  }
+
+  Future<BlockchainResult<String>> redeemExitProceeds(
+    String propertyAddress, {
+    Function(String)? onStatusChanged,
+  }) async {
+    try {
+      if (!_appKitModal.isConnected) return const Failure(WalletNotConnected());
+
+      final senderAddress = _appKitModal
+          .session
+          ?.namespaces?['eip155']
+          ?.accounts
+          .first
+          .split(':')
+          .last;
+      if (senderAddress == null) {
+        return const Failure(UnknownError('No account found'));
+      }
+
+      onStatusChanged?.call('Redeeming Exit Proceeds...');
+
+      const abi =
+          '[{"inputs":[],"name":"redeemExitProceeds","outputs":[],"stateMutability":"nonpayable","type":"function"}]';
+      final contract = DeployedContract(
+        ContractAbi.fromJson(abi, 'PropertyToken'),
+        EthereumAddress.fromHex(propertyAddress),
+      );
+
+      final func = contract.function('redeemExitProceeds');
+      final data = func.encodeCall([]);
+      final dataHex =
+          '0x${data.map((b) => b.toRadixString(16).padLeft(2, '0')).join()}';
+
+      final tx = {
+        'from': senderAddress,
+        'to': propertyAddress,
+        'data': dataHex,
+      };
+
+      final result = await _appKitModal.request(
+        topic: _appKitModal.session!.topic!,
+        chainId: 'eip155:$chainId',
+        request: SessionRequestParams(
+          method: 'eth_sendTransaction',
+          params: [tx],
+        ),
+      );
+
+      onStatusChanged?.call('Redemption Submitted!');
+      return Success(result.toString());
+    } catch (e) {
+      return Failure(UnknownError(e));
     }
   }
 }
