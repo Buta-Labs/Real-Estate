@@ -1,3 +1,5 @@
+import 'property_status.dart';
+
 class PropertySpecification {
   final String label;
   final String value;
@@ -144,6 +146,7 @@ class Property {
   final double? currentValuation;
   final double? initialValuation;
   final DateTime? lastAppraisalDate;
+  final PropertyStatus status;
 
   final String? occupancyStatus;
   final PropertySpecifications specifications;
@@ -176,9 +179,76 @@ class Property {
     this.currentValuation,
     this.initialValuation,
     this.lastAppraisalDate,
+    required this.status,
     this.occupancyStatus,
     PropertySpecifications? specifications,
   }) : specifications = specifications ?? PropertySpecifications();
+
+  Property copyWith({
+    String? id,
+    String? title,
+    String? location,
+    double? price,
+    double? yieldRate,
+    int? available,
+    String? imageUrl,
+    String? tag,
+    String? contractAddress,
+    int? tierIndex,
+    String? legalDocHash,
+    String? condition,
+    String? tokenName,
+    String? tokenSymbol,
+    int? rooms,
+    double? totalArea,
+    String? buildingNumber,
+    String? projectId,
+    String? description,
+    List<String>? amenities,
+    List<String>? gallery,
+    String? locationCoordinates,
+    String? videoUrl,
+    int? totalTokens,
+    double? currentValuation,
+    double? initialValuation,
+    DateTime? lastAppraisalDate,
+    PropertyStatus? status,
+    String? occupancyStatus,
+    PropertySpecifications? specifications,
+  }) {
+    return Property(
+      id: id ?? this.id,
+      title: title ?? this.title,
+      location: location ?? this.location,
+      price: price ?? this.price,
+      yieldRate: yieldRate ?? this.yieldRate,
+      available: available ?? this.available,
+      imageUrl: imageUrl ?? this.imageUrl,
+      tag: tag ?? this.tag,
+      contractAddress: contractAddress ?? this.contractAddress,
+      tierIndex: tierIndex ?? this.tierIndex,
+      legalDocHash: legalDocHash ?? this.legalDocHash,
+      condition: condition ?? this.condition,
+      tokenName: tokenName ?? this.tokenName,
+      tokenSymbol: tokenSymbol ?? this.tokenSymbol,
+      rooms: rooms ?? this.rooms,
+      totalArea: totalArea ?? this.totalArea,
+      buildingNumber: buildingNumber ?? this.buildingNumber,
+      projectId: projectId ?? this.projectId,
+      description: description ?? this.description,
+      amenities: amenities ?? this.amenities,
+      gallery: gallery ?? this.gallery,
+      locationCoordinates: locationCoordinates ?? this.locationCoordinates,
+      videoUrl: videoUrl ?? this.videoUrl,
+      totalTokens: totalTokens ?? this.totalTokens,
+      currentValuation: currentValuation ?? this.currentValuation,
+      initialValuation: initialValuation ?? this.initialValuation,
+      lastAppraisalDate: lastAppraisalDate ?? this.lastAppraisalDate,
+      status: status ?? this.status,
+      occupancyStatus: occupancyStatus ?? this.occupancyStatus,
+      specifications: specifications ?? this.specifications,
+    );
+  }
 
   Map<String, dynamic> toMap() {
     return {
@@ -210,6 +280,7 @@ class Property {
       'lastAppraisalDate': lastAppraisalDate?.toIso8601String(),
       'occupancyStatus': occupancyStatus,
       'specifications': specifications.toMap(),
+      'status': status.name,
     };
   }
 
@@ -265,6 +336,7 @@ class Property {
       lastAppraisalDate: map['lastAppraisalDate'] != null
           ? DateTime.tryParse(map['lastAppraisalDate'] as String)
           : null,
+      status: PropertyStatusExtension.fromString(map['status'] ?? ''),
       occupancyStatus: map['occupancyStatus'],
       specifications: PropertySpecifications.fromMap(map['specifications']),
     );

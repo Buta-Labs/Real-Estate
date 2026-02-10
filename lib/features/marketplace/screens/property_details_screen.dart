@@ -9,6 +9,7 @@ import 'package:orre_mmc_app/theme/app_colors.dart';
 import 'package:orre_mmc_app/shared/screens/full_screen_gallery_screen.dart';
 
 import 'package:orre_mmc_app/features/marketplace/models/property_model.dart';
+import 'package:orre_mmc_app/features/marketplace/models/property_status.dart';
 import 'package:orre_mmc_app/features/marketplace/widgets/documents_tab.dart';
 import 'package:orre_mmc_app/features/marketplace/widgets/financials_tab.dart';
 import 'package:orre_mmc_app/features/marketplace/repositories/investment_repository.dart';
@@ -357,7 +358,9 @@ class _PropertyDetailsScreenState extends ConsumerState<PropertyDetailsScreen> {
               Expanded(
                 child: _buildStatItem(
                   'Yield',
-                  '${widget.property.yieldRate}%',
+                  widget.property.status == PropertyStatus.comingSoon
+                      ? 'TBA'
+                      : '${widget.property.yieldRate}%',
                   valueColor: AppColors.primary,
                 ),
               ),
@@ -370,8 +373,10 @@ class _PropertyDetailsScreenState extends ConsumerState<PropertyDetailsScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                widget.property.available > 0
+                widget.property.status == PropertyStatus.active
                     ? "Open for Investment"
+                    : widget.property.status == PropertyStatus.comingSoon
+                    ? "Opening Soon"
                     : "Sold Out",
                 style: const TextStyle(
                   color: Colors.white,
@@ -1284,13 +1289,44 @@ class _PropertyDetailsScreenState extends ConsumerState<PropertyDetailsScreen> {
                 ),
               ),
               ElevatedButton.icon(
-                onPressed: () =>
-                    context.push('/checkout', extra: widget.property),
-                icon: const Text('Buy Tokens'),
-                label: const Icon(Icons.arrow_forward, size: 16),
+                onPressed: widget.property.status == PropertyStatus.soldOut
+                    ? null
+                    : widget.property.status == PropertyStatus.comingSoon
+                    ? () {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Waitlist Joined'),
+                            behavior: SnackBarBehavior.floating,
+                          ),
+                        );
+                      }
+                    : () => context.push('/checkout', extra: widget.property),
+                icon: Text(
+                  widget.property.status == PropertyStatus.active
+                      ? 'Buy Tokens'
+                      : widget.property.status == PropertyStatus.comingSoon
+                      ? 'Notify Me'
+                      : 'Sold Out',
+                ),
+                label: Icon(
+                  widget.property.status == PropertyStatus.active
+                      ? Icons.arrow_forward
+                      : widget.property.status == PropertyStatus.comingSoon
+                      ? Icons.notifications_none
+                      : Icons.block,
+                  size: 16,
+                ),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  foregroundColor: Colors.white,
+                  backgroundColor:
+                      widget.property.status == PropertyStatus.active
+                      ? AppColors.primary
+                      : widget.property.status == PropertyStatus.comingSoon
+                      ? Colors.grey[700]
+                      : Colors.grey[800],
+                  foregroundColor:
+                      widget.property.status == PropertyStatus.active
+                      ? Colors.black
+                      : Colors.white,
                   padding: const EdgeInsets.symmetric(
                     horizontal: 24,
                     vertical: 12,

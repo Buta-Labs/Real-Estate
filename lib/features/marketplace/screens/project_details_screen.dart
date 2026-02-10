@@ -8,6 +8,7 @@ import 'package:orre_mmc_app/features/marketplace/models/project_model.dart';
 import 'package:orre_mmc_app/features/marketplace/models/property_model.dart';
 import 'package:orre_mmc_app/features/marketplace/repositories/property_repository.dart';
 import 'package:orre_mmc_app/features/marketplace/widgets/property_card.dart';
+import 'package:orre_mmc_app/features/marketplace/models/property_status.dart';
 import 'package:orre_mmc_app/features/marketplace/widgets/project_video_player.dart';
 
 import 'package:orre_mmc_app/theme/app_colors.dart';
@@ -269,13 +270,19 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
                       vertical: 4,
                     ),
                     decoration: BoxDecoration(
-                      color: AppColors.primary,
+                      color: widget.project.status == PropertyStatus.active
+                          ? AppColors.primary
+                          : widget.project.status == PropertyStatus.comingSoon
+                          ? Colors.orange
+                          : Colors.grey,
                       borderRadius: BorderRadius.circular(4),
                     ),
                     child: Text(
-                      widget.project.status.toUpperCase(),
-                      style: const TextStyle(
-                        color: Colors.black,
+                      widget.project.status.displayName.toUpperCase(),
+                      style: TextStyle(
+                        color: widget.project.status == PropertyStatus.active
+                            ? Colors.black
+                            : Colors.white,
                         fontSize: 10,
                         fontWeight: FontWeight.bold,
                       ),
@@ -414,7 +421,7 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
                     style: TextStyle(color: Colors.grey, fontSize: 12),
                   ),
                   Text(
-                    widget.project.status,
+                    widget.project.status.displayName,
                     style: const TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.bold,

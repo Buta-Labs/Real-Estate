@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:orre_mmc_app/features/marketplace/models/project_model.dart';
+import 'package:orre_mmc_app/features/marketplace/models/property_status.dart';
 import 'package:orre_mmc_app/theme/app_colors.dart';
 
 class ProjectCard extends StatelessWidget {
@@ -59,13 +60,19 @@ class ProjectCard extends StatelessWidget {
                         vertical: 4,
                       ),
                       decoration: BoxDecoration(
-                        color: AppColors.primary,
+                        color: project.status == PropertyStatus.active
+                            ? AppColors.primary
+                            : project.status == PropertyStatus.comingSoon
+                            ? Colors.orange
+                            : Colors.grey,
                         borderRadius: BorderRadius.circular(6),
                       ),
                       child: Text(
-                        project.status.toUpperCase(),
-                        style: const TextStyle(
-                          color: Colors.black,
+                        project.status.displayName.toUpperCase(),
+                        style: TextStyle(
+                          color: project.status == PropertyStatus.active
+                              ? Colors.black
+                              : Colors.white,
                           fontSize: 10,
                           fontWeight: FontWeight.bold,
                         ),

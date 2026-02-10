@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'package:orre_mmc_app/features/marketplace/models/property_status.dart';
 import 'package:orre_mmc_app/theme/app_colors.dart';
 import 'package:orre_mmc_app/features/marketplace/widgets/property_card.dart';
 import 'package:orre_mmc_app/features/marketplace/widgets/project_card.dart';
@@ -455,6 +456,24 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
               filteredProperties.sort((a, b) => a.price.compareTo(b.price));
             }
 
+            // Standard status sorting: Active > Coming Soon > Sold Out
+            filteredProperties.sort((a, b) {
+              final statusOrder = {
+                PropertyStatus.active: 0,
+                PropertyStatus.comingSoon: 1,
+                PropertyStatus.soldOut: 2,
+                PropertyStatus.hidden: 3,
+              };
+              return (statusOrder[a.status] ?? 3).compareTo(
+                statusOrder[b.status] ?? 3,
+              );
+            });
+
+            // Hide hidden items
+            filteredProperties = filteredProperties
+                .where((p) => p.status != PropertyStatus.hidden)
+                .toList();
+
             // Grid or List view
             if (_isGridView) {
               return _buildPropertyGrid(filteredProperties);
@@ -481,6 +500,7 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
                   rawPrice: property.price,
                   onTap: () =>
                       context.push('/property-details', extra: property),
+                  status: property.status,
                 );
               }, childCount: filteredProperties.length + 1),
             );
@@ -552,19 +572,38 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
               );
             }
 
+            // Apply status sorting: Active > Coming Soon > Sold Out
+            var sortedProjects = List<Project>.from(projects);
+            sortedProjects.sort((a, b) {
+              final statusOrder = {
+                PropertyStatus.active: 0,
+                PropertyStatus.comingSoon: 1,
+                PropertyStatus.soldOut: 2,
+                PropertyStatus.hidden: 3,
+              };
+              return (statusOrder[a.status] ?? 3).compareTo(
+                statusOrder[b.status] ?? 3,
+              );
+            });
+
+            // Hide hidden projects
+            sortedProjects = sortedProjects
+                .where((p) => p.status != PropertyStatus.hidden)
+                .toList();
+
             // Grid or List view
             if (_isGridView) {
-              return _buildProjectGrid(projects);
+              return _buildProjectGrid(sortedProjects);
             }
 
             return SliverList(
               delegate: SliverChildBuilderDelegate((context, index) {
-                if (index == projects.length) {
+                if (index == sortedProjects.length) {
                   return const SizedBox(height: 100);
                 }
-                final project = projects[index];
+                final project = sortedProjects[index];
                 return ProjectCard(project: project);
-              }, childCount: projects.length + 1),
+              }, childCount: sortedProjects.length + 1),
             );
           },
           loading: () => const SliverToBoxAdapter(
@@ -636,19 +675,48 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
                             vertical: 3,
                           ),
                           decoration: BoxDecoration(
-                            color: AppColors.primary,
+                            color: project.status == PropertyStatus.active
+                                ? AppColors.primary
+                                : project.status == PropertyStatus.comingSoon
+                                ? Colors.orange
+                                : Colors.grey,
                             borderRadius: BorderRadius.circular(4),
                           ),
                           child: Text(
-                            project.status.toUpperCase(),
-                            style: const TextStyle(
-                              color: Colors.black,
+                            project.status.displayName.toUpperCase(),
+                            style: TextStyle(
+                              color: project.status == PropertyStatus.active
+                                  ? Colors.black
+                                  : Colors.white,
                               fontSize: 9,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
                         ),
                       ),
+                      if (project.status == PropertyStatus.comingSoon)
+                        Positioned(
+                          top: 6,
+                          left: 6,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 3,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.black,
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: const Text(
+                              'COMING SOON',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 9,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ),
                     ],
                   ),
                   // Content

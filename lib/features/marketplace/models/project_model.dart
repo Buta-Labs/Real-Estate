@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'property_status.dart';
 
 class Project {
   final String id;
@@ -9,7 +10,7 @@ class Project {
   final String locationCoordinates;
   final String logo;
   final String type;
-  final String status;
+  final PropertyStatus status;
   final int floors;
   final int totalUnits;
   final String areaRange;
@@ -35,6 +36,42 @@ class Project {
     this.videoUrl = '',
   });
 
+  Project copyWith({
+    String? id,
+    String? name,
+    String? location,
+    String? description,
+    String? heroImage,
+    String? locationCoordinates,
+    String? logo,
+    String? type,
+    PropertyStatus? status,
+    int? floors,
+    int? totalUnits,
+    String? areaRange,
+    List<String>? gallery,
+    List<String>? amenities,
+    String? videoUrl,
+  }) {
+    return Project(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      location: location ?? this.location,
+      description: description ?? this.description,
+      heroImage: heroImage ?? this.heroImage,
+      locationCoordinates: locationCoordinates ?? this.locationCoordinates,
+      logo: logo ?? this.logo,
+      type: type ?? this.type,
+      status: status ?? this.status,
+      floors: floors ?? this.floors,
+      totalUnits: totalUnits ?? this.totalUnits,
+      areaRange: areaRange ?? this.areaRange,
+      gallery: gallery ?? this.gallery,
+      amenities: amenities ?? this.amenities,
+      videoUrl: videoUrl ?? this.videoUrl,
+    );
+  }
+
   factory Project.fromMap(String id, Map<String, dynamic> map) {
     return Project(
       id: id,
@@ -45,7 +82,7 @@ class Project {
       locationCoordinates: map['locationCoordinates'] ?? '',
       logo: map['logo'] ?? '',
       type: map['type'] ?? 'Apartments',
-      status: map['status'] ?? 'On Sale',
+      status: PropertyStatusExtension.fromString(map['status'] ?? ''),
       floors: map['floors'] is int
           ? map['floors']
           : int.tryParse(map['floors'].toString()) ?? 0,
@@ -72,7 +109,7 @@ class Project {
       'locationCoordinates': locationCoordinates,
       'logo': logo,
       'type': type,
-      'status': status,
+      'status': status.name,
       'floors': floors,
       'totalUnits': totalUnits,
       'areaRange': areaRange,

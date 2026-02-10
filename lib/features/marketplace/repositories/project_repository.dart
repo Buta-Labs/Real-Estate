@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/foundation.dart';
+import 'package:orre_mmc_app/features/marketplace/models/property_status.dart';
 import 'package:orre_mmc_app/features/marketplace/models/project_model.dart';
 
 final projectRepositoryProvider = Provider<ProjectRepository>((ref) {
@@ -53,7 +54,7 @@ class ProjectRepository {
         locationCoordinates: '25.0772, 55.1328',
         logo: '',
         type: 'Apartments',
-        status: 'On Sale',
+        status: PropertyStatus.active,
         floors: 45,
         totalUnits: 120,
         areaRange: '80-250 m²',
@@ -73,7 +74,7 @@ class ProjectRepository {
         locationCoordinates: '51.5074, -0.1278',
         logo: '',
         type: 'Villas',
-        status: 'Under Construction',
+        status: PropertyStatus.active,
         floors: 3,
         totalUnits: 40,
         areaRange: '150-400 m²',

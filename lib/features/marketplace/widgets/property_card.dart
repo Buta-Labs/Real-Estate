@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:orre_mmc_app/theme/app_colors.dart';
 import 'package:orre_mmc_app/features/marketplace/domain/stay_logic.dart';
+import 'package:orre_mmc_app/features/marketplace/models/property_status.dart';
 
 class PropertyCard extends StatelessWidget {
   final String title;
@@ -17,6 +18,7 @@ class PropertyCard extends StatelessWidget {
   final double totalArea;
   final double rawPrice;
   final VoidCallback onTap;
+  final PropertyStatus status;
 
   const PropertyCard({
     super.key,
@@ -33,6 +35,7 @@ class PropertyCard extends StatelessWidget {
     this.rooms = 0,
     this.totalArea = 0.0,
     this.rawPrice = 0.0,
+    this.status = PropertyStatus.active,
   });
 
   String _getTierLabel(int index) {
@@ -93,7 +96,30 @@ class PropertyCard extends StatelessWidget {
                       ),
                     ),
                   ),
-                  if (tag != null)
+                  if (status == PropertyStatus.comingSoon)
+                    Positioned(
+                      top: 8,
+                      left: 8,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.black,
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: const Text(
+                          'COMING SOON',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    )
+                  else if (tag != null)
                     Positioned(
                       top: 8,
                       left: 8,
@@ -128,9 +154,7 @@ class PropertyCard extends StatelessWidget {
                                 vertical: 4,
                               ),
                               decoration: BoxDecoration(
-                                color: AppColors.primary.withValues(
-                                  alpha: 0.8,
-                                ), // Greenish
+                                color: AppColors.primary.withValues(alpha: 0.8),
                                 borderRadius: BorderRadius.circular(6),
                                 border: Border.all(
                                   color: Colors.white.withValues(alpha: 0.1),
@@ -380,18 +404,39 @@ class PropertyCard extends StatelessWidget {
                         ],
                       ),
                       ElevatedButton(
-                        onPressed: onTap,
+                        onPressed: status == PropertyStatus.soldOut
+                            ? null
+                            : status == PropertyStatus.comingSoon
+                            ? () {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('Waitlist Joined'),
+                                    behavior: SnackBarBehavior.floating,
+                                  ),
+                                );
+                              }
+                            : onTap,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.primary,
-                          foregroundColor: Colors.black,
+                          backgroundColor: status == PropertyStatus.active
+                              ? AppColors.primary
+                              : status == PropertyStatus.comingSoon
+                              ? Colors.grey[700]
+                              : Colors.grey[800],
+                          foregroundColor: status == PropertyStatus.active
+                              ? Colors.black
+                              : Colors.white,
                           padding: const EdgeInsets.symmetric(horizontal: 16),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8),
                           ),
                         ),
-                        child: const Text(
-                          'Buy',
-                          style: TextStyle(fontWeight: FontWeight.bold),
+                        child: Text(
+                          status == PropertyStatus.active
+                              ? 'Buy'
+                              : status == PropertyStatus.comingSoon
+                              ? 'Notify Me'
+                              : 'Sold Out',
+                          style: const TextStyle(fontWeight: FontWeight.bold),
                         ),
                       ),
                     ],

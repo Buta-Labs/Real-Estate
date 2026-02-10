@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/foundation.dart';
+import 'package:orre_mmc_app/features/marketplace/models/property_status.dart';
 import 'package:orre_mmc_app/features/marketplace/models/property_model.dart';
 import 'package:orre_mmc_app/core/blockchain/blockchain_repository.dart';
 
@@ -84,6 +85,7 @@ class PropertyRepository {
         ],
         totalArea: 450.0,
         locationCoordinates: '25.0772, 55.1328',
+        status: PropertyStatus.active,
       ),
       Property(
         id: '',
@@ -105,6 +107,7 @@ class PropertyRepository {
         ],
         totalArea: 280.0,
         locationCoordinates: '51.4826, -0.0077',
+        status: PropertyStatus.active,
       ),
       Property(
         id: '',
@@ -126,6 +129,7 @@ class PropertyRepository {
         ],
         totalArea: 120.0,
         locationCoordinates: '1.2823, 103.8585',
+        status: PropertyStatus.active,
       ),
     ];
 
