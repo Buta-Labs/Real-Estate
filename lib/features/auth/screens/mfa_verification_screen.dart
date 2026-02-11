@@ -140,40 +140,58 @@ class _MfaVerificationScreenState extends ConsumerState<MfaVerificationScreen> {
               context.go('/login'), // If they cancel, go back to login
         ),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Two-Step Verification',
-              style: GoogleFonts.manrope(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              hintText,
-              style: GoogleFonts.manrope(fontSize: 14, color: Colors.grey[400]),
-            ),
-            const SizedBox(height: 32),
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          return SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            child: ConstrainedBox(
+              constraints: BoxConstraints(minHeight: constraints.maxHeight),
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Two-Step Verification',
+                      style: GoogleFonts.manrope(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      hintText,
+                      style: GoogleFonts.manrope(
+                        fontSize: 14,
+                        color: Colors.grey[400],
+                      ),
+                    ),
+                    const SizedBox(height: 32),
 
-            if (!_isCodeSent) ...[
-              Text(
-                'Click below to send the verification code.',
-                style: TextStyle(color: Colors.grey[400]),
+                    if (!_isCodeSent) ...[
+                      Text(
+                        'Click below to send the verification code.',
+                        style: TextStyle(color: Colors.grey[400]),
+                      ),
+                      const SizedBox(height: 24),
+                      _buildButton('Send SMS Code', _sendCode),
+                    ] else ...[
+                      _buildInputField(
+                        'SMS CODE',
+                        Icons.lock_clock,
+                        _codeController,
+                      ),
+                      const SizedBox(height: 24),
+                      _buildButton('Verify', _verifyCode),
+                    ],
+                  ],
+                ),
               ),
-              const SizedBox(height: 24),
-              _buildButton('Send SMS Code', _sendCode),
-            ] else ...[
-              _buildInputField('SMS CODE', Icons.lock_clock, _codeController),
-              const SizedBox(height: 24),
-              _buildButton('Verify', _verifyCode),
-            ],
-          ],
-        ),
+            ),
+          );
+        },
       ),
     );
   }
@@ -228,7 +246,27 @@ class _MfaVerificationScreenState extends ConsumerState<MfaVerificationScreen> {
           ),
         ),
         child: _isLoading
-            ? const CircularProgressIndicator(color: Colors.black)
+            ? Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Colors.black,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Text(
+                    'Processing...',
+                    style: GoogleFonts.manrope(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
+                  ),
+                ],
+              )
             : Text(
                 text,
                 style: GoogleFonts.manrope(
