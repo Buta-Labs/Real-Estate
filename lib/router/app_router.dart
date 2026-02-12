@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:orre_mmc_app/features/auth/repositories/auth_repository.dart';
 import 'package:orre_mmc_app/features/auth/screens/login_screen.dart';
+import 'package:orre_mmc_app/features/onboarding/screens/splash_screen.dart';
 import 'package:orre_mmc_app/features/auth/screens/phone_login_screen.dart';
 import 'package:orre_mmc_app/features/auth/screens/complete_profile_screen.dart';
 import 'package:orre_mmc_app/features/auth/screens/mfa_enrollment_screen.dart';
@@ -114,11 +115,15 @@ class MfaNotifier extends Notifier<bool?> {
 final routerProvider = Provider<GoRouter>((ref) {
   return GoRouter(
     navigatorKey: rootNavigatorKey,
-    initialLocation: '/login', // Start at login
+    initialLocation: '/splash', // Start at splash
     refreshListenable: GoRouterRefreshStream(
       ref.read(authRepositoryProvider).authStateChanges(),
     ),
     routes: [
+      GoRoute(
+        path: '/splash',
+        builder: (context, state) => const SplashScreen(),
+      ),
       GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
       GoRoute(
         path: '/phone-login',
@@ -426,6 +431,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       final isPhoneLogin = state.matchedLocation == '/phone-login';
       final isMfaEnrollment = state.matchedLocation == '/mfa-enrollment';
       final isCompleteProfile = state.matchedLocation == '/complete-profile';
+      final isSplash = state.matchedLocation == '/splash';
+
+      // Always allow splash
+      if (isSplash) return null;
 
       if (user == null) {
         // IMPORTANT: Allow /mfa-verification even if user is null
@@ -481,6 +490,8 @@ final routerProvider = Provider<GoRouter>((ref) {
       if (isLoggingIn || isSigningUp || isPhoneLogin) {
         return '/dashboard';
       }
+
+      // Note: We don't redirect from splash here because splash handles its own navigation
 
       return null;
     },
