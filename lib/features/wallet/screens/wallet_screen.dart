@@ -14,8 +14,6 @@ class WalletScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final currency = ref.watch(walletCurrencyProvider);
-
     return Scaffold(
       backgroundColor: AppColors.backgroundDark,
       body: Stack(
@@ -63,11 +61,7 @@ class WalletScreen extends ConsumerWidget {
                 children: [
                   _buildHeader(context, ref),
                   const SizedBox(height: 24),
-                  _buildCurrencyToggle(ref, currency),
-                  const SizedBox(height: 24),
-                  _buildBalanceCard(currency),
-                  const SizedBox(height: 16),
-                  _buildActionButtons(context),
+                  _buildBalanceCard(),
                   const SizedBox(height: 32),
                   _buildRecentActivity(ref),
                   const SizedBox(height: 100), // Bottom padding for scrolling
@@ -172,73 +166,7 @@ class WalletScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildCurrencyToggle(WidgetRef ref, String currentCurrency) {
-    return Center(
-      child: Container(
-        height: 40,
-        padding: const EdgeInsets.all(4),
-        decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.05),
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            _buildCurrencyButton(
-              ref,
-              label: 'USDT',
-              isActive: currentCurrency == 'USDT',
-            ),
-            _buildCurrencyButton(
-              ref,
-              label: 'USDC',
-              isActive: currentCurrency == 'USDC',
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildCurrencyButton(
-    WidgetRef ref, {
-    required String label,
-    required bool isActive,
-  }) {
-    return GestureDetector(
-      onTap: () => ref.read(walletCurrencyProvider.notifier).setCurrency(label),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 6),
-        decoration: BoxDecoration(
-          color: isActive ? AppColors.primary : Colors.transparent,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: isActive
-              ? [
-                  BoxShadow(
-                    color: AppColors.primary.withValues(alpha: 0.2),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
-                  ),
-                ]
-              : null,
-        ),
-        child: Text(
-          label,
-          style: TextStyle(
-            color: isActive
-                ? Colors.black
-                : Colors.white.withValues(alpha: 0.6),
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildBalanceCard(String currency) {
+  Widget _buildBalanceCard() {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: 0.05),
@@ -308,16 +236,10 @@ class WalletScreen extends ConsumerWidget {
                     Expanded(
                       child: Consumer(
                         builder: (context, ref, child) {
-                          final balanceAsync = ref.watch(
-                            activeTokenBalanceProvider,
-                          );
+                          final balanceAsync = ref.watch(usdcBalanceProvider);
                           return balanceAsync.when(
-                            data: (val) => _buildSubBalance(
-                              '\$$val',
-                              'INVESTABLE',
-                              Colors.black.withValues(alpha: 0.2),
-                              AppColors.primary,
-                            ),
+                            data: (val) =>
+                                _buildSubBalance('\$$val', 'INVESTABLE'),
                             loading: () => const Center(
                               child: SizedBox(
                                 height: 20,
@@ -327,12 +249,8 @@ class WalletScreen extends ConsumerWidget {
                                 ),
                               ),
                             ),
-                            error: (_, _) => _buildSubBalance(
-                              '\$0.00',
-                              'INVESTABLE',
-                              Colors.black.withValues(alpha: 0.2),
-                              AppColors.primary,
-                            ),
+                            error: (_, _) =>
+                                _buildSubBalance('\$0.00', 'INVESTABLE'),
                           );
                         },
                       ),
@@ -341,16 +259,10 @@ class WalletScreen extends ConsumerWidget {
                     Expanded(
                       child: Consumer(
                         builder: (context, ref, child) {
-                          final balanceAsync = ref.watch(
-                            activeTokenBalanceProvider,
-                          );
+                          final balanceAsync = ref.watch(usdcBalanceProvider);
                           return balanceAsync.when(
-                            data: (val) => _buildSubBalance(
-                              '\$$val',
-                              'WITHDRAWABLE',
-                              Colors.black.withValues(alpha: 0.2),
-                              Colors.white.withValues(alpha: 0.6),
-                            ),
+                            data: (val) =>
+                                _buildSubBalance('\$$val', 'WITHDRAWABLE'),
                             loading: () => const Center(
                               child: SizedBox(
                                 height: 20,
@@ -360,12 +272,8 @@ class WalletScreen extends ConsumerWidget {
                                 ),
                               ),
                             ),
-                            error: (_, _) => _buildSubBalance(
-                              '\$0.00',
-                              'WITHDRAWABLE',
-                              Colors.black.withValues(alpha: 0.2),
-                              Colors.white.withValues(alpha: 0.6),
-                            ),
+                            error: (_, _) =>
+                                _buildSubBalance('\$0.00', 'WITHDRAWABLE'),
                           );
                         },
                       ),
@@ -380,12 +288,12 @@ class WalletScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildSubBalance(
-    String amount,
-    String label,
-    Color bgColor,
-    Color labelColor,
-  ) {
+  Widget _buildSubBalance(String amount, String label) {
+    Color bgColor = Colors.black.withValues(alpha: 0.2);
+    Color labelColor = label == 'INVESTABLE'
+        ? AppColors.primary
+        : Colors.white.withValues(alpha: 0.6);
+
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -415,59 +323,6 @@ class WalletScreen extends ConsumerWidget {
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildActionButtons(BuildContext context) {
-    return Row(
-      children: [
-        Expanded(
-          child: ElevatedButton(
-            onPressed: () => context.push('/deposit'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
-              foregroundColor: AppColors.backgroundDark,
-              elevation: 0,
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
-              shadowColor: AppColors.primary.withValues(alpha: 0.4),
-            ),
-            child: const Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.add_card, size: 20),
-                SizedBox(width: 8),
-                Text('Deposit', style: TextStyle(fontWeight: FontWeight.bold)),
-              ],
-            ),
-          ),
-        ),
-        const SizedBox(width: 16),
-        Expanded(
-          child: OutlinedButton(
-            onPressed: () => context.push('/withdraw'),
-            style: OutlinedButton.styleFrom(
-              foregroundColor: Colors.white,
-              backgroundColor: Colors.white.withValues(alpha: 0.05),
-              side: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
-            ),
-            child: const Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.arrow_outward, size: 20),
-                SizedBox(width: 8),
-                Text('Withdraw', style: TextStyle(fontWeight: FontWeight.bold)),
-              ],
-            ),
-          ),
-        ),
-      ],
     );
   }
 

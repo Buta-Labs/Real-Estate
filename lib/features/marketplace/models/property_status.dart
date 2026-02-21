@@ -33,6 +33,8 @@ extension PropertyStatusExtension on PropertyStatus {
   }
 
   static PropertyStatus fromString(String status) {
+    if (status.isEmpty) return PropertyStatus.active; // Fallback for old data
+
     switch (status.toLowerCase()) {
       case 'active':
       case 'on sale':

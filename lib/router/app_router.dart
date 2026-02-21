@@ -24,8 +24,6 @@ import 'package:orre_mmc_app/features/learning/screens/learning_screen.dart';
 import 'package:orre_mmc_app/features/dashboard/screens/insights_screen.dart';
 import 'package:orre_mmc_app/features/governance/screens/governance_screen.dart';
 import 'package:orre_mmc_app/features/analytics/screens/analytics_screen.dart';
-import 'package:orre_mmc_app/features/wallet/screens/deposit_screen.dart';
-import 'package:orre_mmc_app/features/wallet/screens/withdraw_screen.dart';
 import 'package:orre_mmc_app/features/profile/screens/security_settings_screen.dart';
 
 import 'package:orre_mmc_app/features/profile/screens/digital_key_screen.dart';
@@ -204,14 +202,6 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/analytics',
         builder: (context, state) => const AnalyticsScreen(),
-      ),
-      GoRoute(
-        path: '/deposit',
-        builder: (context, state) => const DepositScreen(),
-      ),
-      GoRoute(
-        path: '/withdraw',
-        builder: (context, state) => const WithdrawScreen(),
       ),
       GoRoute(
         path: '/security-settings',

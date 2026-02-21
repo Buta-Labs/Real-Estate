@@ -16,7 +16,7 @@ class DashboardScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final pinnedViews = ref.watch(pinnedViewsProvider);
     final userAsync = ref.watch(userProvider);
-    final walletBalanceAsync = ref.watch(walletBalanceProvider);
+    final walletBalanceAsync = ref.watch(usdcBalanceProvider);
 
     final user = userAsync.value;
     final displayName =
@@ -212,7 +212,7 @@ class DashboardScreen extends ConsumerWidget {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        '$balance ETH',
+                        '\$$balance USDC',
                         style: GoogleFonts.manrope(
                           fontSize: 36,
                           fontWeight: FontWeight.bold,

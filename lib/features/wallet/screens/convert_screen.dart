@@ -216,7 +216,7 @@ class ConvertScreen extends StatelessWidget {
                     ),
                     SizedBox(width: 8),
                     Text(
-                      'USDT',
+                      'USDC',
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 16,
@@ -280,7 +280,7 @@ class ConvertScreen extends StatelessWidget {
       ),
       child: Column(
         children: [
-          _buildDetailRow('Exchange Rate', '1 USDT = 1.00 USD'),
+          _buildDetailRow('Exchange Rate', '1 USDC = 1.00 USD'),
           const SizedBox(height: 12),
           _buildDetailRow('Service Fee (0.5%)', '5.00 USD'),
           const SizedBox(height: 12),
@@ -294,7 +294,7 @@ class ConvertScreen extends StatelessWidget {
                 style: TextStyle(fontWeight: FontWeight.bold),
               ),
               Text(
-                '995.00 USDT',
+                '995.00 USDC',
                 style: TextStyle(
                   color: AppColors.primary,
                   fontWeight: FontWeight.bold,
@@ -353,7 +353,7 @@ class ConvertScreen extends StatelessWidget {
               ),
             ),
             child: const Text(
-              'BUY USDT',
+              'BUY USDC',
               style: TextStyle(fontWeight: FontWeight.w900, fontSize: 18),
             ),
           ),

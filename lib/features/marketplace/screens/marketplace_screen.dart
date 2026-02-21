@@ -50,7 +50,7 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
                   pinned: true,
                   leading: IconButton(
                     icon: const Icon(Icons.arrow_back),
-                    onPressed: () {}, // Ideally go back
+                    onPressed: () => context.pop(),
                   ),
                   title: const Text(
                     'Marketplace',

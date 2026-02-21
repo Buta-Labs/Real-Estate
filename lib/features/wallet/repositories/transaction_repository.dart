@@ -20,7 +20,7 @@ class TransactionRepository {
     required String uid,
     required String type, // 'deposit', 'withdraw', 'invest', 'sell'
     required double amount,
-    required String currency, // 'USDT', 'USDC', 'USD'
+    required String currency, // 'USDC', 'USD'
     String status = 'completed',
     String? hash,
     String? description,
